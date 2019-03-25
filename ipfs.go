@@ -9,7 +9,7 @@ import (
 	"os/exec"
 )
 
-func RunIPFS(ctx context.Context, command string, path string, options ...string) (e error) {
+func RunIPFS(ctx context.Context, path string, command string, options ...string) (e error) {
 	cmd := exec.CommandContext(ctx, command, options...)
 	e = os.Setenv("IPFS_PATH", path)
 	if e != nil {

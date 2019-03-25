@@ -2,7 +2,7 @@ package seed
 
 import (
 	"github.com/ipfs/go-ipfs-api"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var sh = shell.NewShell("localhost:5001")
@@ -12,7 +12,7 @@ func AddDir(dir string) (e error) {
 	if e != nil {
 		return e
 	}
-	logrus.Info(s)
+	log.Info(s)
 	return nil
 }
 
@@ -21,6 +21,6 @@ func Dir(path string) (e error) {
 	if e != nil {
 		return e
 	}
-	logrus.Infof("%+v", links)
+	log.Infof("%+v", links)
 	return nil
 }

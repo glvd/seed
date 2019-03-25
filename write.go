@@ -1,1 +1,5 @@
 package seed
+
+func w() {
+
+}

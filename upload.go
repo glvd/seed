@@ -1,6 +1,7 @@
 package seed
 
 import (
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
 
@@ -20,8 +21,9 @@ func Upload(source *VideoSource) (e error) {
 	}
 	ls, e := List(prefix(s))
 	for _, v := range ls {
-		v.
+		log.Info(v)
 	}
+	return nil
 }
 
 func Load(path string) []*VideoSource {

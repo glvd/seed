@@ -10,7 +10,7 @@ func AddDir(dir string) (s string, e error) {
 	return sh.AddDir(dir)
 }
 
-func AddFile(target string) {
+func AddFile(target string) (s string, e error) {
 	return sh.AddLink(target)
 }
 

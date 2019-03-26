@@ -1,7 +1,6 @@
 package seed
 
 import (
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 )
 
@@ -15,14 +14,26 @@ func Upload(source *VideoSource) (e error) {
 		return xerrors.New("nil source")
 	}
 
-	s, e := AddDir(source.FilePath)
-	if e != nil {
-		return e
+	video := NewVideo(source)
+	if source.PosterPath != "" {
+		s, e := AddFile(source.PosterPath)
+		if e != nil {
+			return e
+		}
+		video.VideoInfo.Poster = s
 	}
-	ls, e := List(prefix(s))
-	for _, v := range ls {
-		log.Info(v)
+
+	for _, v := range source.FilePath {
+		if source.Slice {
+			//TODO:Slice
+		}
+		s, e := AddFile(v)
+		if e != nil {
+			return e
+		}
+
 	}
+
 	return nil
 }
 

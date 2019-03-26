@@ -1,5 +1,0 @@
-package seed
-
-func w() {
-
-}

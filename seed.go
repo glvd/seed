@@ -16,12 +16,13 @@ type HLS struct {
 type VideoSource struct {
 	Bangumi    string    `json:"bangumi"`               //番号
 	FilePath   []string  `json:"file_path"`             //存放路径
-	SliceHLS   bool      `json:"slice_hls"`             //是否HLS切片
+	Slice      bool      `json:"slice"`                 //是否HLS切片
 	HLS        HLS       `json:"hls,omitempty"`         //HLS信息
 	PosterPath string    `json:"poster_path,omitempty"` //海报路径
 	ExtendList []*Extend `json:"extend_list,omitempty"` //扩展信息
 	Role       []string  `json:"role,omitempty"`        //角色列表
 	Sharpness  string    `json:"sharpness,omitempty"`   //清晰度
+	Group      string    `json:"group"`                 //分组
 	Publish    string    `json:"publish,omitempty"`     //发布日期
 } //上传视频JSON配置
 
@@ -33,10 +34,11 @@ type VideoLink struct {
 } //视频IPFS地址信息
 
 type VideoGroup struct {
-	Sharpness string       `json:"sharpness"`  //清晰度
-	Sliced    bool         `json:"sliced"`     //切片
-	VideoLink VideoLink    `json:"video_link"` //视频源
-	PlayList  []*VideoLink `json:"play_list"`  //具体信息
+	Sharpness string       `json:"sharpness,omitempty"` //清晰度
+	Sliced    bool         `json:"sliced,omitempty"`    //切片
+	HLS       HLS          `json:"hls,omitempty"`
+	VideoLink VideoLink    `json:"video_link,omitempty"` //视频源
+	PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
 } //整套片源
 
 type VideoInfo struct {
@@ -47,8 +49,8 @@ type VideoInfo struct {
 } //视频信息
 
 type Video struct {
-	*VideoInfo     `json:",inline"` //基本信息
-	VideoGroupList []*VideoGroup    `json:"video_group_list"` //多套片源
+	*VideoInfo     `json:",inline"`       //基本信息
+	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
 }
 
 var VideoList = LoadVideo()

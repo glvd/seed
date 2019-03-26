@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/godcong/go-trait v0.0.0-20190314091618-0985e279eaf8
+	github.com/google/uuid v1.1.1
 	github.com/ipfs/go-ipfs-api v0.0.1
 	github.com/json-iterator/go v1.1.6
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect

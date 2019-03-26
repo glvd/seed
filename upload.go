@@ -1,7 +1,12 @@
 package seed
 
 import (
+	"github.com/google/uuid"
+	"github.com/ipfs/go-ipfs-api"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
+	"path/filepath"
+	"strings"
 )
 
 func prefix(s string) (ret string) {
@@ -24,7 +29,7 @@ func Upload(source *VideoSource) (e error) {
 	}
 
 	fn := addNoSlick
-	if source.SliceHLS {
+	if source.Slice {
 		fn = addSlice
 	}
 	e = fn(video, source)
@@ -52,17 +57,40 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 		if e != nil {
 			return e
 		}
-		ls, e := List(prefix(s))
-		if e != nil {
-			return e
+		log.Info("file:", s)
+		//ls, e := List(prefix(s))
+		//
+		//if e != nil {
+		//	return e
+		//}
+		//log.Info("list:", ls)
+		_, file := filepath.Split(value)
+		link := &VideoLink{
+			Hash: s,
+			Name: file,
+			Size: 0,
+			Type: shell.TFile,
 		}
-
-		for _, val := range ls {
-			group.PlayList = append(group.PlayList, LsLinkToVideoLink(val))
-		}
+		group.PlayList = append(group.PlayList, link)
 	}
-	video.VideoGroupList = append(video.VideoGroupList, group)
+
+	if video.VideoGroupList == nil {
+		video.VideoGroupList = make(map[string]*VideoGroup)
+	}
+	video.VideoGroupList[GroupIndex(source)] = group
 	return nil
+}
+
+func GroupIndex(source *VideoSource) (s string) {
+	switch strings.ToLower(source.Group) {
+	case "bangumi":
+		s = source.Bangumi
+	case "sharpness":
+		s = source.Sharpness
+	default:
+		s = uuid.Must(uuid.NewRandom()).String()
+	}
+	return
 }
 
 func Load(path string) []*VideoSource {

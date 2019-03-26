@@ -28,5 +28,5 @@ func main() {
 			log.Error(e)
 		}
 	}
-	log.Infof("%+v", vs)
+	log.Infof("%+v", vs[0])
 }

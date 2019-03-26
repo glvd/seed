@@ -1,5 +1,7 @@
 package seed
 
+import "github.com/ipfs/go-ipfs-api"
+
 type Extend struct {
 	Path    string `json:"path"`
 	Message string `json:"message"`
@@ -37,17 +39,47 @@ type VideoGroup struct {
 	PlayList  []*VideoLink `json:"play_list"`  //具体信息
 } //整套片源
 
-type Video struct {
-	VideoInfo      *VideoInfo    `json:"video_info"`       //基本信息
-	VideoGroupList []*VideoGroup `json:"video_group_list"` //多套片源
-}
-
 type VideoInfo struct {
 	Bangumi string   `json:"bangumi"` //番号
 	Poster  string   `json:"poster"`  //海报
 	Role    []string `json:"role"`    //主演
 	Publish string   `json:"publish"` //发布日期
 } //视频信息
+
+type Video struct {
+	*VideoInfo     `json:",inline"` //基本信息
+	VideoGroupList []*VideoGroup    `json:"video_group_list"` //多套片源
+}
+
+var VideoList = LoadVideo()
+
+func LoadVideo() map[string]*Video {
+	videos := make(map[string]*Video)
+	e := ReadJSON("video.json", &videos)
+	if e != nil {
+		panic(e)
+	}
+	return videos
+}
+
+func GetVideo(source *VideoSource) *Video {
+	if video, b := VideoList[source.Bangumi]; b {
+		return video
+	}
+	return NewVideo(source)
+}
+
+func SetVideo(source *VideoSource, video *Video) {
+	VideoList[source.Bangumi] = video
+}
+
+func SaveVideos() (e error) {
+	e = WriteJSON("video.json", VideoList)
+	if e != nil {
+		return e
+	}
+	return nil
+}
 
 func NewVideo(source *VideoSource) *Video {
 	return &Video{
@@ -58,5 +90,22 @@ func NewVideo(source *VideoSource) *Video {
 			Publish: source.Publish,
 		},
 		VideoGroupList: nil,
+	}
+}
+func NewVideoGroup() *VideoGroup {
+	return &VideoGroup{
+		Sharpness: "",
+		Sliced:    false,
+		VideoLink: VideoLink{},
+		PlayList:  nil,
+	}
+}
+
+func LsLinkToVideoLink(link *shell.LsLink) *VideoLink {
+	return &VideoLink{
+		Hash: link.Hash,
+		Name: link.Name,
+		Size: link.Size,
+		Type: link.Type,
 	}
 }

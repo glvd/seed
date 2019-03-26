@@ -14,7 +14,7 @@ func Upload(source *VideoSource) (e error) {
 		return xerrors.New("nil source")
 	}
 
-	video := NewVideo(source)
+	video := GetVideo(source)
 	if source.PosterPath != "" {
 		s, e := AddFile(source.PosterPath)
 		if e != nil {
@@ -23,17 +23,45 @@ func Upload(source *VideoSource) (e error) {
 		video.VideoInfo.Poster = s
 	}
 
-	for _, v := range source.FilePath {
-		if source.Slice {
-			//TODO:Slice
+	fn := addNoSlick
+	if source.SliceHLS {
+		fn = addSlice
+	}
+	e = fn(video, source)
+	if e != nil {
+		return e
+	}
+	SetVideo(source, video)
+
+	e = SaveVideos()
+	if e != nil {
+		return e
+	}
+	return nil
+}
+
+func addSlice(video *Video, source *VideoSource) (e error) {
+	//TODO: slice
+	return nil
+}
+
+func addNoSlick(video *Video, source *VideoSource) (e error) {
+	group := NewVideoGroup()
+	for _, value := range source.FilePath {
+		s, e := AddFile(value)
+		if e != nil {
+			return e
 		}
-		s, e := AddFile(v)
+		ls, e := List(prefix(s))
 		if e != nil {
 			return e
 		}
 
+		for _, val := range ls {
+			group.PlayList = append(group.PlayList, LsLinkToVideoLink(val))
+		}
 	}
-
+	video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
 }
 

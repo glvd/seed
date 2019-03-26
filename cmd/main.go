@@ -21,7 +21,7 @@ func main() {
 
 	trait.InitRotateLog("logs/seed.log")
 
-	vs := seed.ReadJSON(*json)
+	vs := seed.Load(*json)
 	for _, v := range vs {
 		s, e := seed.AddDir(v.Path)
 		if e != nil {

@@ -1,12 +1,19 @@
 package seed
 
+type Extend struct {
+	Path    string `json:"path"`
+	Message string `json:"message"`
+}
+
 type VideoSource struct {
-	Bangumi   string        `json:"bangumi"`   //番号
-	Path      string        `json:"path"`      //存放路径
-	Poster    string        `json:"poster"`    //海报
-	Role      []interface{} `json:"role"`      //主演
-	Sharpness string        `json:"sharpness"` //清晰度
-	Publish   string        `json:"publish"`   //发布日期
+	Bangumi    string    `json:"bangumi"`               //番号
+	FilePath   []string  `json:"file_path"`             //存放路径
+	Slice      bool      `json:"slice"`                 //是否切片
+	PosterPath string    `json:"poster_path,omitempty"` //海报路径
+	ExtendList []*Extend `json:"extend_list,omitempty"` //扩展信息
+	Role       []string  `json:"role,omitempty"`        //角色列表
+	Sharpness  string    `json:"sharpness,omitempty"`   //清晰度
+	Publish    string    `json:"publish,omitempty"`     //发布日期
 } //上传视频JSON配置
 
 type VideoLink struct {

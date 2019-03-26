@@ -10,6 +10,10 @@ func AddDir(dir string) (s string, e error) {
 	return sh.AddDir(dir)
 }
 
+func AddFile(target string) {
+	return sh.AddLink(target)
+}
+
 func List(path string) (ls []*shell.LsLink, e error) {
 	return sh.List(path)
 }

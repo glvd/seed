@@ -15,7 +15,7 @@ func Upload(source *VideoSource) (e error) {
 		return xerrors.New("nil source")
 	}
 
-	s, e := AddDir(source.Path)
+	s, e := AddDir(source.FilePath)
 	if e != nil {
 		return e
 	}

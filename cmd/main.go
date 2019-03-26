@@ -23,12 +23,10 @@ func main() {
 
 	vs := seed.Load(*json)
 	for _, v := range vs {
-		s, e := seed.AddDir(v.Path)
+		e := seed.Upload(v)
 		if e != nil {
-			//continue next
 			log.Error(e)
 		}
-		log.Info("dir:", s)
 	}
 	log.Infof("%+v", vs)
 }

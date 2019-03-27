@@ -27,22 +27,23 @@ type VideoSource struct {
 } //上传视频JSON配置
 
 type VideoLink struct {
-	Hash string `json:"hash"`
-	Name string `json:"name"`
-	Size uint64 `json:"size"`
-	Type int    `json:"type"`
+	Hash string `json:"hash,omitempty"`
+	Name string `json:"name,omitempty"`
+	Size uint64 `json:"size,omitempty"`
+	Type int    `json:"type,omitempty"`
 } //视频IPFS地址信息
 
 type VideoGroup struct {
 	Sharpness string       `json:"sharpness,omitempty"` //清晰度
 	Sliced    bool         `json:"sliced,omitempty"`    //切片
 	HLS       HLS          `json:"hls,omitempty"`
-	VideoLink VideoLink    `json:"video_link,omitempty"` //视频源
+	VideoLink *VideoLink   `json:"video_link,omitempty"` //视频源
 	PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
 } //整套片源
 
 type VideoInfo struct {
 	Bangumi string   `json:"bangumi"` //番号
+	Alias   []string `json:"alias"`   //别名，片名
 	Poster  string   `json:"poster"`  //海报
 	Role    []string `json:"role"`    //主演
 	Publish string   `json:"publish"` //发布日期
@@ -98,7 +99,7 @@ func NewVideoGroup() *VideoGroup {
 	return &VideoGroup{
 		Sharpness: "",
 		Sliced:    false,
-		VideoLink: VideoLink{},
+		VideoLink: nil,
 		PlayList:  nil,
 	}
 }

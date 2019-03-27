@@ -14,16 +14,19 @@ type HLS struct {
 }
 
 type VideoSource struct {
-	Bangumi    string    `json:"bangumi"`               //番号
-	FilePath   []string  `json:"file_path"`             //存放路径
-	Slice      bool      `json:"slice"`                 //是否HLS切片
-	HLS        HLS       `json:"hls,omitempty"`         //HLS信息
-	PosterPath string    `json:"poster_path,omitempty"` //海报路径
-	ExtendList []*Extend `json:"extend_list,omitempty"` //扩展信息
-	Role       []string  `json:"role,omitempty"`        //角色列表
-	Sharpness  string    `json:"sharpness,omitempty"`   //清晰度
-	Group      string    `json:"group"`                 //分组
-	Publish    string    `json:"publish,omitempty"`     //发布日期
+	Bangumi     string    `json:"bangumi"`               //番号
+	Alias       []string  `json:"alias"`                 //别名，片名
+	VideoEncode string    `json:"video_encode"`          //视频编码
+	AudioEncode string    `json:"audio_encode"`          //音频编码
+	FilePath    []string  `json:"file_path"`             //存放路径
+	Slice       bool      `json:"slice"`                 //是否HLS切片
+	HLS         HLS       `json:"hls,omitempty"`         //HLS信息
+	PosterPath  string    `json:"poster_path,omitempty"` //海报路径
+	ExtendList  []*Extend `json:"extend_list,omitempty"` //扩展信息
+	Role        []string  `json:"role,omitempty"`        //角色列表
+	Sharpness   string    `json:"sharpness,omitempty"`   //清晰度
+	Group       string    `json:"group"`                 //分组
+	Publish     string    `json:"publish,omitempty"`     //发布日期
 } //上传视频JSON配置
 
 type VideoLink struct {
@@ -42,11 +45,13 @@ type VideoGroup struct {
 } //整套片源
 
 type VideoInfo struct {
-	Bangumi string   `json:"bangumi"` //番号
-	Alias   []string `json:"alias"`   //别名，片名
-	Poster  string   `json:"poster"`  //海报
-	Role    []string `json:"role"`    //主演
-	Publish string   `json:"publish"` //发布日期
+	Bangumi  string   `json:"bangumi"`  //番号
+	Alias    []string `json:"alias"`    //别名，片名
+	Language string   `json:"language"` //语言
+	Caption  string   `json:"caption"`  //字幕
+	Poster   string   `json:"poster"`   //海报
+	Role     []string `json:"role"`     //主演
+	Publish  string   `json:"publish"`  //发布日期
 } //视频信息
 
 type Video struct {

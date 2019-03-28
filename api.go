@@ -1,19 +1,7 @@
 package seed
 
 import (
-	"github.com/ipfs/go-ipfs-api"
+	"github.com/godcong/go-ipfs-restapi"
 )
 
-var sh = shell.NewShell("localhost:5001")
-
-func AddDir(dir string) (s string, e error) {
-	return sh.AddDir(dir)
-}
-
-func AddFile(target string) (s string, e error) {
-	return sh.AddLink(target)
-}
-
-func List(path string) (ls []*shell.LsLink, e error) {
-	return sh.List(path)
-}
+var rest = api.New("localhost:5001")

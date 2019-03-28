@@ -2,10 +2,7 @@ package seed
 
 import (
 	"github.com/google/uuid"
-	"github.com/ipfs/go-ipfs-api"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
-	"path/filepath"
 	"strings"
 )
 
@@ -21,11 +18,11 @@ func Upload(source *VideoSource) (e error) {
 
 	video := GetVideo(source)
 	if source.PosterPath != "" {
-		s, e := AddFile(source.PosterPath)
+		s, e := rest.AddFile(source.PosterPath)
 		if e != nil {
 			return e
 		}
-		video.VideoInfo.Poster = s
+		video.VideoInfo.Poster = s.Hash
 	}
 
 	fn := addNoSlick
@@ -53,25 +50,11 @@ func addSlice(video *Video, source *VideoSource) (e error) {
 func addNoSlick(video *Video, source *VideoSource) (e error) {
 	group := NewVideoGroup()
 	for _, value := range source.FilePath {
-		s, e := AddFile(value)
+		s, e := rest.AddDirList(value)
 		if e != nil {
 			return e
 		}
-		log.Info("file:", s)
-		//ls, e := List(prefix(s))
-		//
-		//if e != nil {
-		//	return e
-		//}
-		//log.Info("list:", ls)
-		_, file := filepath.Split(value)
-		link := &VideoLink{
-			Hash: s,
-			Name: file,
-			Size: 0,
-			Type: shell.TFile,
-		}
-		group.PlayList = append(group.PlayList, link)
+		group.Object = s
 	}
 
 	if video.VideoGroupList == nil {
@@ -95,7 +78,6 @@ func GroupIndex(source *VideoSource) (s string) {
 
 func Load(path string) []*VideoSource {
 	var vs []*VideoSource
-
 	e := ReadJSON(path, &vs)
 	if e != nil {
 		return nil

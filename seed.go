@@ -1,6 +1,9 @@
 package seed
 
-import "github.com/ipfs/go-ipfs-api"
+import (
+	"github.com/godcong/go-ipfs-restapi"
+	"github.com/ipfs/go-ipfs-api"
+)
 
 type Extend struct {
 	Path    string `json:"path"`
@@ -37,11 +40,11 @@ type VideoLink struct {
 } //视频IPFS地址信息
 
 type VideoGroup struct {
-	Sharpness string       `json:"sharpness,omitempty"` //清晰度
-	Sliced    bool         `json:"sliced,omitempty"`    //切片
-	HLS       HLS          `json:"hls,omitempty"`
-	VideoLink *VideoLink   `json:"video_link,omitempty"` //视频源
-	PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
+	Sharpness string          `json:"sharpness,omitempty"` //清晰度
+	Sliced    bool            `json:"sliced,omitempty"`    //切片
+	HLS       HLS             `json:"hls,omitempty"`
+	Object    *api.ListObject `json:"object,omitempty"` //视频信息
+	//PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
 } //整套片源
 
 type VideoInfo struct {
@@ -65,7 +68,7 @@ func LoadVideo() map[string]*Video {
 	videos := make(map[string]*Video)
 	e := ReadJSON("video.json", &videos)
 	if e != nil {
-		panic(e)
+		return make(map[string]*Video)
 	}
 	return videos
 }
@@ -104,12 +107,12 @@ func NewVideoGroup() *VideoGroup {
 	return &VideoGroup{
 		Sharpness: "",
 		Sliced:    false,
-		VideoLink: nil,
-		PlayList:  nil,
+		HLS:       HLS{},
+		Object:    nil,
 	}
 }
 
-func LsLinkToVideoLink(link *shell.LsLink) *VideoLink {
+func ListLinkToVideoLink(link *shell.LsLink) *VideoLink {
 	return &VideoLink{
 		Hash: link.Hash,
 		Name: link.Name,

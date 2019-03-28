@@ -2,7 +2,6 @@ package seed
 
 import (
 	"github.com/godcong/go-ipfs-restapi"
-	"github.com/ipfs/go-ipfs-api"
 )
 
 type Extend struct {
@@ -21,7 +20,7 @@ type VideoSource struct {
 	Alias       []string  `json:"alias"`                 //别名，片名
 	VideoEncode string    `json:"video_encode"`          //视频编码
 	AudioEncode string    `json:"audio_encode"`          //音频编码
-	FilePath    []string  `json:"file_path"`             //存放路径
+	Files       []string  `json:"files"`                 //存放路径
 	Slice       bool      `json:"slice"`                 //是否HLS切片
 	HLS         HLS       `json:"hls,omitempty"`         //HLS信息
 	PosterPath  string    `json:"poster_path,omitempty"` //海报路径
@@ -93,10 +92,14 @@ func SaveVideos() (e error) {
 }
 
 func NewVideo(source *VideoSource) *Video {
+	alias := []string{}
+	if source.Alias != nil {
+		alias = source.Alias
+	}
 	return &Video{
 		VideoInfo: &VideoInfo{
 			Bangumi: source.Bangumi,
-			//Poster:  source.PosterPath,
+			Alias:   alias,
 			Role:    source.Role,
 			Publish: source.Publish,
 		},
@@ -112,11 +115,13 @@ func NewVideoGroup() *VideoGroup {
 	}
 }
 
-func ListLinkToVideoLink(link *shell.LsLink) *VideoLink {
-	return &VideoLink{
-		Hash: link.Hash,
-		Name: link.Name,
-		Size: link.Size,
-		Type: link.Type,
+func AddRetToObject(ret *api.AddRet) *api.ListObject {
+	return &api.ListObject{
+		ListLink: api.ListLink{
+			Hash: ret.Hash,
+			Name: ret.Name,
+			Size: ret.Size,
+			Type: 2,
+		},
 	}
 }

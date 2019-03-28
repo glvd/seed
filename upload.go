@@ -2,7 +2,9 @@ package seed
 
 import (
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
+	"os"
 	"strings"
 )
 
@@ -49,12 +51,27 @@ func addSlice(video *Video, source *VideoSource) (e error) {
 
 func addNoSlick(video *Video, source *VideoSource) (e error) {
 	group := NewVideoGroup()
-	for _, value := range source.FilePath {
-		s, e := rest.AddDirList(value)
+	for _, value := range source.Files {
+		info, e := os.Stat(value)
+		if e != nil {
+			log.Error(e)
+			continue
+		}
+		dir := info.IsDir()
+		if dir {
+			s, e := rest.AddDirList(value)
+			if e != nil {
+				log.Error(e)
+				continue
+			}
+			group.Object = s
+			continue
+		}
+		ret, e := rest.AddFile(value)
 		if e != nil {
 			return e
 		}
-		group.Object = s
+		group.Object = AddRetToObject(ret)
 	}
 
 	if video.VideoGroupList == nil {

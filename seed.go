@@ -129,7 +129,7 @@ func NewVideoGroup() *VideoGroup {
 	}
 }
 
-func LinkObjectToObjcet(obj interface{}) *Object {
+func LinkObjectToObject(obj interface{}) *Object {
 	if v, b := obj.(*Object); b {
 		return v
 	}

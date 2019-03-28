@@ -64,7 +64,7 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 				log.Error(e)
 				continue
 			}
-			group.Object = LinkObjectToObjcet(s)
+			group.Object = LinkObjectToObject(s)
 			continue
 		}
 		ret, e := rest.AddFile(value)

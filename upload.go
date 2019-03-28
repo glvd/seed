@@ -64,14 +64,16 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 				log.Error(e)
 				continue
 			}
-			group.Object = s
+			group.Object = LinkObjectToObjcet(s)
 			continue
 		}
 		ret, e := rest.AddFile(value)
 		if e != nil {
-			return e
+			log.Error(e)
+			continue
 		}
 		group.Object = AddRetToObject(ret)
+		group.Sliced = false
 	}
 
 	if video.VideoGroupList == nil {

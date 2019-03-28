@@ -10,9 +10,9 @@ type Extend struct {
 }
 
 type HLS struct {
-	Encrypt    bool   `json:"encrypt"`     //加密
-	M3U8       string `json:"m3u8"`        //M3U8名
-	OutputName string `json:"output_name"` //ts名
+	Encrypt    bool   `json:"encrypt,omitempty"`     //加密
+	M3U8       string `json:"m3u8,omitempty"`        //M3U8名
+	OutputName string `json:"output_name,omitempty"` //ts切片名
 }
 
 type VideoSource struct {
@@ -39,10 +39,10 @@ type VideoLink struct {
 } //视频IPFS地址信息
 
 type VideoGroup struct {
-	Sharpness string          `json:"sharpness,omitempty"` //清晰度
-	Sliced    bool            `json:"sliced,omitempty"`    //切片
-	HLS       HLS             `json:"hls,omitempty"`
-	Object    *api.ListObject `json:"object,omitempty"` //视频信息
+	Sharpness string  `json:"sharpness"`        //清晰度
+	Sliced    bool    `json:"sliced"`           //切片
+	HLS       *HLS    `json:"hls,omitempty"`    //切片信息
+	Object    *Object `json:"object,omitempty"` //视频信息
 	//PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
 } //整套片源
 
@@ -59,6 +59,20 @@ type VideoInfo struct {
 type Video struct {
 	*VideoInfo     `json:",inline"`       //基本信息
 	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
+}
+
+// ListLink ...
+type Link struct {
+	Hash string `json:"hash"`
+	Name string `json:"name"`
+	Size uint64 `json:"size"`
+	Type int    `json:"type"`
+}
+
+// ListObject ...
+type Object struct {
+	Links []*Link `json:"links,omitempty"`
+	Link  `json:",inline"`
 }
 
 var VideoList = LoadVideo()
@@ -110,14 +124,21 @@ func NewVideoGroup() *VideoGroup {
 	return &VideoGroup{
 		Sharpness: "",
 		Sliced:    false,
-		HLS:       HLS{},
+		HLS:       nil,
 		Object:    nil,
 	}
 }
 
-func AddRetToObject(ret *api.AddRet) *api.ListObject {
-	return &api.ListObject{
-		ListLink: api.ListLink{
+func LinkObjectToObjcet(obj interface{}) *Object {
+	if v, b := obj.(*Object); b {
+		return v
+	}
+	return nil
+}
+
+func AddRetToObject(ret *api.AddRet) *Object {
+	return &Object{
+		Link: Link{
 			Hash: ret.Hash,
 			Name: ret.Name,
 			Size: ret.Size,

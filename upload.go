@@ -13,6 +13,7 @@ func prefix(s string) (ret string) {
 	return
 }
 
+// Upload ...
 func Upload(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
@@ -63,13 +64,20 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 		group.Sliced = false
 		group.Sharpness = source.Sharpness
 		if dir {
-			ret, e := rest.AddDirList(value)
+			rets, e := rest.AddDir(value)
 			if e != nil {
 				log.Error(e)
 				continue
 			}
-			group.Object = LinkObjectToObject(ret)
-			hash = ret.Hash
+			last := len(rets) - 1
+			for idx, v := range rets {
+				hash = v.Hash
+				if idx == last {
+					group.Object = AddRetToLink(group.Object, v)
+				}
+				group.Object = AddRetToLinks(group.Object, v)
+			}
+
 			continue
 		}
 		ret, e := rest.AddFile(value)
@@ -78,7 +86,7 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 			continue
 		}
 
-		group.Object = AddRetToObject(ret)
+		group.Object = AddRetToLink(group.Object, ret)
 		hash = ret.Hash
 	}
 
@@ -89,6 +97,7 @@ func addNoSlick(video *Video, source *VideoSource) (e error) {
 	return nil
 }
 
+// GroupIndex ...
 func GroupIndex(source *VideoSource, hash string) (s string) {
 	switch strings.ToLower(source.Group) {
 	case "bangumi":
@@ -103,6 +112,7 @@ func GroupIndex(source *VideoSource, hash string) (s string) {
 	return
 }
 
+// Load ...
 func Load(path string) []*VideoSource {
 	var vs []*VideoSource
 	e := ReadJSON(path, &vs)

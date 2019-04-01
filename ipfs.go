@@ -44,7 +44,7 @@ func RunIPFS(ctx context.Context, path string, command string, options ...string
 		if e != nil || io.EOF == e {
 			break
 		}
-		log.Info(line)
+		log.Debug(line)
 	}
 
 	e = cmd.Wait()

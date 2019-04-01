@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"github.com/godcong/go-ffmpeg-cmd"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
@@ -28,7 +29,7 @@ func Upload(source *VideoSource) (e error) {
 		video.VideoInfo.Poster = s.Hash
 	}
 
-	fn := addNoSlick
+	fn := add
 	if source.Slice {
 		fn = addSlice
 	}
@@ -46,11 +47,11 @@ func Upload(source *VideoSource) (e error) {
 }
 
 func addSlice(video *Video, source *VideoSource) (e error) {
-	//TODO: slice
+	cmd.New()
 	return nil
 }
 
-func addNoSlick(video *Video, source *VideoSource) (e error) {
+func add(video *Video, source *VideoSource) (e error) {
 	group := NewVideoGroup()
 	hash := ""
 	for _, value := range source.Files {

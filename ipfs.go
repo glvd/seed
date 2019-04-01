@@ -9,6 +9,7 @@ import (
 	"os/exec"
 )
 
+// RunIPFS ...
 func RunIPFS(ctx context.Context, path string, command string, options ...string) (e error) {
 	cmd := exec.CommandContext(ctx, command, options...)
 	e = os.Setenv("IPFS_PATH", path)
@@ -39,7 +40,7 @@ func RunIPFS(ctx context.Context, path string, command string, options ...string
 
 	//实时循环读取输出流中的一行内容
 	for {
-		line, e := reader.ReadString('\n')
+		line, _, e := reader.ReadLine()
 		if e != nil || io.EOF == e {
 			break
 		}

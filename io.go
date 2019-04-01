@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// ReadJSON ...
 func ReadJSON(path string, v interface{}) (e error) {
 	bytes, e := ioutil.ReadFile(path)
 	if e != nil {
@@ -18,6 +19,7 @@ func ReadJSON(path string, v interface{}) (e error) {
 	return nil
 }
 
+// WriteJSON ...
 func WriteJSON(path string, v interface{}) (e error) {
 	bytes, e := jsoniter.Marshal(v)
 	if e != nil {

@@ -68,7 +68,7 @@ type Video struct {
 	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
 }
 
-// ListLink ...
+// Link ...
 type Link struct {
 	Hash string `json:"hash"`
 	Name string `json:"name"`
@@ -76,7 +76,7 @@ type Link struct {
 	Type int    `json:"type"`
 }
 
-// ListObject ...
+// Object ...
 type Object struct {
 	Links []*Link `json:"links,omitempty"`
 	Link  `json:",inline"`
@@ -171,7 +171,7 @@ func AddRetToLink(obj *Object, ret *api.AddRet) *Object {
 	}
 }
 
-// AddRetToLink ...
+// AddRetToLinks ...
 func AddRetToLinks(obj *Object, ret *api.AddRet) *Object {
 	if obj != nil {
 		obj.Links = append(obj.Links, &Link{

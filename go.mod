@@ -3,7 +3,7 @@ module github.com/girlvr/seed
 go 1.12
 
 require (
-	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190401072937-67fae01e92d0
+	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190401083720-9a601a67ee85
 	github.com/godcong/go-ipfs-restapi v0.0.0-20190328095012-9c979f5ed01b
 	github.com/godcong/go-trait v0.0.0-20190314091618-0985e279eaf8
 	github.com/google/uuid v1.1.1

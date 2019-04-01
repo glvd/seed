@@ -1,11 +1,12 @@
 package seed
 
 import (
-	"github.com/godcong/go-ffmpeg-cmd"
+	"context"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,6 +32,7 @@ func Upload(source *VideoSource) (e error) {
 
 	fn := add
 	if source.Slice {
+		log.Debug("add slice")
 		fn = addSlice
 	}
 	e = fn(video, source)
@@ -47,7 +49,21 @@ func Upload(source *VideoSource) (e error) {
 }
 
 func addSlice(video *Video, source *VideoSource) (e error) {
-	cmd.New()
+	s := *source
+	for _, value := range source.Files {
+		path := filepath.Join("tmp", uuid.New().String())
+		log.Debug("split path:", path)
+		e := SplitVideo(context.Background(), value, filepath.Join("tmp", path))
+		if e != nil {
+			return e
+		}
+		s.Files = append(s.Files, path)
+	}
+
+	e = add(video, &s)
+	if e != nil {
+		return e
+	}
 	return nil
 }
 

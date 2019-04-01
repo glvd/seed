@@ -19,7 +19,7 @@ func main() {
 
 	flag.Parse()
 
-	trait.InitRotateLog("logs/seed.log")
+	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
 	vs := seed.Load(*json)
 	for _, v := range vs {

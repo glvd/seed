@@ -72,10 +72,20 @@ type VideoInfo struct {
 	Publish  string   `json:"publish"`  //发布日期
 }
 
+// SourceInfo ...
+type SourceInfo struct {
+	ID              string   `json:"id"`
+	PublicKey       string   `json:"public_key"`
+	Addresses       []string `json:"addresses"` //一组节点源列表
+	AgentVersion    string   `json:"agent_version"`
+	ProtocolVersion string   `json:"protocol_version"`
+}
+
 // Video ...
 type Video struct {
 	*VideoInfo     `json:",inline"`       //基本信息
 	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
+	SourceInfoList map[string]*SourceInfo `json:"video_group_list"` //节点源数据
 }
 
 // Link ...

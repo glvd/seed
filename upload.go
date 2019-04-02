@@ -122,8 +122,8 @@ func add(video *Video, source *VideoSource) (e error) {
 // GroupIndex ...
 func GroupIndex(source *VideoSource, hash string) (s string) {
 	switch strings.ToLower(source.Group) {
-	case "bangumi":
-		s = source.Bangumi
+	case "bangu":
+		s = source.Bangu
 	case "sharpness":
 		s = source.Sharpness
 	case "hash":

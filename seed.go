@@ -13,25 +13,35 @@ type Extend struct {
 // HLS ...
 type HLS struct {
 	Encrypt    bool   `json:"encrypt,omitempty"`     //加密
+	Key        string `json:"key,omitempty"`         //秘钥
 	M3U8       string `json:"m3u8,omitempty"`        //M3U8名
 	OutputName string `json:"output_name,omitempty"` //ts切片名
 }
 
 // VideoSource ...
 type VideoSource struct {
-	Bangumi     string    `json:"bangumi"`               //番号
-	Alias       []string  `json:"alias"`                 //别名，片名
-	VideoEncode string    `json:"video_encode"`          //视频编码
-	AudioEncode string    `json:"audio_encode"`          //音频编码
-	Files       []string  `json:"files"`                 //存放路径
-	Slice       bool      `json:"slice"`                 //是否HLS切片
-	HLS         HLS       `json:"hls,omitempty"`         //HLS信息
-	PosterPath  string    `json:"poster_path,omitempty"` //海报路径
-	ExtendList  []*Extend `json:"extend_list,omitempty"` //扩展信息
-	Role        []string  `json:"role,omitempty"`        //角色列表
-	Sharpness   string    `json:"sharpness,omitempty"`   //清晰度
-	Group       string    `json:"group"`                 //分组
-	Publish     string    `json:"publish,omitempty"`     //发布日期
+	Bangu        string    `json:"bangu"`                 //番号
+	Type         string    `json:"type"`                  //类型：film，FanDrama
+	Output       string    `json:"output"`                //输出：3D，2D
+	VR           string    `json:"vr"`                    //VR格式：左右，上下，平面
+	Thumb        string    `json:"thumb"`                 //缩略图
+	Intro        string    `json:"intro"`                 //简介
+	Alias        []string  `json:"alias"`                 //别名，片名
+	VideoEncode  string    `json:"video_encode"`          //视频编码
+	AudioEncode  string    `json:"audio_encode"`          //音频编码
+	Files        []string  `json:"files"`                 //存放路径
+	Slice        bool      `json:"slice"`                 //是否HLS切片
+	HLS          *HLS      `json:"hls,omitempty"`         //HLS信息
+	PosterPath   string    `json:"poster_path,omitempty"` //海报路径
+	ExtendList   []*Extend `json:"extend_list,omitempty"` //扩展信息
+	Role         []string  `json:"role,omitempty"`        //角色列表
+	Director     string    `json:"director"`              //导演
+	Season       string    `json:"season"`                //季
+	Episode      string    `bson:"episode"`               //集数
+	TotalEpisode string    `bson:"total_episode"`         //总集数
+	Sharpness    string    `json:"sharpness,omitempty"`   //清晰度
+	Group        string    `json:"group"`                 //分组
+	Publish      string    `json:"publish,omitempty"`     //发布日期
 }
 
 // VideoLink ...
@@ -97,7 +107,7 @@ func LoadVideo() map[string]*Video {
 
 // GetVideo ...
 func GetVideo(source *VideoSource) *Video {
-	if video, b := VideoList[source.Bangumi]; b {
+	if video, b := VideoList[source.Bangu]; b {
 		return video
 	}
 	return NewVideo(source)
@@ -105,7 +115,7 @@ func GetVideo(source *VideoSource) *Video {
 
 // SetVideo ...
 func SetVideo(source *VideoSource, video *Video) {
-	VideoList[source.Bangumi] = video
+	VideoList[source.Bangu] = video
 }
 
 // SaveVideos ...
@@ -125,7 +135,7 @@ func NewVideo(source *VideoSource) *Video {
 	}
 	return &Video{
 		VideoInfo: &VideoInfo{
-			Bangumi: source.Bangumi,
+			Bangumi: source.Bangu,
 			Alias:   alias,
 			Role:    source.Role,
 			Publish: source.Publish,

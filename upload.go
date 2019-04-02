@@ -29,7 +29,7 @@ func Upload(source *VideoSource) (e error) {
 		}
 		video.VideoInfo.Poster = s.Hash
 	}
-
+	log.Info(*source)
 	fn := add
 	if source.Slice {
 		log.Debug("add slice")
@@ -50,20 +50,26 @@ func Upload(source *VideoSource) (e error) {
 
 func addSlice(video *Video, source *VideoSource) (e error) {
 	s := *source
+	s.Files = nil
 	for _, value := range source.Files {
 		path := filepath.Join("tmp", uuid.New().String())
 		log.Debug("split path:", path)
-		e := SplitVideo(context.Background(), value, filepath.Join("tmp", path))
+		path, e = filepath.Abs(path)
+		if e != nil {
+			return e
+		}
+		_ = os.MkdirAll(path, os.ModePerm)
+		e := SplitVideo(context.Background(), value, path)
 		if e != nil {
 			return e
 		}
 		s.Files = append(s.Files, path)
 	}
-
 	e = add(video, &s)
 	if e != nil {
 		return e
 	}
+
 	return nil
 }
 
@@ -78,7 +84,7 @@ func add(video *Video, source *VideoSource) (e error) {
 		}
 		dir := info.IsDir()
 
-		group.Sliced = false
+		group.Sliced = source.Slice
 		group.Sharpness = source.Sharpness
 		if dir {
 			rets, e := rest.AddDir(value)
@@ -90,11 +96,11 @@ func add(video *Video, source *VideoSource) (e error) {
 			for idx, v := range rets {
 				hash = v.Hash
 				if idx == last {
-					group.Object = AddRetToLink(group.Object, v)
+					group.Object = append(group.Object, AddRetToLink(nil, v))
+					continue
 				}
-				group.Object = AddRetToLinks(group.Object, v)
+				group.Object = append(group.Object, AddRetToLinks(nil, v))
 			}
-
 			continue
 		}
 		ret, e := rest.AddFile(value)
@@ -102,9 +108,8 @@ func add(video *Video, source *VideoSource) (e error) {
 			log.Error(e)
 			continue
 		}
-
-		group.Object = AddRetToLink(group.Object, ret)
 		hash = ret.Hash
+		group.Object = append(group.Object, AddRetToLink(nil, ret))
 	}
 
 	if video.VideoGroupList == nil {

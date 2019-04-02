@@ -44,10 +44,10 @@ type VideoLink struct {
 
 // VideoGroup ...
 type VideoGroup struct {
-	Sharpness string  `json:"sharpness"`        //清晰度
-	Sliced    bool    `json:"sliced"`           //切片
-	HLS       *HLS    `json:"hls,omitempty"`    //切片信息
-	Object    *Object `json:"object,omitempty"` //视频信息
+	Sharpness string    `json:"sharpness"`        //清晰度
+	Sliced    bool      `json:"sliced"`           //切片
+	HLS       *HLS      `json:"hls,omitempty"`    //切片信息
+	Object    []*Object `json:"object,omitempty"` //视频信息
 	//PlayList  []*VideoLink `json:"play_list,omitempty"`  //具体信息
 }
 

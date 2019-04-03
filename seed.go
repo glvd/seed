@@ -63,7 +63,7 @@ type VideoGroup struct {
 
 // VideoInfo ...
 type VideoInfo struct {
-	Bangumi  string   `json:"bangumi"`  //番号
+	Bangu    string   `json:"bangu"`    //番号
 	Alias    []string `json:"alias"`    //别名，片名
 	Language string   `json:"language"` //语言
 	Caption  string   `json:"caption"`  //字幕
@@ -145,7 +145,7 @@ func NewVideo(source *VideoSource) *Video {
 	}
 	return &Video{
 		VideoInfo: &VideoInfo{
-			Bangumi: source.Bangu,
+			Bangu:   source.Bangu,
 			Alias:   alias,
 			Role:    source.Role,
 			Publish: source.Publish,

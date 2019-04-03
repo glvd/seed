@@ -107,14 +107,19 @@ func add(video *Video, source *VideoSource) (e error) {
 				continue
 			}
 			last := len(rets) - 1
+			var obj *Object
 			for idx, v := range rets {
 				hash = v.Hash
+
 				if idx == last {
-					group.Object = append(group.Object, AddRetToLink(nil, v))
+					obj = AddRetToLink(obj, v)
+					group.Object = append(group.Object)
 					continue
 				}
-				group.Object = append(group.Object, AddRetToLinks(nil, v))
+				obj = AddRetToLinks(obj, v)
 			}
+			group.Object = append(group.Object, obj)
+
 			continue
 		}
 		ret, e := rest.AddFile(value)

@@ -21,7 +21,7 @@ func Upload(source *VideoSource) (e error) {
 		return xerrors.New("nil source")
 	}
 
-	video := GetVideo(source)
+	video := ListVideoGet(source)
 	if source.PosterPath != "" {
 		s, e := rest.AddFile(source.PosterPath)
 		if e != nil {
@@ -39,7 +39,8 @@ func Upload(source *VideoSource) (e error) {
 	if e != nil {
 		return e
 	}
-	SetVideo(source, video)
+
+	VideoListAdd(source, video)
 
 	e = SaveVideos()
 	if e != nil {

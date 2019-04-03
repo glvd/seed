@@ -115,16 +115,16 @@ func LoadVideo() map[string]*Video {
 	return videos
 }
 
-// GetVideo ...
-func GetVideo(source *VideoSource) *Video {
+// ListVideoGet ...
+func ListVideoGet(source *VideoSource) *Video {
 	if video, b := VideoList[source.Bangu]; b {
 		return video
 	}
 	return NewVideo(source)
 }
 
-// SetVideo ...
-func SetVideo(source *VideoSource, video *Video) {
+// VideoListAdd ...
+func VideoListAdd(source *VideoSource, video *Video) {
 	VideoList[source.Bangu] = video
 }
 
@@ -151,7 +151,16 @@ func NewVideo(source *VideoSource) *Video {
 			Publish: source.Publish,
 		},
 		VideoGroupList: nil,
+		SourceInfoList: nil,
 	}
+}
+
+// AddSourceInfo ...
+func AddSourceInfo(video *Video, info *SourceInfo) {
+	if video.SourceInfoList == nil {
+		video.SourceInfoList = make(map[string]*SourceInfo)
+	}
+	video.SourceInfoList[info.ID] = info
 }
 
 // NewVideoGroup ...

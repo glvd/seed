@@ -127,7 +127,7 @@ func LoadVideo() map[string]*Video {
 
 // ListVideoGet ...
 func ListVideoGet(source *VideoSource) *Video {
-	if video, b := VideoList[source.Bangu]; b {
+	if video, b := VideoList[source.Bangou]; b {
 		return video
 	}
 	return NewVideo(source)
@@ -135,7 +135,7 @@ func ListVideoGet(source *VideoSource) *Video {
 
 // VideoListAdd ...
 func VideoListAdd(source *VideoSource, video *Video) {
-	VideoList[source.Bangu] = video
+	VideoList[source.Bangou] = video
 }
 
 // SaveVideos ...
@@ -155,7 +155,7 @@ func NewVideo(source *VideoSource) *Video {
 	}
 	return &Video{
 		VideoInfo: &VideoInfo{
-			Bangu:   source.Bangu,
+			Bangou:  source.Bangou,
 			Alias:   alias,
 			Role:    source.Role,
 			Publish: source.Publish,

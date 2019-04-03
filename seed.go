@@ -85,7 +85,7 @@ type SourceInfo struct {
 type Video struct {
 	*VideoInfo     `json:",inline"`       //基本信息
 	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
-	SourceInfoList map[string]*SourceInfo `json:"video_group_list"` //节点源数据
+	SourceInfoList map[string]*SourceInfo `json:"source_info_list"` //节点源数据
 }
 
 // Link ...

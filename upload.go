@@ -39,6 +39,10 @@ func Upload(source *VideoSource) (e error) {
 	if e != nil {
 		return e
 	}
+	info := GetSourceInfo()
+	log.Info(*info)
+
+	AddSourceInfo(video, info)
 
 	VideoListAdd(source, video)
 
@@ -47,6 +51,15 @@ func Upload(source *VideoSource) (e error) {
 		return e
 	}
 	return nil
+}
+
+// GetSourceInfo ...
+func GetSourceInfo() *SourceInfo {
+	out, e := rest.ID()
+	if e != nil {
+		return &SourceInfo{}
+	}
+	return (*SourceInfo)(out)
 }
 
 func addSlice(video *Video, source *VideoSource) (e error) {

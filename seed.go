@@ -12,10 +12,10 @@ type Extend struct {
 
 // HLS ...
 type HLS struct {
-	Encrypt    bool   `json:"encrypt,omitempty"`     //加密
-	Key        string `json:"key,omitempty"`         //秘钥
-	M3U8       string `json:"m3u8,omitempty"`        //M3U8名
-	OutputName string `json:"output_name,omitempty"` //ts切片名
+	Encrypt     bool   `json:"encrypt,omitempty"`      //加密
+	Key         string `json:"key,omitempty"`          //秘钥
+	M3U8        string `json:"m3u8,omitempty"`         //M3U8名
+	SegmentFile string `json:"segment_file,omitempty"` //ts切片名
 }
 
 // VideoSource ...

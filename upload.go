@@ -6,7 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -62,31 +61,39 @@ func GetSourceInfo() *SourceInfo {
 	return (*SourceInfo)(out)
 }
 
-func newHLS() *HLS {
+// MustString ...
+func Mustring(val, src string) string {
+	if val != "" {
+		return val
+	}
+	return src
+}
+
+func newHLS(def *HLS) *HLS {
+	if def != nil {
+		def.Key = Mustring(def.Key, "")
+		def.M3U8 = Mustring(def.M3U8, "media")
+		def.SegmentFile = Mustring(def.SegmentFile, "media-%05d.ts")
+	}
+
 	return &HLS{
-		Encrypt:    false,
-		Key:        "",
-		M3U8:       "media",
-		OutputName: "media-%05d.ts",
+		Encrypt:     false,
+		Key:         "",
+		M3U8:        "media",
+		SegmentFile: "media-%05d.ts",
 	}
 }
 
 func addSlice(video *Video, source *VideoSource) (e error) {
 	s := *source
+	s.HLS = newHLS(s.HLS)
 	s.Files = nil
 	for _, value := range source.Files {
-		path := filepath.Join("tmp", uuid.New().String())
-		log.Debug("split path:", path)
-		path, e = filepath.Abs(path)
+
+		e := SplitVideo(context.Background(), &s, value)
 		if e != nil {
 			return e
 		}
-		_ = os.MkdirAll(path, os.ModePerm)
-		e := SplitVideo(context.Background(), value, path)
-		if e != nil {
-			return e
-		}
-		s.Files = append(s.Files, path)
 	}
 	e = add(video, &s)
 	if e != nil {

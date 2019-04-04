@@ -1,8 +1,10 @@
 package seed
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"github.com/godcong/go-ipfs-restapi"
-	log "github.com/sirupsen/logrus"
+	"github.com/json-iterator/go"
 )
 
 // Extend ...
@@ -13,10 +15,10 @@ type Extend struct {
 
 // HLS ...
 type HLS struct {
-	Encrypt     bool   `json:"encrypt,omitempty"`      //加密
-	Key         string `json:"key,omitempty"`          //秘钥
-	M3U8        string `json:"m3u8,omitempty"`         //M3U8名
-	SegmentFile string `json:"segment_file,omitempty"` //ts切片名
+	Encrypt     bool   `json:"encrypt"`      //加密
+	Key         string `json:"key"`          //秘钥
+	M3U8        string `json:"m3u8"`         //M3U8名
+	SegmentFile string `json:"segment_file"` //ts切片名
 }
 
 // VideoSource ...
@@ -130,7 +132,6 @@ func LoadVideo() []*Video {
 // ListVideoGet ...
 func ListVideoGet(source *VideoSource) *Video {
 	for _, v := range VideoList {
-		log.Info(v.Bangumi, source.Bangumi)
 		if v.Bangumi == source.Bangumi {
 			return v
 		}
@@ -249,4 +250,13 @@ func AddRetToLinks(obj *Object, ret *api.AddRet) *Object {
 			},
 		},
 	}
+}
+
+// Hash ...
+func Hash(v interface{}) string {
+	bytes, e := jsoniter.Marshal(v)
+	if e != nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", sha1.Sum([]byte(bytes)))
 }

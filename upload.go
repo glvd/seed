@@ -61,7 +61,7 @@ func GetSourceInfo() *SourceInfo {
 	return (*SourceInfo)(out)
 }
 
-// MustString  must string
+// Mustring  must string
 func Mustring(val, src string) string {
 	if val != "" {
 		return val
@@ -104,7 +104,7 @@ func addSlice(video *Video, source *VideoSource) (e error) {
 
 func add(video *Video, source *VideoSource) (e error) {
 	group := NewVideoGroup()
-	hash := ""
+	hash := Hash(source)
 	for _, value := range source.Files {
 		info, e := os.Stat(value)
 		if e != nil {
@@ -125,7 +125,7 @@ func add(video *Video, source *VideoSource) (e error) {
 			last := len(rets) - 1
 			var obj *Object
 			for idx, v := range rets {
-				hash = v.Hash
+				//hash = v.Hash
 
 				if idx == last {
 					obj = AddRetToLink(obj, v)
@@ -143,7 +143,7 @@ func add(video *Video, source *VideoSource) (e error) {
 			log.Error(e)
 			continue
 		}
-		hash = ret.Hash
+		//hash = ret.Hash
 		group.Object = append(group.Object, AddRetToLink(nil, ret))
 	}
 	group.Index = hash

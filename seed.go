@@ -2,6 +2,7 @@ package seed
 
 import (
 	"github.com/godcong/go-ipfs-restapi"
+	log "github.com/sirupsen/logrus"
 )
 
 // Extend ...
@@ -129,6 +130,7 @@ func LoadVideo() []*Video {
 // ListVideoGet ...
 func ListVideoGet(source *VideoSource) *Video {
 	for _, v := range VideoList {
+		log.Info(v.Bangumi, source.Bangumi)
 		if v.Bangumi == source.Bangumi {
 			return v
 		}
@@ -141,6 +143,7 @@ func VideoListAdd(source *VideoSource, video *Video) {
 	for i, v := range VideoList {
 		if v.Bangumi == source.Bangumi {
 			VideoList[i] = video
+			return
 		}
 	}
 	VideoList = append(VideoList, video)

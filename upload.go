@@ -89,7 +89,6 @@ func addSlice(video *Video, source *VideoSource) (e error) {
 	s.HLS = newHLS(s.HLS)
 	s.Files = nil
 	for _, value := range source.Files {
-
 		e := SplitVideo(context.Background(), &s, value)
 		if e != nil {
 			return e

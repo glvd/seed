@@ -61,7 +61,7 @@ func GetSourceInfo() *SourceInfo {
 	return (*SourceInfo)(out)
 }
 
-// MustString ...
+// MustString  must string
 func Mustring(val, src string) string {
 	if val != "" {
 		return val

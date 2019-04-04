@@ -21,7 +21,7 @@ func SplitVideo(ctx context.Context, source *VideoSource, file string) (e error)
 
 	command := cmd.NewFFMPEG()
 	command.Split(path).
-		HlsSegmentFilename(source.HLS.OutputName).Output(source.HLS.M3U8).
+		HlsSegmentFilename(source.HLS.SegmentFile).Output(source.HLS.M3U8).
 		Input(file).Ignore().CodecAudio(cmd.String("aac")).CodecVideo(cmd.String("libx264")).
 		BitStreamFiltersVideo("h264_mp4toannexb").Format("hls").HlsTime("10").
 		HlsListSize("0")
@@ -32,6 +32,7 @@ func SplitVideo(ctx context.Context, source *VideoSource, file string) (e error)
 		if e != nil {
 			return
 		}
+		source.Files = append(source.Files, path)
 	}()
 	for {
 		select {

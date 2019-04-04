@@ -62,6 +62,15 @@ func GetSourceInfo() *SourceInfo {
 	return (*SourceInfo)(out)
 }
 
+func newHLS() *HLS {
+	return &HLS{
+		Encrypt:    false,
+		Key:        "",
+		M3U8:       "media",
+		OutputName: "media-%05d.ts",
+	}
+}
+
 func addSlice(video *Video, source *VideoSource) (e error) {
 	s := *source
 	s.Files = nil
@@ -99,7 +108,8 @@ func add(video *Video, source *VideoSource) (e error) {
 		dir := info.IsDir()
 
 		group.Sliced = source.Slice
-		group.Sharpness = source.Sharpness
+		group.HLS = source.HLS
+
 		if dir {
 			rets, e := rest.AddDir(value)
 			if e != nil {

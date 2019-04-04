@@ -130,19 +130,30 @@ func add(video *Video, source *VideoSource) (e error) {
 		hash = ret.Hash
 		group.Object = append(group.Object, AddRetToLink(nil, ret))
 	}
+	group.Index = hash
 
+	//create if null
 	if video.VideoGroupList == nil {
-		video.VideoGroupList = make(map[string]*VideoGroup)
+		video.VideoGroupList = []*VideoGroup{group}
 	}
-	video.VideoGroupList[GroupIndex(source, hash)] = group
+
+	//replace if found
+	for i, v := range video.VideoGroupList {
+		if v.Index == group.Index {
+			video.VideoGroupList[i] = group
+			return nil
+		}
+	}
+	//append if not found
+	video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
 }
 
 // GroupIndex ...
 func GroupIndex(source *VideoSource, hash string) (s string) {
 	switch strings.ToLower(source.Group) {
-	case "bangou":
-		s = source.Bangou
+	case "bangumi":
+		s = source.Bangumi
 	case "sharpness":
 		s = source.Sharpness
 	case "hash":

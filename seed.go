@@ -20,7 +20,7 @@ type HLS struct {
 
 // VideoSource ...
 type VideoSource struct {
-	Bangou       string    `json:"bangou"`                //番号
+	Bangumi      string    `json:"bangumi"`               //番号
 	Type         string    `json:"type"`                  //类型：film，FanDrama
 	Output       string    `json:"output"`                //输出：3D，2D
 	VR           string    `json:"vr"`                    //VR格式：左右，上下，平面
@@ -54,6 +54,7 @@ type VideoLink struct {
 
 // VideoGroup ...
 type VideoGroup struct {
+	Index     string    `json:"index"`            //索引
 	Sharpness string    `json:"sharpness"`        //清晰度
 	Sliced    bool      `json:"sliced"`           //切片
 	HLS       *HLS      `json:"hls,omitempty"`    //切片信息
@@ -62,7 +63,7 @@ type VideoGroup struct {
 
 // VideoInfo ...
 type VideoInfo struct {
-	Bangou       string   `json:"bangou"`        //番号
+	Bangumi      string   `json:"bangumi"`       //番組
 	Type         string   `json:"type"`          //类型：film，FanDrama
 	Output       string   `json:"output"`        //输出：3D，2D
 	VR           string   `json:"vr"`            //VR格式：左右，上下，平面
@@ -93,9 +94,9 @@ type SourceInfo struct {
 
 // Video ...
 type Video struct {
-	*VideoInfo     `json:",inline"`       //基本信息
-	VideoGroupList map[string]*VideoGroup `json:"video_group_list"` //多套片源
-	SourceInfoList map[string]*SourceInfo `json:"source_info_list"` //节点源数据
+	*VideoInfo     `json:",inline"` //基本信息
+	VideoGroupList []*VideoGroup    `json:"video_group_list"` //多套片源
+	SourceInfoList []*SourceInfo    `json:"source_info_list"` //节点源数据
 }
 
 // Link ...
@@ -116,26 +117,33 @@ type Object struct {
 var VideoList = LoadVideo()
 
 // LoadVideo ...
-func LoadVideo() map[string]*Video {
-	videos := make(map[string]*Video)
+func LoadVideo() []*Video {
+	var videos []*Video
 	e := ReadJSON("video.json", &videos)
 	if e != nil {
-		return make(map[string]*Video)
+		return nil
 	}
 	return videos
 }
 
 // ListVideoGet ...
 func ListVideoGet(source *VideoSource) *Video {
-	if video, b := VideoList[source.Bangou]; b {
-		return video
+	for _, v := range VideoList {
+		if v.Bangumi == source.Bangumi {
+			return v
+		}
 	}
 	return NewVideo(source)
 }
 
 // VideoListAdd ...
 func VideoListAdd(source *VideoSource, video *Video) {
-	VideoList[source.Bangou] = video
+	for i, v := range VideoList {
+		if v.Bangumi == source.Bangumi {
+			VideoList[i] = video
+		}
+	}
+	VideoList = append(VideoList, video)
 }
 
 // SaveVideos ...
@@ -155,7 +163,7 @@ func NewVideo(source *VideoSource) *Video {
 	}
 	return &Video{
 		VideoInfo: &VideoInfo{
-			Bangou:  source.Bangou,
+			Bangumi: source.Bangumi,
 			Alias:   alias,
 			Role:    source.Role,
 			Publish: source.Publish,
@@ -168,9 +176,16 @@ func NewVideo(source *VideoSource) *Video {
 // AddSourceInfo ...
 func AddSourceInfo(video *Video, info *SourceInfo) {
 	if video.SourceInfoList == nil {
-		video.SourceInfoList = make(map[string]*SourceInfo)
+		video.SourceInfoList = []*SourceInfo{info}
+		return
 	}
-	video.SourceInfoList[info.ID] = info
+	for idx, value := range video.SourceInfoList {
+		if value.ID == info.ID {
+			video.SourceInfoList[idx] = info
+			return
+		}
+	}
+	video.SourceInfoList = append(video.SourceInfoList, info)
 }
 
 // NewVideoGroup ...

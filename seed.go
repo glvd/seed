@@ -43,8 +43,8 @@ type VideoSource struct {
 	Episode      string    `bson:"episode"`       //集数
 	TotalEpisode string    `bson:"total_episode"` //总集数
 	Sharpness    string    `json:"sharpness"`     //清晰度
+	Publish      string    `json:"publish"`       //发布日期
 	//Group        string    `json:"group"`         //分组,废弃
-	Publish string `json:"publish"` //发布日期
 }
 
 // VideoLink ...

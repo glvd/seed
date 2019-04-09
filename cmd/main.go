@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/girlvr/seed"
 	"github.com/godcong/go-trait"
+	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -34,7 +35,7 @@ func main() {
 
 		log.Infof("%+v", vs[0])
 	case "transfer":
-
+		seed.Transfer()
 	}
 
 }

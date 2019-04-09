@@ -8,6 +8,7 @@ import (
 )
 
 var json = flag.String("path", "seed.json", "set the path to load")
+var action = flag.String("action", "process", "set action to do something")
 
 func main() {
 
@@ -21,13 +22,19 @@ func main() {
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
-	vs := seed.Load(*json)
-	for _, v := range vs {
-		e := seed.Upload(v)
-		if e != nil {
-			log.Error(e)
+	switch *action {
+	case "process":
+		vs := seed.Load(*json)
+		for _, v := range vs {
+			e := seed.Upload(v)
+			if e != nil {
+				log.Error(e)
+			}
 		}
+
+		log.Infof("%+v", vs[0])
+	case "transfer":
+
 	}
 
-	log.Infof("%+v", vs[0])
 }

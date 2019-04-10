@@ -35,3 +35,18 @@ type VideoInfo struct {
 func (v *Video) SetPeers(p []string) {
 	v.Peers = p
 }
+
+// AddSourceInfo ...
+func (v *Video) AddSourceInfo(info *SourceInfo) {
+	if v.SourceInfoList == nil {
+		v.SourceInfoList = []*SourceInfo{info}
+		return
+	}
+	for idx, value := range v.SourceInfoList {
+		if value.ID == info.ID {
+			v.SourceInfoList[idx] = info
+			return
+		}
+	}
+	v.SourceInfoList = append(v.SourceInfoList, info)
+}

@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"github.com/girlvr/seed/model"
+	shell "github.com/godcong/go-ipfs-restapi"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"os"
@@ -40,7 +41,13 @@ func Upload(source *VideoSource) (e error) {
 	info := GetSourceInfo()
 	log.Info(*info)
 
-	model.AddSourceInfo(video, info)
+	video.AddSourceInfo(info)
+
+	for _, value := range GetPeers().Peers {
+		log.Println(value.Addr)
+		log.Println(value.Peer)
+		log.Printf("%+v", value)
+	}
 
 	VideoListAdd(source, video)
 
@@ -58,6 +65,15 @@ func GetSourceInfo() *model.SourceInfo {
 		return &model.SourceInfo{}
 	}
 	return (*model.SourceInfo)(out)
+}
+
+// GetPeers ...
+func GetPeers() *shell.SwarmConnInfos {
+	swarmPeers, e := rest.SwarmPeers(context.Background())
+	if e != nil {
+		return nil
+	}
+	return swarmPeers
 }
 
 // Mustring  must string

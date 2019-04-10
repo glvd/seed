@@ -2,29 +2,26 @@ package model
 
 import (
 	"github.com/go-xorm/xorm"
+
 	"time"
 )
 
 var database *xorm.Engine
 
 // InitDB ...
-func init() {
-	database = DB()
-}
-
-// DB ...
-func DB() *xorm.Engine {
-	db, err := xorm.NewEngine("sqlite3", "seed.db")
-	if err != nil {
-		panic(err)
-	}
-
-	e := db.Sync2(&Video{})
+func InitDB() (e error) {
+	db, e := xorm.NewEngine("sqlite3", "seed.db")
 	if e != nil {
-		return &xorm.Engine{}
+		return e
 	}
-
-	return db
+	db.ShowSQL(true)
+	db.ShowExecTime(true)
+	e = db.Sync2(&Video{})
+	if e != nil {
+		return e
+	}
+	database = db
+	return nil
 }
 
 // Model ...

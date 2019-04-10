@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/girlvr/seed"
+	"github.com/girlvr/seed/model"
 	"github.com/godcong/go-trait"
 	_ "github.com/mattn/go-sqlite3"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -29,13 +31,16 @@ func main() {
 		for _, v := range vs {
 			e := seed.Upload(v)
 			if e != nil {
-				log.Error(e)
+				panic(e)
 			}
 		}
 
 		log.Infof("%+v", vs[0])
 	case "transfer":
-
+		e := model.InitDB()
+		if e != nil {
+			panic(e)
+		}
 		seed.Transfer()
 	}
 

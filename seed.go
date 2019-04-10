@@ -48,20 +48,12 @@ type VideoLink struct {
 	Type int    `json:"type,omitempty"`
 }
 
-// SourceInfo ...
-type SourceInfo struct {
-	ID              string   `json:"id"`
-	PublicKey       string   `json:"public_key"`
-	Addresses       []string `json:"addresses"` //一组节点源列表
-	AgentVersion    string   `json:"agent_version"`
-	ProtocolVersion string   `json:"protocol_version"`
-}
-
 // Video ...
 type Video struct {
-	VideoInfo      *model.VideoInfo `json:",inline"`          //基本信息
-	VideoGroupList []*VideoGroup    `json:"video_group_list"` //多套片源
-	SourceInfoList []*SourceInfo    `json:"source_info_list"` //节点源数据
+	VideoInfo      *model.VideoInfo    `json:",inline"`          //基本信息
+	VideoGroupList []*model.VideoGroup `json:"video_group_list"` //多套片源
+	SourceInfoList []*model.SourceInfo `json:"source_info_list"` //节点源数据
+	Peers          []string            `json:"peers"`            //可连接节点信息
 }
 
 // VideoList ...

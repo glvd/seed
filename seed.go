@@ -211,7 +211,7 @@ func LinkObjectToObject(obj interface{}) *Object {
 }
 
 // AddRetToLink ...
-func AddRetToLink(obj *Object, ret *api.AddRet) *Object {
+func AddRetToLink(obj *Object, ret *shell.Object) *Object {
 	if obj != nil {
 		obj.Link.Hash = ret.Hash
 		obj.Link.Name = ret.Name
@@ -230,7 +230,7 @@ func AddRetToLink(obj *Object, ret *api.AddRet) *Object {
 }
 
 // AddRetToLinks ...
-func AddRetToLinks(obj *Object, ret *api.AddRet) *Object {
+func AddRetToLinks(obj *Object, ret *shell.Object) *Object {
 	if obj != nil {
 		obj.Links = append(obj.Links, &Link{
 			Hash: ret.Hash,

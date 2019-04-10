@@ -4,4 +4,4 @@ import (
 	"github.com/godcong/go-ipfs-restapi"
 )
 
-var rest = api.New("localhost:5001")
+var rest = shell.NewShell("localhost:5001")

@@ -19,7 +19,7 @@ func DB() *xorm.Engine {
 		panic(err)
 	}
 
-	e := db.Sync2(&VideoInfo{})
+	e := db.Sync2(&Video{})
 	if e != nil {
 		return &xorm.Engine{}
 	}

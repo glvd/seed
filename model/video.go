@@ -2,7 +2,8 @@ package model
 
 // Video ...
 type Video struct {
-	Model `xorm:",extends"`
+	Model     `xorm:",extends"`
+	VideoInfo `xorm:",extends"`
 }
 
 // VideoInfo ...

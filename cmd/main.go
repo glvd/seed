@@ -35,6 +35,8 @@ func main() {
 
 		log.Infof("%+v", vs[0])
 	case "transfer":
+		seed.InitDB()
+
 		seed.Transfer()
 	}
 

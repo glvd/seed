@@ -7,6 +7,7 @@ import (
 )
 
 var database *xorm.Engine
+var syncTable map[string]interface{}
 
 // InitDB ...
 func InitDB() (e error) {
@@ -16,10 +17,14 @@ func InitDB() (e error) {
 	}
 	db.ShowSQL(true)
 	db.ShowExecTime(true)
-	e = db.Sync2(&Video{})
-	if e != nil {
-		return e
+
+	for _, val := range syncTable {
+		e := db.Sync2(val)
+		if e != nil {
+			return e
+		}
 	}
+
 	database = db
 	return nil
 }

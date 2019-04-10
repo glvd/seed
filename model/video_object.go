@@ -2,7 +2,7 @@ package model
 
 import shell "github.com/godcong/go-ipfs-restapi"
 
-// Link ...
+// VideoLink ...
 type VideoLink struct {
 	Hash string `json:"hash"`
 	Name string `json:"name"`
@@ -10,7 +10,7 @@ type VideoLink struct {
 	Type int    `json:"type"`
 }
 
-// Object ...
+// VideoObject ...
 type VideoObject struct {
 	Model `xorm:"extends"`
 	Links []*VideoLink `json:"links,omitempty"`
@@ -44,7 +44,7 @@ func ObjectToLink(obj *VideoObject, ret *shell.Object) *VideoObject {
 	}
 }
 
-// ObjectToLink ...
+// ObjectToLinks ...
 func ObjectToLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
 	if obj != nil {
 		obj.Links = append(obj.Links, &VideoLink{

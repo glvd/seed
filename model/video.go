@@ -6,7 +6,7 @@ type Video struct {
 	*VideoInfo     `xorm:"extends"`
 	VideoGroupList []*VideoGroup `json:"video_group_list"`
 	SourceInfoList []*SourceInfo `json:"source_info_list"`
-	Peers          []string      `xorm:"-" json:"peers"`
+	Peers          []*Peer       `xorm:"-" json:"peers"`
 }
 
 // VideoInfo ...
@@ -32,7 +32,7 @@ type VideoInfo struct {
 }
 
 // SetPeers ...
-func (v *Video) SetPeers(p []string) {
+func (v *Video) SetPeers(p []*Peer) {
 	v.Peers = p
 }
 

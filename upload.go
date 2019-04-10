@@ -43,12 +43,14 @@ func Upload(source *VideoSource) (e error) {
 
 	video.AddSourceInfo(info)
 
+	var peers []*model.Peer
 	for _, value := range GetPeers().Peers {
-		log.Println(value.Addr)
-		log.Println(value.Peer)
-		log.Printf("%+v", value)
+		peers = append(peers, &model.Peer{
+			Addr: value.Addr,
+			Peer: value.Peer,
+		})
 	}
-
+	video.SetPeers(peers)
 	VideoListAdd(source, video)
 
 	e = SaveVideos()

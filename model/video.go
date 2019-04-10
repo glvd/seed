@@ -30,3 +30,8 @@ type VideoInfo struct {
 	Group        string   `json:"group"`             //分组
 	Publish      string   `json:"publish"`           //发布日期
 }
+
+// SetPeers ...
+func (v *Video) SetPeers(p []string) {
+	v.Peers = p
+}

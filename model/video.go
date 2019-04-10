@@ -2,8 +2,11 @@ package model
 
 // Video ...
 type Video struct {
-	Model      `xorm:"extends"`
-	*VideoInfo `xorm:"extends"`
+	Model          `xorm:"extends"`
+	*VideoInfo     `xorm:"extends"`
+	VideoGroupList []*VideoGroup `json:"video_group_list"`
+	SourceInfoList []*SourceInfo `json:"source_info_list"`
+	Peers          []string      `xorm:"-" json:"peers"`
 }
 
 // VideoInfo ...

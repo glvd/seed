@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/girlvr/seed/model"
-	"github.com/godcong/go-ipfs-restapi"
 	"github.com/json-iterator/go"
 )
 
@@ -48,14 +47,6 @@ type VideoLink struct {
 	Type int    `json:"type,omitempty"`
 }
 
-// Video ...
-type Video struct {
-	VideoInfo      *model.VideoInfo    `json:",inline"`          //基本信息
-	VideoGroupList []*model.VideoGroup `json:"video_group_list"` //多套片源
-	SourceInfoList []*model.SourceInfo `json:"source_info_list"` //节点源数据
-	Peers          []string            `json:"peers"`            //可连接节点信息
-}
-
 // VideoList ...
 var VideoList = LoadVideo()
 
@@ -80,7 +71,7 @@ func ListVideoGet(source *VideoSource) *model.Video {
 }
 
 // VideoListAdd ...
-func VideoListAdd(source *VideoSource, video *Video) {
+func VideoListAdd(source *VideoSource, video *model.Video) {
 	for i, v := range VideoList {
 		if v.Bangumi == source.Bangumi {
 			VideoList[i] = video
@@ -114,81 +105,6 @@ func NewVideo(source *VideoSource) *model.Video {
 		},
 		VideoGroupList: nil,
 		SourceInfoList: nil,
-	}
-}
-
-// AddSourceInfo ...
-func AddSourceInfo(video *Video, info *SourceInfo) {
-	if video.SourceInfoList == nil {
-		video.SourceInfoList = []*SourceInfo{info}
-		return
-	}
-	for idx, value := range video.SourceInfoList {
-		if value.ID == info.ID {
-			video.SourceInfoList[idx] = info
-			return
-		}
-	}
-	video.SourceInfoList = append(video.SourceInfoList, info)
-}
-
-// NewVideoGroup ...
-func NewVideoGroup() *VideoGroup {
-	return &VideoGroup{
-		Sharpness: "",
-		Sliced:    false,
-		HLS:       nil,
-		Object:    nil,
-	}
-}
-
-// LinkObjectToObject ...
-func LinkObjectToObject(obj interface{}) *Object {
-	if v, b := obj.(*Object); b {
-		return v
-	}
-	return &Object{}
-}
-
-// AddRetToLink ...
-func AddRetToLink(obj *Object, ret *shell.Object) *Object {
-	if obj != nil {
-		obj.Link.Hash = ret.Hash
-		obj.Link.Name = ret.Name
-		obj.Link.Size = ret.Size
-		obj.Link.Type = 2
-		return obj
-	}
-	return &Object{
-		Link: Link{
-			Hash: ret.Hash,
-			Name: ret.Name,
-			Size: ret.Size,
-			Type: 2,
-		},
-	}
-}
-
-// AddRetToLinks ...
-func AddRetToLinks(obj *Object, ret *shell.Object) *Object {
-	if obj != nil {
-		obj.Links = append(obj.Links, &Link{
-			Hash: ret.Hash,
-			Name: ret.Name,
-			Size: ret.Size,
-			Type: 2,
-		})
-		return obj
-	}
-	return &Object{
-		Links: []*Link{
-			{
-				Hash: ret.Hash,
-				Name: ret.Name,
-				Size: ret.Size,
-				Type: 2,
-			},
-		},
 	}
 }
 

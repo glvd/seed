@@ -8,3 +8,18 @@ type SourceInfo struct {
 	AgentVersion    string   `json:"agent_version"`
 	ProtocolVersion string   `json:"protocol_version"`
 }
+
+// AddSourceInfo ...
+func AddSourceInfo(video *Video, info *SourceInfo) {
+	if video.SourceInfoList == nil {
+		video.SourceInfoList = []*SourceInfo{info}
+		return
+	}
+	for idx, value := range video.SourceInfoList {
+		if value.ID == info.ID {
+			video.SourceInfoList[idx] = info
+			return
+		}
+	}
+	video.SourceInfoList = append(video.SourceInfoList, info)
+}

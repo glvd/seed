@@ -16,3 +16,13 @@ type HLS struct {
 	M3U8        string `json:"m3u8"`         //M3U8名
 	SegmentFile string `json:"segment_file"` //ts切片名
 }
+
+// NewVideoGroup ...
+func NewVideoGroup() *VideoGroup {
+	return &VideoGroup{
+		Sharpness: "",
+		Sliced:    false,
+		HLS:       nil,
+		Object:    nil,
+	}
+}

@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"github.com/girlvr/seed/model"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"os"
@@ -39,7 +40,7 @@ func Upload(source *VideoSource) (e error) {
 	info := GetSourceInfo()
 	log.Info(*info)
 
-	AddSourceInfo(video, info)
+	model.AddSourceInfo(video, info)
 
 	VideoListAdd(source, video)
 
@@ -51,12 +52,12 @@ func Upload(source *VideoSource) (e error) {
 }
 
 // GetSourceInfo ...
-func GetSourceInfo() *SourceInfo {
+func GetSourceInfo() *model.SourceInfo {
 	out, e := rest.ID()
 	if e != nil {
-		return &SourceInfo{}
+		return &model.SourceInfo{}
 	}
-	return (*SourceInfo)(out)
+	return (*model.SourceInfo)(out)
 }
 
 // Mustring  must string
@@ -67,14 +68,14 @@ func Mustring(val, src string) string {
 	return src
 }
 
-func newHLS(def *HLS) *HLS {
+func newHLS(def *model.HLS) *model.HLS {
 	if def != nil {
 		def.Key = Mustring(def.Key, "")
 		def.M3U8 = Mustring(def.M3U8, "media")
 		def.SegmentFile = Mustring(def.SegmentFile, "media-%05d.ts")
 	}
 
-	return &HLS{
+	return &model.HLS{
 		Encrypt:     false,
 		Key:         "",
 		M3U8:        "media",
@@ -82,7 +83,7 @@ func newHLS(def *HLS) *HLS {
 	}
 }
 
-func addSlice(video *Video, source *VideoSource) (e error) {
+func addSlice(video *model.Video, source *VideoSource) (e error) {
 	s := *source
 	s.HLS = newHLS(s.HLS)
 	s.Files = nil
@@ -100,8 +101,8 @@ func addSlice(video *Video, source *VideoSource) (e error) {
 	return nil
 }
 
-func add(video *Video, source *VideoSource) (e error) {
-	group := NewVideoGroup()
+func add(video *model.Video, source *VideoSource) (e error) {
+	group := model.NewVideoGroup()
 	hash := Hash(source)
 	for _, value := range source.Files {
 		info, e := os.Stat(value)
@@ -121,16 +122,16 @@ func add(video *Video, source *VideoSource) (e error) {
 				continue
 			}
 			last := len(rets) - 1
-			var obj *Object
+			var obj *model.VideoObject
 			for idx, v := range rets {
 				//hash = v.Hash
 
 				if idx == last {
-					obj = AddRetToLink(obj, v)
+					obj = model.ObjectToLink(obj, v)
 					group.Object = append(group.Object)
 					continue
 				}
-				obj = AddRetToLinks(obj, v)
+				obj = model.ObjectToLinks(obj, v)
 			}
 			group.Object = append(group.Object, obj)
 
@@ -142,13 +143,13 @@ func add(video *Video, source *VideoSource) (e error) {
 			continue
 		}
 		//hash = ret.Hash
-		group.Object = append(group.Object, AddRetToLink(nil, ret))
+		group.Object = append(group.Object, model.ObjectToLink(nil, ret))
 	}
 	group.Index = hash
 
 	//create if null
 	if video.VideoGroupList == nil {
-		video.VideoGroupList = []*VideoGroup{group}
+		video.VideoGroupList = []*model.VideoGroup{group}
 	}
 
 	//replace if found

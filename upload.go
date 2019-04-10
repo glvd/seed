@@ -2,11 +2,9 @@ package seed
 
 import (
 	"context"
-	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"os"
-	"strings"
 )
 
 func prefix(s string) (ret string) {
@@ -167,16 +165,16 @@ func add(video *Video, source *VideoSource) (e error) {
 
 // GroupIndex ...
 func GroupIndex(source *VideoSource, hash string) (s string) {
-	switch strings.ToLower(source.Group) {
-	case "bangumi":
-		s = source.Bangumi
-	case "sharpness":
-		s = source.Sharpness
-	case "hash":
-		return hash
-	default:
-		s = uuid.Must(uuid.NewRandom()).String()
-	}
+	//switch strings.ToLower(source.Group) {
+	//case "bangumi":
+	//	s = source.Bangumi
+	//case "sharpness":
+	//	s = source.Sharpness
+	//case "hash":
+	//	return hash
+	//default:
+	//	s = uuid.Must(uuid.NewRandom()).String()
+	//}
 	return
 }
 

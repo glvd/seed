@@ -3,6 +3,7 @@ package seed
 import (
 	"crypto/sha1"
 	"fmt"
+	"github.com/girlvr/seed/model"
 	"github.com/godcong/go-ipfs-restapi"
 	"github.com/json-iterator/go"
 )
@@ -64,28 +65,6 @@ type VideoGroup struct {
 	Object    []*Object `json:"object,omitempty"` //视频信息
 }
 
-// VideoInfo ...
-type VideoInfo struct {
-	Bangumi      string   `json:"bangumi"`       //番組
-	Type         string   `json:"type"`          //类型：film，FanDrama
-	Output       string   `json:"output"`        //输出：3D，2D
-	VR           string   `json:"vr"`            //VR格式：左右，上下，平面
-	Thumb        string   `json:"thumb"`         //缩略图
-	Intro        string   `json:"intro"`         //简介
-	Alias        []string `json:"alias"`         //别名，片名
-	Language     string   `json:"language"`      //语言
-	Caption      string   `json:"caption"`       //字幕
-	Poster       string   `json:"poster"`        //海报
-	Role         []string `json:"role"`          //主演
-	Director     string   `json:"director"`      //导演
-	Season       string   `json:"season"`        //季
-	Episode      string   `bson:"episode"`       //集数
-	TotalEpisode string   `bson:"total_episode"` //总集数
-	Sharpness    string   `json:"sharpness"`     //清晰度
-	Group        string   `json:"group"`         //分组
-	Publish      string   `json:"publish"`       //发布日期
-}
-
 // SourceInfo ...
 type SourceInfo struct {
 	ID              string   `json:"id"`
@@ -97,7 +76,7 @@ type SourceInfo struct {
 
 // Video ...
 type Video struct {
-	*VideoInfo     `json:",inline"` //基本信息
+	VideoInfo      *model.VideoInfo `json:",inline"`          //基本信息
 	VideoGroupList []*VideoGroup    `json:"video_group_list"` //多套片源
 	SourceInfoList []*SourceInfo    `json:"source_info_list"` //节点源数据
 }
@@ -120,8 +99,8 @@ type Object struct {
 var VideoList = LoadVideo()
 
 // LoadVideo ...
-func LoadVideo() []*Video {
-	var videos []*Video
+func LoadVideo() []*model.Video {
+	var videos []*model.Video
 	e := ReadJSON("video.json", &videos)
 	if e != nil {
 		return nil
@@ -130,7 +109,7 @@ func LoadVideo() []*Video {
 }
 
 // ListVideoGet ...
-func ListVideoGet(source *VideoSource) *Video {
+func ListVideoGet(source *VideoSource) *model.Video {
 	for _, v := range VideoList {
 		if v.Bangumi == source.Bangumi {
 			return v
@@ -160,13 +139,13 @@ func SaveVideos() (e error) {
 }
 
 // NewVideo ...
-func NewVideo(source *VideoSource) *Video {
+func NewVideo(source *VideoSource) *model.Video {
 	alias := []string{}
 	if source.Alias != nil {
 		alias = source.Alias
 	}
-	return &Video{
-		VideoInfo: &VideoInfo{
+	return &model.Video{
+		VideoInfo: &model.VideoInfo{
 			Bangumi: source.Bangumi,
 			Alias:   alias,
 			Role:    source.Role,

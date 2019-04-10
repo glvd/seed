@@ -71,14 +71,14 @@ func Mustring(val, src string) string {
 func newHLS(def *model.HLS) *model.HLS {
 	if def != nil {
 		def.Key = Mustring(def.Key, "")
-		def.M3U8 = Mustring(def.M3U8, "media")
+		def.M3U8 = Mustring(def.M3U8, "media.m3u8")
 		def.SegmentFile = Mustring(def.SegmentFile, "media-%05d.ts")
 	}
 
 	return &model.HLS{
 		Encrypt:     false,
 		Key:         "",
-		M3U8:        "media",
+		M3U8:        "media.m3u8",
 		SegmentFile: "media-%05d.ts",
 	}
 }

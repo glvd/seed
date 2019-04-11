@@ -1,5 +1,7 @@
 package model
 
+import "golang.org/x/xerrors"
+
 // Video ...
 type Video struct {
 	Model          `xorm:"extends"`
@@ -42,14 +44,17 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 }
 
 // FindVideo ...
-func FindVideo(video *Video) (e error) {
-	if _, err := db.Get(video); err != nil {
-		return err
+func FindVideo(ban string, video *Video) (e error) {
+	if b, err := db.Where("bangumi = ?", ban).Get(video); err != nil || !b {
+		return xerrors.New("video not found")
 	}
 	return nil
 }
 
 // AddVideo ...
-func AddVideo() {
-
+func AddVideo(video *Video) (e error) {
+	if _, err := db.InsertOne(video); err != nil {
+		return err
+	}
+	return nil
 }

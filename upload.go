@@ -52,7 +52,7 @@ func Upload(source *VideoSource) (e error) {
 
 	video.AddSourceInfo(info)
 
-	for _, value := range GetPeers().Peers {
+	for _, value := range GetPeers() {
 		video.AddPeers(&model.SourcePeerDetail{
 			Addr: value.Addr,
 			Peer: value.Peer,
@@ -82,12 +82,12 @@ func GetSourceInfo() *model.SourceInfoDetail {
 }
 
 // GetPeers ...
-func GetPeers() *shell.SwarmConnInfos {
+func GetPeers() []shell.SwarmConnInfo {
 	swarmPeers, e := rest.SwarmPeers(context.Background())
 	if e != nil {
 		return nil
 	}
-	return swarmPeers
+	return swarmPeers.Peers[:20]
 }
 
 // Mustring  must string

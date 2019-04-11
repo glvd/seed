@@ -21,13 +21,13 @@ func ReadJSON(path string, v interface{}) (e error) {
 
 // WriteJSON ...
 func WriteJSON(path string, v interface{}) (e error) {
-	bytes, e := jsoniter.Marshal(v)
+	file, e := os.OpenFile(path, os.O_WRONLY|os.O_SYNC|os.O_CREATE, os.ModePerm)
 	if e != nil {
 		return e
 	}
-	e = ioutil.WriteFile(path, bytes, os.ModePerm)
-	if e != nil {
-		return e
+	encoder := jsoniter.NewEncoder(file)
+	if e = encoder.Encode(v); e != nil {
+		return
 	}
 	return nil
 }

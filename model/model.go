@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/go-xorm/xorm"
+	"github.com/google/uuid"
 	"reflect"
 	"time"
 )
@@ -57,4 +58,11 @@ type Model struct {
 	UpdatedAt time.Time  `json:"-" xorm:"updated_at updated"`
 	DeletedAt *time.Time `json:"-" xorm:"deleted_at deleted"`
 	//Version   int        `json:"-" xorm:"version"`
+}
+
+// BeforeInsert ...
+func (m *Model) BeforeInsert() {
+	if m.ID == "" {
+		m.ID = uuid.Must(uuid.NewRandom()).String()
+	}
 }

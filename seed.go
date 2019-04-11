@@ -98,11 +98,10 @@ func NewVideo(source *VideoSource) *model.Video {
 	}
 	return &model.Video{
 		VideoInfo: &model.VideoInfo{
-			Bangumi:   source.Bangumi,
-			Alias:     alias,
-			Role:      source.Role,
-			Publish:   source.Publish,
-			Sharpness: source.Sharpness,
+			Bangumi: source.Bangumi,
+			Alias:   alias,
+			Role:    source.Role,
+			Publish: source.Publish,
 		},
 		VideoGroupList: nil,
 		SourceInfoList: nil,

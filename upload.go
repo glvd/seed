@@ -19,10 +19,12 @@ func Upload(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}
-	video := &model.Video{}
-	if err := model.FindVideo(source.Bangumi, video); err != nil {
+	video := NewVideo(source)
+	_, err := model.FindVideo(source.Bangumi, video)
+	if err != nil {
 		return err
 	}
+
 	if source.PosterPath != "" {
 		object, e := rest.AddFile(source.PosterPath)
 		if e != nil {

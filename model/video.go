@@ -24,11 +24,14 @@ type VideoInfo struct {
 	Role         []string `xorm:"json" json:"role"`                      //主演
 	Director     string   `json:"director"`                              //导演
 	Season       string   `json:"season"`                                //季
-	Episode      string   `bson:"episode"`                               //集数
-	TotalEpisode string   `bson:"total_episode"`                         //总集数
-	Sharpness    string   `json:"sharpness"`                             //清晰度
+	Episode      string   `json:"episode"`                               //集数
+	TotalEpisode string   `json:"total_episode"`                         //总集数
 	Group        string   `json:"group"`                                 //分组
 	Publish      string   `json:"publish"`                               //发布日期
+}
+
+func init() {
+	RegisterTable(&Video{})
 }
 
 // AddPeers ...
@@ -44,11 +47,8 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 }
 
 // FindVideo ...
-func FindVideo(ban string, video *Video) (e error) {
-	if _, err := DB().Where("bangumi = ?", ban).Get(video); err != nil {
-		return err
-	}
-	return nil
+func FindVideo(ban string, video *Video) (b bool, e error) {
+	return DB().Where("bangumi = ?", ban).Get(video)
 }
 
 // AddVideo ...

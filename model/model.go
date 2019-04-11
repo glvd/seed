@@ -2,12 +2,23 @@ package model
 
 import (
 	"github.com/go-xorm/xorm"
-
+	"reflect"
 	"time"
 )
 
 var database *xorm.Engine
 var syncTable map[string]interface{}
+
+// RegisterTable ...
+func RegisterTable(v interface{}) {
+	tof := reflect.TypeOf(v).Name()
+	if syncTable == nil {
+		syncTable = map[string]interface{}{
+			tof: v,
+		}
+	}
+	syncTable[tof] = v
+}
 
 // InitDB ...
 func InitDB() (e error) {

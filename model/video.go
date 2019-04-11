@@ -37,16 +37,6 @@ func (v *Video) AddPeers(p ...*SourcePeer) {
 }
 
 // AddSourceInfo ...
-func (v *Video) AddSourceInfo(info *SourceInfo) {
-	if v.SourceInfoList == nil {
-		v.SourceInfoList = []*SourceInfo{info}
-		return
-	}
-	for idx, value := range v.SourceInfoList {
-		if value.ID == info.ID {
-			v.SourceInfoList[idx] = info
-			return
-		}
-	}
-	v.SourceInfoList = append(v.SourceInfoList, info)
+func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
+	addSourceInfo(v, info)
 }

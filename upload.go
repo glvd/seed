@@ -60,12 +60,12 @@ func Upload(source *VideoSource) (e error) {
 }
 
 // GetSourceInfo ...
-func GetSourceInfo() *model.SourceInfo {
+func GetSourceInfo() *model.SourceInfoDetail {
 	out, e := rest.ID()
 	if e != nil {
-		return &model.SourceInfo{}
+		return &model.SourceInfoDetail{}
 	}
-	return (*model.SourceInfo)(out)
+	return (*model.SourceInfoDetail)(out)
 }
 
 // GetPeers ...

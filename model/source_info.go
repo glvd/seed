@@ -16,7 +16,7 @@ type SourceInfo struct {
 }
 
 // AddSourceInfo ...
-func AddSourceInfo(video *Video, info *SourceInfoDetail) {
+func addSourceInfo(video *Video, info *SourceInfoDetail) {
 	if video.SourceInfoList == nil {
 		video.SourceInfoList = []*SourceInfo{{
 			SourceInfoDetail: info,

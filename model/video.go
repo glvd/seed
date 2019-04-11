@@ -57,6 +57,7 @@ func FindVideo(ban string, video *Video) (b bool, e error) {
 
 // AddVideo ...
 func AddVideo(video *Video) (e error) {
+	log.Printf("%+v", *video)
 	if video.ID != "" {
 		log.Debug("update")
 		if _, err := DB().ID(video.ID).Update(video); err != nil {

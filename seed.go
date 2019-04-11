@@ -91,6 +91,33 @@ func SaveVideos() (e error) {
 	return nil
 }
 
+func parseVideoInfo(video *model.Video, source *VideoSource) {
+	if video == nil {
+		return
+	}
+	alias := []string{}
+	if source.Alias != nil {
+		alias = source.Alias
+	}
+	video.VideoInfo = &model.VideoInfo{
+		Bangumi:      source.Bangumi,
+		Type:         source.Type,
+		Output:       source.Output,
+		VR:           source.VR,
+		Thumb:        source.Thumb,
+		Intro:        source.Intro,
+		Alias:        alias,
+		Language:     source.Language,
+		Caption:      source.Caption,
+		Role:         source.Role,
+		Director:     source.Director,
+		Season:       source.Season,
+		Episode:      source.Episode,
+		TotalEpisode: source.TotalEpisode,
+		Publish:      source.Publish,
+	}
+}
+
 // NewVideo ...
 func NewVideo(source *VideoSource) *model.Video {
 	alias := []string{}

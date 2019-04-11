@@ -15,5 +15,6 @@ func Transfer() (e error) {
 	if e = WriteJSON("video.json", videos); e != nil {
 		return
 	}
+
 	return nil
 }

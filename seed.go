@@ -35,8 +35,9 @@ type VideoSource struct {
 	Episode      string     `bson:"episode"`       //集数
 	TotalEpisode string     `bson:"total_episode"` //总集数
 	Sharpness    string     `json:"sharpness"`     //清晰度
-	Publish      string     `json:"publish"`       //发布日期
-	//Group        string    `json:"group"`         //分组,废弃
+	Publish      string     `json:"publish"`       //发行日
+	Language     string     `json:"language"`      //语言
+	Caption      string     `json:"caption"`       //字幕
 }
 
 // VideoLink ...
@@ -98,10 +99,21 @@ func NewVideo(source *VideoSource) *model.Video {
 	}
 	return &model.Video{
 		VideoInfo: &model.VideoInfo{
-			Bangumi: source.Bangumi,
-			Alias:   alias,
-			Role:    source.Role,
-			Publish: source.Publish,
+			Bangumi:      source.Bangumi,
+			Type:         source.Type,
+			Output:       source.Output,
+			VR:           source.VR,
+			Thumb:        source.Thumb,
+			Intro:        source.Intro,
+			Alias:        alias,
+			Language:     source.Language,
+			Caption:      source.Caption,
+			Role:         source.Role,
+			Director:     source.Director,
+			Season:       source.Season,
+			Episode:      source.Episode,
+			TotalEpisode: source.TotalEpisode,
+			Publish:      source.Publish,
 		},
 		VideoGroupList: nil,
 		SourceInfoList: nil,

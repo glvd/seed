@@ -1,7 +1,7 @@
 package model
 
-// Peer ...
-type Peer struct {
+// SourcePeer ...
+type SourcePeer struct {
 	Addr string
 	Peer string
 }

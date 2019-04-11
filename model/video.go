@@ -41,7 +41,7 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 	addSourceInfo(v, info)
 }
 
-// GetVideo ...
+// FindVideo ...
 func FindVideo(video *Video) (e error) {
 	if _, err := db.Get(video); err != nil {
 		return err

@@ -53,7 +53,7 @@ func InitDB() (e error) {
 
 // Model ...
 type Model struct {
-	ID        string     `json:"-" xorm:"id"`
+	ID        string     `json:"-" xorm:"id pk"`
 	CreatedAt time.Time  `json:"-" xorm:"created_at created"`
 	UpdatedAt time.Time  `json:"-" xorm:"updated_at updated"`
 	DeletedAt *time.Time `json:"-" xorm:"deleted_at deleted"`

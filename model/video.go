@@ -18,7 +18,7 @@ type VideoInfo struct {
 	Bangumi      string   `xorm:"unique index 'bangumi'" json:"bangumi"` //番組
 	Type         string   `json:"type"`                                  //类型：film，FanDrama
 	Output       string   `json:"output"`                                //输出：3D，2D
-	VR           string   `xorm:"vr" json:"vr"`                          //VR格式：左右，上下，平面
+	VR           string   `xorm:"vr" json:"vr"`                          //VR格式：Half-SBS：左右半宽,Half-OU：上下半高,SBS：左右全宽
 	Thumb        string   `json:"thumb"`                                 //缩略图
 	Intro        string   `json:"intro"`                                 //简介
 	Alias        []string `xorm:"json" json:"alias"`                     //别名，片名
@@ -59,7 +59,7 @@ func FindVideo(ban string, video *Video) (b bool, e error) {
 func AddVideo(video *Video) (e error) {
 	if video.ID != "" {
 		log.Debug("update")
-		if _, err := DB().Update(video); err != nil {
+		if _, err := DB().ID(video.ID).Update(video); err != nil {
 			return err
 		}
 		return nil

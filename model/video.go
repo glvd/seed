@@ -1,6 +1,8 @@
 package model
 
-import "github.com/prometheus/common/log"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
 // Video ...
 type Video struct {

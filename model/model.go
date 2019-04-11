@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var database *xorm.Engine
+var db *xorm.Engine
 var syncTable map[string]interface{}
 
 // RegisterTable ...
@@ -22,21 +22,21 @@ func RegisterTable(v interface{}) {
 
 // InitDB ...
 func InitDB() (e error) {
-	db, e := xorm.NewEngine("sqlite3", "seed.db")
+	eng, e := xorm.NewEngine("sqlite3", "seed.db")
 	if e != nil {
 		return e
 	}
-	db.ShowSQL(true)
-	db.ShowExecTime(true)
+	eng.ShowSQL(true)
+	eng.ShowExecTime(true)
 
 	for _, val := range syncTable {
-		e := db.Sync2(val)
+		e := eng.Sync2(val)
 		if e != nil {
 			return e
 		}
 	}
 
-	database = db
+	db = eng
 	return nil
 }
 

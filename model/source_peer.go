@@ -1,7 +1,13 @@
 package model
 
+// SourcePeerDetail ...
+type SourcePeerDetail struct {
+	Addr string `json:"addr"`
+	Peer string `json:"peer"`
+}
+
 // SourcePeer ...
 type SourcePeer struct {
-	Addr string
-	Peer string
+	//Model             `xorm:"extends"`
+	*SourcePeerDetail `xorm:"extends"`
 }

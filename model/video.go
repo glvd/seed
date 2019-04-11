@@ -1,14 +1,12 @@
 package model
 
-import "golang.org/x/xerrors"
-
 // Video ...
 type Video struct {
 	Model          `xorm:"extends"`
 	*VideoInfo     `xorm:"extends"`
-	VideoGroupList []*VideoGroup `xorm:"-" json:"video_group_list"`
-	SourceInfoList []*SourceInfo `xorm:"-" json:"source_info_list"`
-	SourcePeerList []*SourcePeer `xorm:"-" json:"peers"`
+	VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
+	SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`
+	SourcePeerList []*SourcePeer `xorm:"json" json:"source_peer_list"`
 }
 
 // VideoInfo ...
@@ -34,8 +32,10 @@ type VideoInfo struct {
 }
 
 // AddPeers ...
-func (v *Video) AddPeers(p ...*SourcePeer) {
-	v.Peers = append(v.Peers, p...)
+func (v *Video) AddPeers(p ...*SourcePeerDetail) {
+	for _, value := range p {
+		v.SourcePeerList = append(v.SourcePeerList, &SourcePeer{SourcePeerDetail: value})
+	}
 }
 
 // AddSourceInfo ...
@@ -45,15 +45,21 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 
 // FindVideo ...
 func FindVideo(ban string, video *Video) (e error) {
-	if b, err := db.Where("bangumi = ?", ban).Get(video); err != nil || !b {
-		return xerrors.New("video not found")
+	if _, err := DB().Where("bangumi = ?", ban).Get(video); err != nil {
+		return err
 	}
 	return nil
 }
 
 // AddVideo ...
 func AddVideo(video *Video) (e error) {
-	if _, err := db.InsertOne(video); err != nil {
+	if video.ID != "" {
+		if _, err := DB().Update(video); err != nil {
+			return err
+		}
+		return nil
+	}
+	if _, err := DB().InsertOne(video); err != nil {
 		return err
 	}
 	return nil

@@ -19,19 +19,21 @@ func Upload(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}
-
-	video := ListVideoGet(source)
+	video := &model.Video{}
+	if err := model.FindVideo(source.Bangumi, video); err != nil {
+		return err
+	}
 	if source.PosterPath != "" {
-		s, e := rest.AddFile(source.PosterPath)
+		object, e := rest.AddFile(source.PosterPath)
 		if e != nil {
 			return e
 		}
-		video.VideoInfo.Poster = s.Hash
+		video.VideoInfo.Poster = object.Hash
 	}
 	log.Info(*source)
 	fn := add
 	if source.Slice {
-		log.Debug("add slice")
+		log.Debug("add with slice")
 		fn = addSlice
 	}
 	e = fn(video, source)
@@ -44,18 +46,22 @@ func Upload(source *VideoSource) (e error) {
 	video.AddSourceInfo(info)
 
 	for _, value := range GetPeers().Peers {
-		video.AddPeers(&model.SourcePeer{
+		video.AddPeers(&model.SourcePeerDetail{
 			Addr: value.Addr,
 			Peer: value.Peer,
 		})
 	}
 
-	VideoListAdd(source, video)
-
-	e = SaveVideos()
-	if e != nil {
-		return e
+	if err := model.AddVideo(video); err != nil {
+		return err
 	}
+
+	//VideoListAdd(source, video)
+
+	//if err := SaveVideos(); err != nil {
+	//	return err
+	//}
+
 	return nil
 }
 

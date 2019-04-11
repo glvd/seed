@@ -2,7 +2,7 @@ package model
 
 // VideoGroup ...
 type VideoGroup struct {
-	Model     `xorm:"extends"`
+	//Model     `xorm:"extends"`
 	Index     string         `json:"index"`                        //索引
 	Sharpness string         `json:"sharpness"`                    //清晰度
 	Sliced    bool           `json:"sliced"`                       //切片

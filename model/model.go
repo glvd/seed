@@ -20,6 +20,16 @@ func RegisterTable(v interface{}) {
 	syncTable[tof] = v
 }
 
+// DB ...
+func DB() *xorm.Engine {
+	if db == nil {
+		if err := InitDB(); err != nil {
+			panic(err)
+		}
+	}
+	return db
+}
+
 // InitDB ...
 func InitDB() (e error) {
 	eng, e := xorm.NewEngine("sqlite3", "seed.db")
@@ -46,5 +56,5 @@ type Model struct {
 	CreatedAt time.Time  `json:"-" xorm:"created_at"`
 	UpdatedAt time.Time  `json:"-" xorm:"updated_at"`
 	DeletedAt *time.Time `json:"-" xorm:"deleted_at"`
-	Version   int        `json:"-" xorm:"version"`
+	//Version   int        `json:"-" xorm:"version"`
 }

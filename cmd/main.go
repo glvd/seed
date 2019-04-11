@@ -30,7 +30,7 @@ func main() {
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
-
+	//model.InitDB()
 	var cmdProcess = &cobra.Command{
 		Use:   "process",
 		Short: "process split and upload to ipfs",

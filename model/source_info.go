@@ -11,21 +11,27 @@ type SourceInfoDetail struct {
 
 // SourceInfo ...
 type SourceInfo struct {
-	Model            `xorm:"extends"`
-	SourceInfoDetail `xorm:"extends"`
+	Model             `xorm:"extends"`
+	*SourceInfoDetail `xorm:"extends"`
 }
 
 // AddSourceInfo ...
-func AddSourceInfo(video *Video, info *SourceInfo) {
+func AddSourceInfo(video *Video, info *SourceInfoDetail) {
 	if video.SourceInfoList == nil {
-		video.SourceInfoList = []*SourceInfo{info}
+		video.SourceInfoList = []*SourceInfo{{
+			SourceInfoDetail: info,
+		}}
 		return
 	}
 	for idx, value := range video.SourceInfoList {
-		if value.ID == info.ID {
-			video.SourceInfoList[idx] = info
+		if value.SourceInfoDetail.ID == info.ID {
+			video.SourceInfoList[idx] = &SourceInfo{
+				SourceInfoDetail: info,
+			}
 			return
 		}
 	}
-	video.SourceInfoList = append(video.SourceInfoList, info)
+	video.SourceInfoList = append(video.SourceInfoList, &SourceInfo{
+		SourceInfoDetail: info,
+	})
 }

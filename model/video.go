@@ -31,7 +31,7 @@ type VideoInfo struct {
 	Publish      string   `json:"publish"`           //发布日期
 }
 
-// SetPeers ...
+// AddPeers ...
 func (v *Video) AddPeers(p ...*SourcePeer) {
 	v.Peers = append(v.Peers, p...)
 }

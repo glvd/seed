@@ -1,5 +1,7 @@
 package model
 
+import "github.com/prometheus/common/log"
+
 // Video ...
 type Video struct {
 	Model          `xorm:"extends"`
@@ -54,6 +56,7 @@ func FindVideo(ban string, video *Video) (b bool, e error) {
 // AddVideo ...
 func AddVideo(video *Video) (e error) {
 	if video.ID != "" {
+		log.Debug("update")
 		if _, err := DB().Update(video); err != nil {
 			return err
 		}

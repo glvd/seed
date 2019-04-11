@@ -6,9 +6,9 @@ import "golang.org/x/xerrors"
 type Video struct {
 	Model          `xorm:"extends"`
 	*VideoInfo     `xorm:"extends"`
-	VideoGroupList []*VideoGroup `json:"video_group_list"`
-	SourceInfoList []*SourceInfo `json:"source_info_list"`
-	Peers          []*SourcePeer `xorm:"-" json:"peers"`
+	VideoGroupList []*VideoGroup `xorm:"-" json:"video_group_list"`
+	SourceInfoList []*SourceInfo `xorm:"-" json:"source_info_list"`
+	SourcePeerList []*SourcePeer `xorm:"-" json:"peers"`
 }
 
 // VideoInfo ...

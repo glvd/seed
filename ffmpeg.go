@@ -20,7 +20,7 @@ func SplitVideo(ctx context.Context, source *VideoSource, file string) (e error)
 	_ = os.MkdirAll(path, os.ModePerm)
 
 	command := cmd.NewFFMPEG()
-	command.Split(path).
+	command.Split(path).Strict().
 		HlsSegmentFilename(source.HLS.SegmentFile).Output(source.HLS.M3U8).
 		Input(file).Ignore().
 		CodecAudio(cmd.String("aac")).CodecVideo(cmd.String("libx264")).

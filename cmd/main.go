@@ -27,10 +27,11 @@ func main() {
 		}
 	}()
 	path := rootCmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source")
+	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
-	//model.InitDB()
+
 	var cmdProcess = &cobra.Command{
 		Use:   "process",
 		Short: "process split and upload to ipfs",
@@ -38,7 +39,7 @@ func main() {
 		after that return a ipfs hash info json.`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			//path := cmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source")
+			seed.InitShell(*shell)
 			vs := seed.Load(*path)
 			for _, v := range vs {
 				e := seed.Upload(v)
@@ -57,6 +58,7 @@ func main() {
 		Long:  `transfer will output a json file from video info db.`,
 		//Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			seed.InitShell(*shell)
 			e := model.InitDB()
 			if e != nil {
 				panic(e)

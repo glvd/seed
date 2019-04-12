@@ -61,7 +61,9 @@ func main() {
 			if e != nil {
 				panic(e)
 			}
-			seed.Transfer()
+			if err := seed.Transfer(); err != nil {
+				panic(err)
+			}
 		},
 	}
 	rootCmd.AddCommand(cmdProcess, cmdTransfer)

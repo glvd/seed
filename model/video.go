@@ -26,7 +26,7 @@ type VideoInfo struct {
 	Caption      string   `json:"caption"`                               //字幕
 	Poster       string   `json:"poster"`                                //海报
 	Role         []string `xorm:"json" json:"role"`                      //主演
-	Director     string   `json:"director"`                              //导演
+	Director     []string `xorm:"json" json:"director"`                  //导演
 	Season       string   `json:"season"`                                //季
 	Episode      string   `json:"episode"`                               //集数
 	TotalEpisode string   `json:"total_episode"`                         //总集数

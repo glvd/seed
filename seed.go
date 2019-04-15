@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/girlvr/seed/model"
-	"github.com/json-iterator/go"
 )
 
 // Extend ...
@@ -30,7 +29,7 @@ type VideoSource struct {
 	PosterPath   string     `json:"poster_path"`   //海报路径
 	ExtendList   []*Extend  `json:"extend_list"`   //扩展信息
 	Role         []string   `json:"role"`          //角色列表
-	Director     string     `json:"director"`      //导演
+	Director     []string   `json:"director"`      //导演
 	Season       string     `json:"season"`        //季
 	Episode      string     `bson:"episode"`       //集数
 	TotalEpisode string     `bson:"total_episode"` //总集数

@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"github.com/girlvr/seed/model"
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Extend ...

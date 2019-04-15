@@ -30,6 +30,7 @@ type VideoSource struct {
 	ExtendList   []*Extend  `json:"extend_list"`   //扩展信息
 	Role         []string   `json:"role"`          //角色列表
 	Director     []string   `json:"director"`      //导演
+	Systematics  string     `json:"systematics"`   //分级
 	Season       string     `json:"season"`        //季
 	Episode      string     `bson:"episode"`       //集数
 	TotalEpisode string     `bson:"total_episode"` //总集数

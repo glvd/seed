@@ -60,8 +60,8 @@ func FindVideo(ban string, video *Video) (b bool, e error) {
 	return DB().Where("bangumi = ?", ban).Get(video)
 }
 
-// AddVideo ...
-func AddVideo(video *Video) (e error) {
+// AddOrUpdateVideo ...
+func AddOrUpdateVideo(video *Video) (e error) {
 	log.Printf("%+v", *video)
 	if video.ID != "" {
 		log.Debug("update")

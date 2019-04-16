@@ -76,7 +76,8 @@ func main() {
 			for _, v := range vs {
 				e := seed.Update(args[0], v)
 				if e != nil {
-					panic(e)
+					log.Error(e)
+					continue
 				}
 			}
 

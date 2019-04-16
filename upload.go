@@ -144,7 +144,7 @@ func add(video *model.Video, source *VideoSource) (e error) {
 
 		group.Sliced = source.Slice
 		group.HLS = source.HLS
-
+		group.Sharpness = source.Sharpness
 		if dir {
 			rets, e := rest.AddDir(value)
 			if e != nil {

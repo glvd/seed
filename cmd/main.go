@@ -40,9 +40,41 @@ func main() {
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			seed.InitShell(*shell)
+			e := model.InitDB()
+			if e != nil {
+				panic(e)
+			}
 			vs := seed.Load(*path)
 			for _, v := range vs {
 				e := seed.Upload(v)
+				if e != nil {
+					panic(e)
+				}
+			}
+
+			log.Infof("%+v", vs[0])
+		},
+	}
+
+	var cmdUpdate = &cobra.Command{
+		Use:   "update",
+		Short: "update the information",
+		Long:  `update only update the video information to new information`,
+		//Args: cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println(args)
+			if len(args) < 1 {
+				fmt.Println("nothing process")
+				return
+			}
+			seed.InitShell(*shell)
+			e := model.InitDB()
+			if e != nil {
+				panic(e)
+			}
+			vs := seed.Load(*path)
+			for _, v := range vs {
+				e := seed.Update(args[0], v)
 				if e != nil {
 					panic(e)
 				}
@@ -68,7 +100,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

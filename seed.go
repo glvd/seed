@@ -92,7 +92,7 @@ func SaveVideos() (e error) {
 	return nil
 }
 
-func parseVideoInfo(video *model.Video, source *VideoSource) {
+func parseVideoBase(video *model.Video, source *VideoSource) {
 	if video == nil {
 		return
 	}
@@ -100,16 +100,16 @@ func parseVideoInfo(video *model.Video, source *VideoSource) {
 	if source.Alias != nil {
 		alias = source.Alias
 	}
-	video.VideoInfo = &model.VideoInfo{
-		Bangumi:      source.Bangumi,
-		Type:         source.Type,
-		Output:       source.Output,
-		VR:           source.VR,
-		Thumb:        source.Thumb,
-		Intro:        source.Intro,
-		Alias:        alias,
-		Language:     source.Language,
-		Caption:      source.Caption,
+	video.VideoBase = &model.VideoBase{
+		Bangumi: source.Bangumi,
+		//Type:         source.Type,
+		//Output:       source.Output,
+		//VR:           source.VR,
+		Thumb: source.Thumb,
+		Intro: source.Intro,
+		Alias: alias,
+		//Language:     source.Language,
+		//Caption:      source.Caption,
 		Role:         source.Role,
 		Director:     source.Director,
 		Season:       source.Season,
@@ -126,16 +126,16 @@ func NewVideo(source *VideoSource) *model.Video {
 		alias = source.Alias
 	}
 	return &model.Video{
-		VideoInfo: &model.VideoInfo{
-			Bangumi:      source.Bangumi,
-			Type:         source.Type,
-			Output:       source.Output,
-			VR:           source.VR,
-			Thumb:        source.Thumb,
-			Intro:        source.Intro,
-			Alias:        alias,
-			Language:     source.Language,
-			Caption:      source.Caption,
+		VideoBase: &model.VideoBase{
+			Bangumi: source.Bangumi,
+			//Type:         source.Type,
+			//Output:       source.Output,
+			//VR:           source.VR,
+			Thumb: source.Thumb,
+			Intro: source.Intro,
+			Alias: alias,
+			//Language:     source.Language,
+			//Caption:      source.Caption,
 			Role:         source.Role,
 			Director:     source.Director,
 			Season:       source.Season,

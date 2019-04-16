@@ -14,6 +14,19 @@ func prefix(s string) (ret string) {
 	return
 }
 
+// Update ...
+func Update(index string, source *VideoSource) (e error) {
+	if source == nil {
+		return xerrors.New("nil source")
+	}
+	video := &model.Video{}
+	_, err := model.FindVideo(source.Bangumi, video)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Upload ...
 func Upload(source *VideoSource) (e error) {
 	if source == nil {
@@ -24,7 +37,7 @@ func Upload(source *VideoSource) (e error) {
 	if err != nil {
 		return err
 	}
-	parseVideoInfo(video, source)
+	parseVideoBase(video, source)
 	video.SourcePeerList = nil
 	video.SourceInfoList = nil
 	video.VideoGroupList = nil
@@ -35,7 +48,7 @@ func Upload(source *VideoSource) (e error) {
 		if e != nil {
 			return e
 		}
-		video.VideoInfo.Poster = object.Hash
+		video.VideoBase.Poster = object.Hash
 	}
 	log.Info(*source)
 	fn := add
@@ -132,8 +145,8 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 }
 
 func add(video *model.Video, source *VideoSource) (e error) {
-	group := model.NewVideoGroup()
 	hash := Hash(source)
+	group := parseGroup(hash, source)
 	for _, value := range source.Files {
 		info, e := os.Stat(value)
 		if e != nil {
@@ -142,9 +155,6 @@ func add(video *model.Video, source *VideoSource) (e error) {
 		}
 		dir := info.IsDir()
 
-		group.Sliced = source.Slice
-		group.HLS = source.HLS
-		group.Sharpness = source.Sharpness
 		if dir {
 			rets, e := rest.AddDir(value)
 			if e != nil {
@@ -154,8 +164,6 @@ func add(video *model.Video, source *VideoSource) (e error) {
 			last := len(rets) - 1
 			var obj *model.VideoObject
 			for idx, v := range rets {
-				//hash = v.Hash
-
 				if idx == last {
 					obj = model.ObjectToLink(obj, v)
 					group.Object = append(group.Object)
@@ -175,7 +183,6 @@ func add(video *model.Video, source *VideoSource) (e error) {
 		//hash = ret.Hash
 		group.Object = append(group.Object, model.ObjectToLink(nil, ret))
 	}
-	group.Index = hash
 
 	//create if null
 	if video.VideoGroupList == nil {
@@ -192,6 +199,23 @@ func add(video *model.Video, source *VideoSource) (e error) {
 	//append if not found
 	video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
+}
+
+func parseGroup(index string, source *VideoSource) *model.VideoGroup {
+	return &model.VideoGroup{
+		Index:        index,
+		Sharpness:    source.Sharpness,
+		Output:       source.Output,
+		Season:       source.Season,
+		TotalEpisode: source.TotalEpisode,
+		Episode:      source.Episode,
+		Language:     source.Language,
+		Caption:      source.Caption,
+		Sliced:       source.Slice,
+		HLS:          source.HLS,
+		Object:       nil,
+	}
+
 }
 
 // GroupIndex ...

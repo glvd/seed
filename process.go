@@ -19,6 +19,10 @@ func Process(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}
+	if source.Bangumi == "" {
+		return nil
+	}
+
 	video := &model.Video{}
 	_, err := model.FindVideo(source.Bangumi, video)
 	if err != nil {

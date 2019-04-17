@@ -13,7 +13,7 @@ func Pin(ban string) (e error) {
 	if ban == "" {
 		v, e := model.AllVideos()
 		if e != nil {
-			return
+			return e
 		}
 		for _, videos := range v {
 			for _, value := range videos.VideoGroupList {

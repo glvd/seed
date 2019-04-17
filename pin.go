@@ -24,17 +24,20 @@ func swarmConnects(peers []*model.SourcePeer) {
 		return
 	}
 
-	for idx, value := range peers {
+	var nextPeers []*model.SourcePeer
+
+	for _, value := range peers {
 		e := swarmConnectTo(value)
 		if e != nil {
 			logrus.Error(e)
-			//filter the error peers
-			peers = append(peers[:idx], peers[idx+1:]...)
+			continue
 		}
+		//filter the error peers
+		nextPeers = append(nextPeers, value)
 		time.Sleep(30 * time.Second)
 	}
 	//rerun when connect is end
-	swarmConnects(peers)
+	swarmConnects(nextPeers)
 }
 
 func pin(wg *sync.WaitGroup, hash string) {

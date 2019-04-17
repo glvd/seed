@@ -16,17 +16,17 @@ type Video struct {
 
 // VideoBase ...
 type VideoBase struct {
-	Bangumi      string   `xorm:"unique index 'bangumi'" json:"bangumi"` //番組
-	Thumb        string   `json:"thumb"`                                 //缩略图
-	Intro        string   `json:"intro"`                                 //简介
-	Alias        []string `xorm:"json" json:"alias"`                     //别名，片名
-	Poster       string   `json:"poster"`                                //海报
-	Role         []string `xorm:"json" json:"role"`                      //主演
-	Director     []string `xorm:"json" json:"director"`                  //导演
-	Season       string   `json:"season,omitempty"`                      //季
-	TotalEpisode string   `json:"total_episode,omitempty"`               //总集数
-	Episode      string   `json:"episode,omitempty"`                     //集数
-	Publish      string   `json:"publish"`                               //发布日期
+	Bangumi      string   `xorm:"unique index bangumi" json:"bangumi"` //番組
+	Thumb        string   `json:"thumb"`                               //缩略图
+	Intro        string   `json:"intro"`                               //简介
+	Alias        []string `xorm:"json" json:"alias"`                   //别名，片名
+	Poster       string   `json:"poster"`                              //海报
+	Role         []string `xorm:"json" json:"role"`                    //主演
+	Director     []string `xorm:"json" json:"director"`                //导演
+	Season       string   `json:"season,omitempty"`                    //季
+	TotalEpisode string   `json:"total_episode,omitempty"`             //总集数
+	Episode      string   `json:"episode,omitempty"`                   //集数
+	Publish      string   `json:"publish"`                             //发布日期
 }
 
 // VideoInfo ...

@@ -25,7 +25,9 @@ func Update(index string, source *VideoSource) (e error) {
 	group := parseGroup(hash, source)
 	for idx := range video.VideoGroupList {
 		if video.VideoGroupList[idx].Index == index {
+			objBak := video.VideoGroupList[idx].Object
 			video.VideoGroupList[idx] = group
+			video.VideoGroupList[idx].Object = objBak
 			break
 		}
 	}

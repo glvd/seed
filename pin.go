@@ -35,10 +35,12 @@ func Pin(ban string) (e error) {
 		if e != nil || !b {
 			return xerrors.New("nil video")
 		}
-
+		logrus.Info("pin video:", ban)
 		for _, value := range video.VideoGroupList {
+			logrus.Infof("list:%+v", value)
 			for _, val := range value.Object {
 				wg.Add(1)
+				logrus.Info("pin:", val.Link.Hash)
 				go func(hash string) {
 					e := rest.Pin(hash)
 					if e != nil {

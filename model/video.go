@@ -65,6 +65,16 @@ func Top(video *Video) (b bool, e error) {
 	return DB().OrderBy("created_at desc").Get(video)
 }
 
+// ALL ...
+func AllVideos() (v []*Video, e error) {
+	var videos = new([]*Video)
+	if e = DB().Find(videos); e != nil {
+		return
+	}
+	v = *videos
+	return
+}
+
 // DeepFind ...
 func DeepFind(s string, video *Video) (b bool, e error) {
 	b, e = DB().Where("bangumi = ?", s).Get(video)

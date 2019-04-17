@@ -85,6 +85,28 @@ func main() {
 		},
 	}
 
+	var cmdPin = &cobra.Command{
+		Use:   "pin",
+		Short: "pin the video to ipfs",
+		Long:  `pin the video to ipfs, then user can get it more quickly`,
+		//Args: cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			pin := ""
+			if len(args) >= 1 {
+				pin = args[0]
+			}
+			seed.InitShell(*shell)
+			e := model.InitDB()
+			if e != nil {
+				panic(e)
+			}
+			e = seed.Pin(pin)
+			if e != nil {
+				panic(e)
+			}
+		},
+	}
+
 	var cmdTransfer = &cobra.Command{
 		Use:   "transfer",
 		Short: "transfer video data info to json",
@@ -101,7 +123,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

@@ -89,7 +89,7 @@ func GetPeers() []shell.SwarmConnInfo {
 	if e != nil {
 		return nil
 	}
-	return swarmPeers.Peers[:20]
+	return swarmPeers.Peers[:50]
 }
 
 // Mustring  must string

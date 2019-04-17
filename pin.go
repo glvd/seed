@@ -1,14 +1,31 @@
 package seed
 
 import (
+	"context"
 	"github.com/girlvr/seed/model"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"sync"
+	"time"
 )
 
-func connectSwarm() {
+func swarmConnectTo(peer *model.SourcePeer) (e error) {
+	address := peer.Addr + "/" + peer.Peer
+	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+	if err := rest.SwarmConnect(ctx, address); err != nil {
+		return err
+	}
+	return
+}
 
+func swarmConnects(peers []*model.SourcePeer) {
+	for _, value := range peers {
+		e := swarmConnectTo(value)
+		if e != nil {
+			logrus.Error(e)
+		}
+		time.Sleep(30 * time.Second)
+	}
 }
 
 func pin(wg *sync.WaitGroup, hash string) {
@@ -20,6 +37,7 @@ func pin(wg *sync.WaitGroup, hash string) {
 }
 
 func pinVideo(wg *sync.WaitGroup, video *model.Video) {
+	go swarmConnects(video.SourcePeerList)
 	logrus.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	logrus.Info("pin poster:", video.Poster)

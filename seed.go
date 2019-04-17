@@ -33,8 +33,8 @@ type VideoSource struct {
 	Director     []string   `json:"director"`      //导演
 	Systematics  string     `json:"systematics"`   //分级
 	Season       string     `json:"season"`        //季
-	Episode      string     `bson:"episode"`       //集数
-	TotalEpisode string     `bson:"total_episode"` //总集数
+	Episode      string     `json:"episode"`       //集数
+	TotalEpisode string     `json:"total_episode"` //总集数
 	Sharpness    string     `json:"sharpness"`     //清晰度
 	Publish      string     `json:"publish"`       //发行日
 	Language     string     `json:"language"`      //语言

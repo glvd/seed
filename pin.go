@@ -26,6 +26,7 @@ func swarmConnects(peers []*model.SourcePeer) {
 		}
 		time.Sleep(30 * time.Second)
 	}
+	swarmConnects(peers)
 }
 
 func pin(wg *sync.WaitGroup, hash string) {

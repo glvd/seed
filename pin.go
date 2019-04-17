@@ -19,13 +19,20 @@ func swarmConnectTo(peer *model.SourcePeer) (e error) {
 }
 
 func swarmConnects(peers []*model.SourcePeer) {
-	for _, value := range peers {
+	if peers == nil {
+		return
+	}
+
+	for idx, value := range peers {
 		e := swarmConnectTo(value)
 		if e != nil {
 			logrus.Error(e)
+			//filter the error peers
+			peers = append(peers[:idx], peers[idx+1:]...)
 		}
 		time.Sleep(30 * time.Second)
 	}
+	//rerun when connect is end
 	swarmConnects(peers)
 }
 

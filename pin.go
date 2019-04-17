@@ -30,6 +30,7 @@ func swarmConnects(peers []*model.SourcePeer) {
 		e := swarmConnectTo(value)
 		if e != nil {
 			logrus.Error(e)
+			time.Sleep(30 * time.Second)
 			continue
 		}
 		//filter the error peers

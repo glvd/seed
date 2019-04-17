@@ -57,7 +57,25 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 
 // FindVideo ...
 func FindVideo(ban string, video *Video) (b bool, e error) {
-	return DB().Where("bangumi = ?", ban).Get(video)
+	return DB().Where("bangumi like ?", "%"+ban+"%").Get(video)
+}
+
+// Top ...
+func Top(video *Video) (b bool, e error) {
+	return DB().OrderBy("created_at desc").Get(video)
+}
+
+// DeepFind ...
+func DeepFind(s string, video *Video) (b bool, e error) {
+	b, e = DB().Where("bangumi = ?", s).Get(video)
+	if e != nil || !b {
+		like := "%" + s + "%"
+		return DB().Where("bangumi like ? ", like).
+			Or("alias like ?", like).
+			Or("role like ?", like).
+			Get(video)
+	}
+	return b, e
 }
 
 // AddOrUpdateVideo ...

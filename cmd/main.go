@@ -46,7 +46,7 @@ func main() {
 			}
 			vs := seed.Load(*path)
 			for _, v := range vs {
-				e := seed.Upload(v)
+				e := seed.Process(v)
 				if e != nil {
 					panic(e)
 				}

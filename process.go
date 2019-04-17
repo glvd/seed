@@ -14,8 +14,8 @@ func prefix(s string) (ret string) {
 	return
 }
 
-// Upload ...
-func Upload(source *VideoSource) (e error) {
+// Process ...
+func Process(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}

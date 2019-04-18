@@ -15,6 +15,16 @@
 ```
 を使って、番号を捜索してください。
 
+SEEDの使い方法：
+```
+SEED process //seed.jsonを読み出して、ipfsネートをアップします。
+
+SEED pin 番号　//番号を探して、IPFSネートにPINをします。番号を入力しなければ、全ての番号PINをします。
+
+SEED transfer //DBからjsonファイルへ転換する。
+
+SEED update //jsonファイルを読み出して、ビデオの紹介を更新します。
+```
 
 JSONファイルのExample:
 ```

@@ -1,7 +1,7 @@
 package seed
 
 import (
-	"github.com/girlvr/seed/model"
+	"github.com/yinhevr/seed/model"
 )
 
 // Transfer ...

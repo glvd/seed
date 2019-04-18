@@ -1,8 +1,8 @@
 package seed
 
 import (
-	"github.com/girlvr/seed/model"
 	"github.com/sirupsen/logrus"
+	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 )
 

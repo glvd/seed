@@ -37,11 +37,6 @@ func main() {
 		Short: "verify the json file",
 		Long:  `verify the json file is correct before transfer`,
 		Run: func(cmd *cobra.Command, args []string) {
-			seed.InitShell(*shell)
-			e := model.InitDB()
-			if e != nil {
-				log.Panic(e)
-			}
 			vs := seed.Load(*path)
 			for _, v := range vs {
 				e := seed.Verify(v)
@@ -50,6 +45,7 @@ func main() {
 				}
 				log.Infof("%+v", v)
 			}
+			log.Info("success")
 		},
 	}
 

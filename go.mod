@@ -1,4 +1,4 @@
-module github.com/girlvr/seed
+module github.com/yinhevr/seed
 
 go 1.12
 

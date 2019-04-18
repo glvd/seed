@@ -2,9 +2,9 @@ package seed
 
 import (
 	"context"
-	"github.com/girlvr/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
 	log "github.com/sirupsen/logrus"
+	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"os"
 )

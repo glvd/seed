@@ -3,8 +3,8 @@ package seed
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/girlvr/seed/model"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/yinhevr/seed/model"
 )
 
 // Extend ...

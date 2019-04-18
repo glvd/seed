@@ -17,7 +17,7 @@ var rootCmd = &cobra.Command{
 	SuggestFor: nil,
 	Short:      "Seed is a ipfs video split upload tool",
 	Long: `Seed make you split and upload video file with hls in one step
-				Complete documentation is available at https://github.com/girlvr/seed`,
+				Complete documentation is available at https://github.com/yinhevr/seed`,
 }
 
 func main() {

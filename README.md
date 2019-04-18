@@ -30,24 +30,18 @@ JSONファイルのExample:
 [
  [
    {
-     "bangumi": "avvd01312",
+     "bangumi": "SNIS-786",
      "alias": [
-       "Lady Ninja: Aoi kage",
-       "极乐女忍者"
+       "専属NO.1 STYLE 三上悠亜エスワンデビュー 電撃移籍4時間×4本番スペシャル"
      ],
      "slice": true,
      "files": [
        "D:\\video\\Okita Souji.mp4",
-       "D:\\video\\HD Epic Sax Gandalf.mp4"
      ],
      "Sharpness": "1080P",
      "poster_path": "D:\\video\\H\\p2526321708.webp",
      "role": [
-       "叶加濑麻衣",
-       "赤井沙希",
-       "鸟肌实",
-       "坂口征夫",
-       "阿部祐二"
+       "三上悠亜"
      ],
      "publish": "2018-01-20"
    },

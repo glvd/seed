@@ -2,15 +2,15 @@ package seed
 
 import (
 	"context"
-	"github.com/girlvr/seed/model"
 	"github.com/sirupsen/logrus"
+	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"sync"
 	"time"
 )
 
 func swarmConnectTo(peer *model.SourcePeer) (e error) {
-	address := peer.Addr + "/" + peer.Peer
+	address := peer.Addr + "/ipfs/" + peer.Peer
 	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
 	logrus.Info("connect to:", address)
 	if err := rest.SwarmConnect(ctx, address); err != nil {

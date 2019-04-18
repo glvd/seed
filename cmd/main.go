@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/girlvr/seed"
-	"github.com/girlvr/seed/model"
 	"github.com/godcong/go-trait"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/yinhevr/seed"
+	"github.com/yinhevr/seed/model"
 	"os"
 )
 

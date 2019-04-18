@@ -3,17 +3,17 @@
 
 アテンション：
 番号を捜索すれば
-https://t.me/yinhevrを入れって、
+[银河VR共享总部](https://t.me/yinhevr)を入れって、
 ```
 /video 番号 
 ```
-を使用してください。
-或いは、
-Telegramのローボード@yinhe_botを使いって、
+を使って、番号を捜索してください。
+
+或いは、Telegramのローボード@yinhe_botを使いって、
 ```
 /video 番号 
 ```
-を使用してください。
+を使って、番号を捜索してください。
 
 
 JSONファイルのExample:

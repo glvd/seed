@@ -32,6 +32,23 @@ func main() {
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
+	var cmdVerify = &cobra.Command{
+		Use:   "verify",
+		Short: "verify the json file",
+		Long:  `verify the json file is correct before transfer`,
+		Run: func(cmd *cobra.Command, args []string) {
+			vs := seed.Load(*path)
+			for _, v := range vs {
+				e := seed.Verify(v)
+				if e != nil {
+					log.Panic(e)
+				}
+				log.Infof("%+v", v)
+			}
+			log.Info("success")
+		},
+	}
+
 	var cmdProcess = &cobra.Command{
 		Use:   "process",
 		Short: "process split and upload to ipfs",
@@ -122,7 +139,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

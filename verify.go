@@ -2,6 +2,7 @@ package seed
 
 import "os"
 
+// Verify ...
 func Verify(source *VideoSource) (e error) {
 	_, e = os.Stat(source.PosterPath)
 	if os.IsNotExist(e) {

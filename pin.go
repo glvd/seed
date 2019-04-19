@@ -11,9 +11,10 @@ import (
 
 func swarmConnectTo(peer *model.SourcePeer) (e error) {
 	address := peer.Addr + "/ipfs/" + peer.Peer
-	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	logrus.Info("connect to:", address)
 	if err := rest.SwarmConnect(ctx, address); err != nil {
+		cancel()
 		return err
 	}
 	return

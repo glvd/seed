@@ -45,8 +45,5 @@ func Update(index string, source *VideoSource) (e error) {
 		})
 	}
 
-	if err := model.AddOrUpdateVideo(video); err != nil {
-		return err
-	}
-	return nil
+	return model.AddOrUpdateVideo(video)
 }

@@ -10,6 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//ETH ...
+type ETH struct {
+	Key             []byte
+	ContractAddress string
+	DialAddress     string
+}
+
 // ConnectToken ...
 func ConnectToken() *BangumiData {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding

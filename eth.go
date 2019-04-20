@@ -12,9 +12,15 @@ import (
 
 //ETH ...
 type ETH struct {
-	Key             []byte
+	key             string
 	ContractAddress string
 	DialAddress     string
+}
+
+func NewETH(key string) *ETH {
+	return &ETH{
+		key: key,
+	}
 }
 
 // ConnectToken ...

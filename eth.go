@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
+	"github.com/yinhevr/seed/model"
 )
 
 //ETH ...
@@ -21,6 +22,10 @@ func NewETH(key string) *ETH {
 	return &ETH{
 		key: key,
 	}
+}
+
+func (eth *ETH) InfoInput(video *model.Video) (e error) {
+	return infoInput(eth, video)
 }
 
 // ConnectToken ...
@@ -42,22 +47,25 @@ func ConnectToken() *BangumiData {
 }
 
 // InfoInput ...
-func InfoInput() {
+func infoInput(eth *ETH, video *model.Video) (e error) {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
 	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
 	if err != nil {
-		logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
+		//logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
+		return err
+
 	}
 	defer conn.Close()
 
 	token, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), conn)
 	if err != nil {
-		logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
+		return err
+		//logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
 	}
 	logrus.Info(token)
 
-	bytes := "key"
-	privateKey, err := crypto.HexToECDSA(bytes)
+	//bytes := "key"
+	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -78,14 +86,15 @@ func InfoInput() {
 		"",
 		"")
 	if err != nil {
-		return
+		return err
 	}
 	ctx := context.Background()
 	receipt, err := bind.WaitMined(ctx, conn, transaction)
 	if err != nil {
-		logrus.Fatalf("tx mining error:%v\n", err)
+		//logrus.Fatalf("tx mining error:%v\n", err)
+		return err
 	}
-	fmt.Printf("tx is :%+v\n", transaction)
+	//fmt.Printf("tx is :%+v\n", transaction)
 	fmt.Printf("receipt is :%x\n", string(receipt.TxHash[:]))
-
+	return nil
 }

@@ -49,7 +49,7 @@ func ConnectToken() *BangumiData {
 }
 
 // InfoInput ...
-func infoInput(eth *ETH, video *model.Video) (e error) {
+func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
 	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
 	if err != nil {
@@ -75,16 +75,16 @@ func infoInput(eth *ETH, video *model.Video) (e error) {
 	opt := bind.NewKeyedTransactor(privateKey)
 	logrus.Info(opt)
 	transaction, err := token.InfoInput(opt,
-		"test",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
-		"",
+		video.Bangumi,
+		video.Poster,
+		video.Role[0],
+		video.VideoGroupList[0].Object[0].Link.Hash,
+		video.Alias[0],
+		video.VideoGroupList[0].Sharpness,
+		video.VideoGroupList[0].Episode,
+		video.VideoGroupList[0].TotalEpisode,
+		video.VideoGroupList[0].Season,
+		video.VideoGroupList[0].Output,
 		"",
 		"")
 	if err != nil {

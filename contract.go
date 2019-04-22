@@ -86,6 +86,7 @@ func Contract(key string) (e error) {
 	if key == "" {
 		key = getSeedKey()
 	}
+	logrus.Debug("key is: ", key)
 	eth := NewETH(key)
 	if eth == nil {
 		return xerrors.New("nil eth")
@@ -158,7 +159,7 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 
 		//fmt.Printf("tx is :%+v\n", transaction)
 		logrus.Info(name + "@" + idxv + " success")
-		logrus.Debug("receipt is :%x\n", string(receipt.TxHash[:]))
+		logrus.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
 	}
 
 	return nil

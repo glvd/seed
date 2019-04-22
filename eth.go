@@ -61,6 +61,9 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 		return e
 	}
 	logrus.Println("hash:", hash)
+	if hash == "" {
+		return xerrors.New("hash is not found!")
+	}
 	return nil
 }
 

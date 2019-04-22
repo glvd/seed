@@ -18,12 +18,14 @@ type ETH struct {
 	DialAddress     string
 }
 
+// NewETH ...
 func NewETH(key string) *ETH {
 	return &ETH{
 		key: key,
 	}
 }
 
+// InfoInput ...
 func (eth *ETH) InfoInput(video *model.Video) (e error) {
 	return infoInput(eth, video)
 }

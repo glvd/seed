@@ -10,6 +10,7 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -130,12 +131,13 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	maxv := strconv.FormatInt(int64(max), 10)
 	for i := 0; i < max; i++ {
 		idxv := strconv.FormatInt(int64(i+1), 10)
-		e = eth.CheckExist(name + "@" + idxv)
+		upperName := strings.ToUpper(name + "@" + idxv)
+		e = eth.CheckExist(upperName)
 		if e == nil {
 			continue
 		}
 		transaction, err := token.InfoInput(opt,
-			name+"@"+idxv,
+			strings.ToUpper(upperName),
 			video.Poster,
 			video.Role[0],
 			video.VideoGroupList[index].Object[i].Link.Hash,

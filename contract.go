@@ -61,7 +61,7 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 	if e != nil {
 		return e
 	}
-	logrus.Println("hash:", hash)
+	logrus.Info(ban+" checking hash:", hash)
 	if hash == "" {
 		return xerrors.New(ban + " hash is not found!")
 	}
@@ -117,7 +117,6 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	if e != nil {
 		return e
 	}
-	logrus.Info(token)
 	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
 		logrus.Fatal(err)

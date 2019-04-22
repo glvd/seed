@@ -52,13 +52,16 @@ func (eth *ETH) InfoInput(video *model.Video) (e error) {
 
 // CheckExist ...
 func (eth *ETH) CheckExist(ban string) (e error) {
-	token := eth.ConnectToken()
+	token, e := eth.ConnectToken()
+	if e != nil {
+		return e
+	}
 	hash, e := token.QueryHash(&bind.CallOpts{Pending: true}, ban)
 	if e != nil {
 		return e
 	}
 	logrus.Println("hash:", hash)
-	os.Exit(0)
+	return nil
 }
 
 // Close ...

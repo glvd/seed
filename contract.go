@@ -2,7 +2,6 @@ package seed
 
 import (
 	"context"
-	"fmt"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -109,8 +108,6 @@ func (eth *ETH) ConnectToken() (*BangumiData, error) {
 		logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
 		return &BangumiData{}, nil
 	}
-	logrus.Info(token)
-
 	return token, nil
 }
 
@@ -161,7 +158,8 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 		}
 
 		//fmt.Printf("tx is :%+v\n", transaction)
-		fmt.Printf("receipt is :%x\n", string(receipt.TxHash[:]))
+		logrus.Info(name + "@" + idxv + " success")
+		logrus.Debug("receipt is :%x\n", string(receipt.TxHash[:]))
 	}
 
 	return nil

@@ -32,6 +32,28 @@ func main() {
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
+	var cmdContract = &cobra.Command{
+		Use:   "contract",
+		Short: "contract the data to eth.",
+		Long:  `contract the data information from database to eth contract`,
+		Run: func(cmd *cobra.Command, args []string) {
+			arg := args[0]
+			switch arg {
+			case "update":
+
+			}
+			vs := seed.Load(*path)
+			for _, v := range vs {
+				e := seed.Verify(v)
+				if e != nil {
+					log.Panic(e)
+				}
+				log.Infof("%+v", v)
+			}
+			log.Info("success")
+		},
+	}
+
 	var cmdVerify = &cobra.Command{
 		Use:   "verify",
 		Short: "verify the json file",

@@ -11,6 +11,7 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"os"
+	"strconv"
 )
 
 //ETH ...
@@ -75,13 +76,30 @@ func (eth *ETH) Close() {
 	eth.conn.Close()
 }
 
-// UpdateContract ...
-func UpdateContract(video *model.Video) (e error) {
+// Contract ...
+func Contract() (e error) {
+	var videos = new([]*model.Video)
+
+	if e = model.DB().Find(videos); e != nil {
+		return e
+	}
+
 	eth := NewETH(getSeedKey())
 	if eth == nil {
 		return xerrors.New("nil eth")
 	}
-	return eth.InfoInput(video)
+	for _, v := range *videos {
+		e = eth.CheckExist(v.Bangumi)
+		if e == nil {
+			continue
+		}
+		e = eth.InfoInput(v)
+		if e != nil {
+			logrus.Error("contract err:", v.Bangumi, e)
+			return e
+		}
+	}
+	return
 }
 
 // ConnectToken ...
@@ -110,30 +128,38 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 
 	opt := bind.NewKeyedTransactor(privateKey)
 	logrus.Info(opt)
+	name := video.Bangumi
+	max := len(video.VideoGroupList[index].Object)
+	maxv := strconv.FormatInt(int64(max), 10)
+	for i := 0; i < max; i++ {
+		idxv := strconv.FormatInt(int64(i+1), 10)
 
-	transaction, err := token.InfoInput(opt,
-		video.Bangumi,
-		video.Poster,
-		video.Role[0],
-		video.VideoGroupList[index].Object[0].Link.Hash,
-		video.Alias[0],
-		video.VideoGroupList[index].Sharpness,
-		video.VideoGroupList[index].Episode,
-		video.VideoGroupList[index].TotalEpisode,
-		video.VideoGroupList[index].Season,
-		video.VideoGroupList[index].Output,
-		"",
-		"")
-	if err != nil {
-		return err
+		transaction, err := token.InfoInput(opt,
+			name+"@"+idxv,
+			video.Poster,
+			video.Role[0],
+			video.VideoGroupList[index].Object[i].Link.Hash,
+			video.Alias[0],
+			video.VideoGroupList[index].Sharpness,
+			idxv,
+			maxv,
+			video.VideoGroupList[index].Season,
+			video.VideoGroupList[index].Output,
+			"",
+			"")
+		if err != nil {
+			return err
+		}
+		ctx := context.Background()
+		receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+		if err != nil {
+			//logrus.Fatalf("tx mining error:%v\n", err)
+			return err
+		}
+
+		//fmt.Printf("tx is :%+v\n", transaction)
+		fmt.Printf("receipt is :%x\n", string(receipt.TxHash[:]))
 	}
-	ctx := context.Background()
-	receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
-	if err != nil {
-		//logrus.Fatalf("tx mining error:%v\n", err)
-		return err
-	}
-	//fmt.Printf("tx is :%+v\n", transaction)
-	fmt.Printf("receipt is :%x\n", string(receipt.TxHash[:]))
+
 	return nil
 }

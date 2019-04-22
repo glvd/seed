@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
+	"os"
 )
 
 //ETH ...
@@ -27,7 +28,13 @@ func NewETH(key string) *ETH {
 
 // InfoInput ...
 func (eth *ETH) InfoInput(video *model.Video) (e error) {
-	return infoInput(eth, video)
+	for idx := range video.VideoGroupList {
+		e = infoInput(eth, video, idx)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // ConnectToken ...
@@ -74,6 +81,13 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 
 	opt := bind.NewKeyedTransactor(privateKey)
 	logrus.Info(opt)
+
+	hash, e := token.QueryHash(&bind.CallOpts{Pending: true}, video.Bangumi)
+	if e != nil {
+		return e
+	}
+	logrus.Println("hash:", hash)
+	os.Exit(0)
 	transaction, err := token.InfoInput(opt,
 		video.Bangumi,
 		video.Poster,

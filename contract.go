@@ -10,8 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
-	"os"
 	"strconv"
+	"syscall"
 )
 
 //ETH ...
@@ -23,7 +23,7 @@ type ETH struct {
 }
 
 func getSeedKey() string {
-	key := os.Getenv("SEED_KEY")
+	key, _ := syscall.Getenv("SEED_KEY")
 	return key
 }
 
@@ -64,7 +64,7 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 	}
 	logrus.Println("hash:", hash)
 	if hash == "" {
-		return xerrors.New("hash is not found!")
+		return xerrors.New(ban + " hash is not found!")
 	}
 	return nil
 }

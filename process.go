@@ -7,6 +7,7 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"os"
+	"strings"
 )
 
 func prefix(s string) (ret string) {
@@ -22,7 +23,7 @@ func Process(source *VideoSource) (e error) {
 	if source.Bangumi == "" {
 		return nil
 	}
-
+	source.Bangumi = strings.ToUpper(source.Bangumi)
 	video := &model.Video{}
 	_, err := model.FindVideo(source.Bangumi, video)
 	if err != nil {

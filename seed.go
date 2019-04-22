@@ -5,6 +5,7 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
+	"strings"
 )
 
 // Extend ...
@@ -127,7 +128,7 @@ func NewVideo(source *VideoSource) *model.Video {
 	}
 	return &model.Video{
 		VideoBase: &model.VideoBase{
-			Bangumi: source.Bangumi,
+			Bangumi: strings.ToUpper(source.Bangumi),
 			//Type:         source.Type,
 			//Output:       source.Output,
 			//VR:           source.VR,

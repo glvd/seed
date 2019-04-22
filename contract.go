@@ -89,10 +89,7 @@ func Contract() (e error) {
 		return xerrors.New("nil eth")
 	}
 	for _, v := range *videos {
-		e = eth.CheckExist(v.Bangumi)
-		if e == nil {
-			continue
-		}
+
 		e = eth.InfoInput(v)
 		if e != nil {
 			logrus.Error("contract err:", v.Bangumi, e)
@@ -133,7 +130,10 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	maxv := strconv.FormatInt(int64(max), 10)
 	for i := 0; i < max; i++ {
 		idxv := strconv.FormatInt(int64(i+1), 10)
-
+		e = eth.CheckExist(name)
+		if e == nil {
+			continue
+		}
 		transaction, err := token.InfoInput(opt,
 			name+"@"+idxv,
 			video.Poster,

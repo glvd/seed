@@ -9,20 +9,33 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
+	"golang.org/x/xerrors"
 	"os"
 )
 
 //ETH ...
 type ETH struct {
+	conn            *ethclient.Client
 	key             string
 	ContractAddress string
 	DialAddress     string
 }
 
+func getSeedKey() string {
+	return os.Getenv("SEED_KEY")
+}
+
 // NewETH ...
 func NewETH(key string) *ETH {
+	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
+	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
+	if err != nil {
+		logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
+		return nil
+	}
 	return &ETH{
-		key: key,
+		conn: conn,
+		key:  key,
 	}
 }
 
@@ -37,43 +50,53 @@ func (eth *ETH) InfoInput(video *model.Video) (e error) {
 	return nil
 }
 
-// ConnectToken ...
-func ConnectToken() *BangumiData {
-	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
-	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
-	if err != nil {
-		logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
+// CheckExist ...
+func (eth *ETH) CheckExist(ban string) (e error) {
+	token := eth.ConnectToken()
+	hash, e := token.QueryHash(&bind.CallOpts{Pending: true}, ban)
+	if e != nil {
+		return e
 	}
-	defer conn.Close()
+	logrus.Println("hash:", hash)
+	os.Exit(0)
+}
 
-	token, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), conn)
+// Close ...
+func (eth *ETH) Close() {
+	if eth.conn == nil {
+		return
+	}
+	eth.conn.Close()
+}
+
+// UpdateContract ...
+func UpdateContract(video *model.Video) (e error) {
+	eth := NewETH(getSeedKey())
+	if eth == nil {
+		return xerrors.New("nil eth")
+	}
+	return eth.InfoInput(video)
+}
+
+// ConnectToken ...
+func (eth *ETH) ConnectToken() (*BangumiData, error) {
+	token, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), eth.conn)
 	if err != nil {
 		logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
+		return &BangumiData{}, nil
 	}
 	logrus.Info(token)
 
-	return token
+	return token, nil
 }
 
 // InfoInput ...
 func infoInput(eth *ETH, video *model.Video, index int) (e error) {
-	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
-	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
-	if err != nil {
-		//logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
-		return err
-
-	}
-	defer conn.Close()
-
-	token, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), conn)
-	if err != nil {
-		return err
-		//logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
+	token, e := eth.ConnectToken()
+	if e != nil {
+		return e
 	}
 	logrus.Info(token)
-
-	//bytes := "key"
 	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
 		logrus.Fatal(err)
@@ -82,30 +105,24 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	opt := bind.NewKeyedTransactor(privateKey)
 	logrus.Info(opt)
 
-	hash, e := token.QueryHash(&bind.CallOpts{Pending: true}, video.Bangumi)
-	if e != nil {
-		return e
-	}
-	logrus.Println("hash:", hash)
-	os.Exit(0)
 	transaction, err := token.InfoInput(opt,
 		video.Bangumi,
 		video.Poster,
 		video.Role[0],
-		video.VideoGroupList[0].Object[0].Link.Hash,
+		video.VideoGroupList[index].Object[0].Link.Hash,
 		video.Alias[0],
-		video.VideoGroupList[0].Sharpness,
-		video.VideoGroupList[0].Episode,
-		video.VideoGroupList[0].TotalEpisode,
-		video.VideoGroupList[0].Season,
-		video.VideoGroupList[0].Output,
+		video.VideoGroupList[index].Sharpness,
+		video.VideoGroupList[index].Episode,
+		video.VideoGroupList[index].TotalEpisode,
+		video.VideoGroupList[index].Season,
+		video.VideoGroupList[index].Output,
 		"",
 		"")
 	if err != nil {
 		return err
 	}
 	ctx := context.Background()
-	receipt, err := bind.WaitMined(ctx, conn, transaction)
+	receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
 	if err != nil {
 		//logrus.Fatalf("tx mining error:%v\n", err)
 		return err

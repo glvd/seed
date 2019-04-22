@@ -37,20 +37,9 @@ func main() {
 		Short: "contract the data to eth.",
 		Long:  `contract the data information from database to eth contract`,
 		Run: func(cmd *cobra.Command, args []string) {
-			arg := args[0]
-			switch arg {
-			case "update":
-
+			if err := seed.Contract(); err != nil {
+				panic(err)
 			}
-			vs := seed.Load(*path)
-			for _, v := range vs {
-				e := seed.Verify(v)
-				if e != nil {
-					log.Panic(e)
-				}
-				log.Infof("%+v", v)
-			}
-			log.Info("success")
 		},
 	}
 
@@ -161,7 +150,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

@@ -23,7 +23,8 @@ type ETH struct {
 }
 
 func getSeedKey() string {
-	return os.Getenv("SEED_KEY")
+	key := os.Getenv("SEED_KEY")
+	return key
 }
 
 // NewETH ...
@@ -77,14 +78,16 @@ func (eth *ETH) Close() {
 }
 
 // Contract ...
-func Contract() (e error) {
+func Contract(key string) (e error) {
 	var videos = new([]*model.Video)
 
 	if e = model.DB().Find(videos); e != nil {
 		return e
 	}
-
-	eth := NewETH(getSeedKey())
+	if key == "" {
+		key = getSeedKey()
+	}
+	eth := NewETH(key)
 	if eth == nil {
 		return xerrors.New("nil eth")
 	}
@@ -121,10 +124,10 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
 		logrus.Fatal(err)
+		return err
 	}
 
 	opt := bind.NewKeyedTransactor(privateKey)
-	logrus.Info(opt)
 	name := video.Bangumi
 	max := len(video.VideoGroupList[index].Object)
 	maxv := strconv.FormatInt(int64(max), 10)

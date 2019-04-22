@@ -37,7 +37,11 @@ func main() {
 		Short: "contract the data to eth.",
 		Long:  `contract the data information from database to eth contract`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := seed.Contract(); err != nil {
+			key := ""
+			if len(args) > 0 {
+				key = args[0]
+			}
+			if err := seed.Contract(key); err != nil {
 				panic(err)
 			}
 		},

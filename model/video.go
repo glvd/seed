@@ -65,7 +65,7 @@ func Top(video *Video) (b bool, e error) {
 	return DB().OrderBy("created_at desc").Get(video)
 }
 
-// ALL ...
+// AllVideos ...
 func AllVideos() (v []*Video, e error) {
 	var videos = new([]*Video)
 	if e = DB().Find(videos); e != nil {

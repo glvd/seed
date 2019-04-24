@@ -12,7 +12,7 @@ type VideoLink struct {
 
 // VideoObject ...
 type VideoObject struct {
-	Links []*VideoLink `json:"links,omitempty"`
+	Links []*VideoLink `json:"-"` //`json:"links,omitempty"`
 	Link  VideoLink    `json:",inline"`
 }
 

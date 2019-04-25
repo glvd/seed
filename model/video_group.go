@@ -14,7 +14,7 @@ type VideoGroup struct {
 	Caption  string `json:"caption"`  //字幕
 	//Group    string         `json:"group"`                        //分组
 	Sliced bool           `json:"sliced"`                       //切片
-	HLS    *HLS           `xorm:"json" json:"hls,omitempty"`    //切片信息
+	HLS    HLS            `xorm:"json" json:"hls,omitempty"`    //切片信息
 	Object []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
 }
 

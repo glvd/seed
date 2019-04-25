@@ -43,22 +43,20 @@ func NewETH(key string) *ETH {
 
 // InfoInput ...
 func (eth *ETH) InfoInput(video *model.Video) (e error) {
-	for idx := range video.VideoGroupList {
-		e = infoInput(eth, video, idx)
-		if e != nil {
-			return e
-		}
+	e = infoInput(eth, video)
+	if e != nil {
+		return e
 	}
 	return nil
 }
 
 // CheckExist ...
 func (eth *ETH) CheckExist(ban string) (e error) {
-	token, e := eth.ConnectToken()
+	tk, e := eth.ConnectToken()
 	if e != nil {
 		return e
 	}
-	hash, e := token.QueryHash(&bind.CallOpts{Pending: true}, ban)
+	hash, e := tk.QueryHash(&bind.CallOpts{Pending: true}, ban)
 	if e != nil {
 		return e
 	}
@@ -105,17 +103,16 @@ func Contract(key string) (e error) {
 
 // ConnectToken ...
 func (eth *ETH) ConnectToken() (*BangumiData, error) {
-	token, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), eth.conn)
+	tk, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), eth.conn)
 	if err != nil {
 		logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
 		return &BangumiData{}, nil
 	}
-	return token, nil
+	return tk, nil
 }
 
-// InfoInput ...
-func infoInput(eth *ETH, video *model.Video, index int) (e error) {
-	token, e := eth.ConnectToken()
+func singleInput(eth *ETH, video *model.Video) (e error) {
+	tk, e := eth.ConnectToken()
 	if e != nil {
 		return e
 	}
@@ -127,26 +124,27 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 
 	opt := bind.NewKeyedTransactor(privateKey)
 	name := video.Bangumi
-	max := len(video.VideoGroupList[index].Object)
-	maxv := strconv.FormatInt(int64(max), 10)
-	for i := 0; i < max; i++ {
-		idxv := strconv.FormatInt(int64(i+1), 10)
-		upperName := strings.ToUpper(name + "@" + idxv)
+	list := video.VideoGroupList[0]
+	objMax := len(list.Object)
+	objMaxStr := strconv.FormatInt(int64(objMax), 10)
+	for i := 0; i < objMax; i++ {
+		idxStr := strconv.FormatInt(int64(i+1), 10)
+		upperName := strings.ToUpper(name + "@" + idxStr)
 		e = eth.CheckExist(upperName)
 		if e == nil {
 			continue
 		}
-		transaction, err := token.InfoInput(opt,
+		transaction, err := tk.InfoInput(opt,
 			strings.ToUpper(upperName),
 			video.Poster,
 			video.Role[0],
-			video.VideoGroupList[index].Object[i].Link.Hash,
+			list.Object[i].Link.Hash,
 			video.Alias[0],
-			video.VideoGroupList[index].Sharpness,
-			idxv,
-			maxv,
-			video.VideoGroupList[index].Season,
-			video.VideoGroupList[index].Output,
+			list.Sharpness,
+			idxStr,
+			objMaxStr,
+			list.Season,
+			list.Output,
 			"",
 			"")
 		if err != nil {
@@ -158,10 +156,81 @@ func infoInput(eth *ETH, video *model.Video, index int) (e error) {
 			//logrus.Fatalf("tx mining error:%v\n", err)
 			return err
 		}
-
-		//fmt.Printf("tx is :%+v\n", transaction)
-		logrus.Info(name + "@" + idxv + " success")
+		logrus.Info(name + "@" + idxStr + " success")
 		logrus.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+	}
+	return nil
+}
+
+func multipleInput(eth *ETH, video *model.Video) (e error) {
+	tk, e := eth.ConnectToken()
+	if e != nil {
+		return e
+	}
+	privateKey, err := crypto.HexToECDSA(eth.key)
+	if err != nil {
+		logrus.Fatal(err)
+		return err
+	}
+
+	opt := bind.NewKeyedTransactor(privateKey)
+	name := video.Bangumi
+
+	for _, list := range video.VideoGroupList {
+		objMax := len(list.Object)
+		if objMax > 1 {
+			return xerrors.New("multiple group list can only use object with 1 ")
+		}
+
+		for i := 0; i < objMax; i++ {
+			idxStr := strconv.FormatInt(int64(i+1), 10)
+			upperName := strings.ToUpper(name + "@" + idxStr)
+			e = eth.CheckExist(upperName)
+			if e == nil {
+				continue
+			}
+			transaction, err := tk.InfoInput(opt,
+				strings.ToUpper(upperName),
+				video.Poster,
+				video.Role[0],
+				list.Object[i].Link.Hash,
+				video.Alias[0],
+				list.Sharpness,
+				list.Episode,
+				list.TotalEpisode,
+				list.Season,
+				list.Output,
+				"",
+				"")
+			if err != nil {
+				return err
+			}
+			ctx := context.Background()
+			receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+			if err != nil {
+				//logrus.Fatalf("tx mining error:%v\n", err)
+				return err
+			}
+			logrus.Info(name + "@" + idxStr + " success")
+			logrus.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+		}
+	}
+	return nil
+}
+
+// InfoInput ...
+func infoInput(eth *ETH, video *model.Video) (e error) {
+	if video == nil || video.VideoGroupList == nil {
+		return
+	}
+
+	vgMax := len(video.VideoGroupList)
+	fn := singleInput
+	if vgMax > 1 {
+		fn = multipleInput
+	}
+	if err := fn(eth, video); err != nil {
+		return err
 	}
 
 	return nil

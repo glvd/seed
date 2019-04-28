@@ -53,22 +53,18 @@ func QuickProcess(pathname string) (e error) {
 		}
 
 		for _, value := range names {
-			s, e := filepath.Abs(value)
-			if e != nil {
-				return e
-			}
-
-			info, e := os.Stat(s)
+			log.Println(path.Base(value))
+			fileinfo, e := os.Stat(filepath.Join("pathname", value))
 			if e != nil {
 				log.Error(e)
 				continue
 			}
-			dir := info.IsDir()
-			if dir {
+			if fileinfo.IsDir() {
+				log.Info(value, " continue with dir")
 				continue
 			}
-			if isVideo(s) {
-				fmt.Println("not video:", s)
+			if isVideo(path.Base(value)) {
+				fmt.Println("not video:", path.Base(value))
 			}
 		}
 

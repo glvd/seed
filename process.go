@@ -69,8 +69,21 @@ func QuickProcess(pathname string) (e error) {
 				log.Errorf("add file error:%+v", object)
 				continue
 			}
+			uncat.Hash = object.Hash
+			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
+			e = model.AddOrUpdateUncategorized(&uncat)
+			if e != nil {
+				log.Errorf("add file error:%+v", object)
+				continue
+			}
 			uncat.IsVideo = isVideo(value)
 			if uncat.IsVideo {
+				uncatvideo := model.Uncategorized{
+					Name:    value,
+					Hash:    "",
+					IsVideo: false,
+					Object:  nil,
+				}
 				files, e := SplitVideo(context.Background(), hls(nil), value)
 				if e != nil {
 					log.Errorf("split file error:%+v", object)
@@ -87,13 +100,13 @@ func QuickProcess(pathname string) (e error) {
 					for idx, v := range rets {
 						if idx == last {
 							obj = model.ObjectToLink(obj, v)
-							uncat.Object = append(uncat.Object)
-							uncat.Hash = obj.Link.Hash
+							uncatvideo.Object = append(uncat.Object)
+							uncatvideo.Hash = obj.Link.Hash
 							continue
 						}
 						obj = model.ObjectToLinks(obj, v)
 					}
-					uncat.Object = append(uncat.Object, obj)
+					uncatvideo.Object = append(uncatvideo.Object, obj)
 				}
 
 			}

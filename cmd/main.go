@@ -29,6 +29,7 @@ func main() {
 	path := rootCmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source")
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
+	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
@@ -71,8 +72,6 @@ func main() {
 		after that return a ipfs hash info json.`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-
-			quick := cmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 
 			if !*quick {
 				seed.InitShell(*shell)

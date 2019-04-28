@@ -8,6 +8,8 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -16,15 +18,31 @@ func prefix(s string) (ret string) {
 	return
 }
 
+func isVideo(suffix string) bool {
+	vlist := []string{
+		".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
+	}
+	for _, v := range vlist {
+		if suffix == v {
+			return true
+		}
+	}
+	return false
+}
+
+func getFile() {
+
+}
+
 // QuickProcess ...
-func QuickProcess(filepath string) (e error) {
-	info, e := os.Stat(filepath)
+func QuickProcess(pathname string) (e error) {
+	info, e := os.Stat(pathname)
 	if e != nil {
 		return e
 	}
 	b := info.IsDir()
 	if b {
-		file, e := os.Open(filepath)
+		file, e := os.Open(pathname)
 		if e != nil {
 			return e
 		}
@@ -32,7 +50,16 @@ func QuickProcess(filepath string) (e error) {
 		if e != nil {
 			return e
 		}
-		fmt.Println(names)
+
+		for _, value := range names {
+			s, e := filepath.Abs(value)
+			if e != nil {
+				return e
+			}
+			suffix := path.Ext(s)
+			fmt.Println(s, "suffix:", suffix)
+		}
+
 	}
 	return nil
 }

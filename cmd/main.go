@@ -71,19 +71,26 @@ func main() {
 		after that return a ipfs hash info json.`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			seed.InitShell(*shell)
-			e := model.InitDB()
-			if e != nil {
-				log.Panic(e)
-			}
-			vs := seed.Load(*path)
-			for _, v := range vs {
-				e := seed.Process(v)
+
+			quick := cmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
+
+			if !*quick {
+				seed.InitShell(*shell)
+				e := model.InitDB()
 				if e != nil {
 					log.Panic(e)
 				}
-				log.Infof("%+v", v)
+				vs := seed.Load(*path)
+				for _, v := range vs {
+					e := seed.Process(v)
+					if e != nil {
+						log.Panic(e)
+					}
+					log.Infof("%+v", v)
+				}
+				return
 			}
+
 		},
 	}
 

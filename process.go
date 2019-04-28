@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"fmt"
 	shell "github.com/godcong/go-ipfs-restapi"
 	log "github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
@@ -13,6 +14,26 @@ import (
 func prefix(s string) (ret string) {
 	ret = "/ipfs/" + s
 	return
+}
+
+// QuickProcess ...
+func QuickProcess(filepath string) (e error) {
+	info, e := os.Stat(filepath)
+	if e != nil {
+		return e
+	}
+	b := info.IsDir()
+	if b {
+		file, e := os.Open(filepath)
+		if e != nil {
+			return e
+		}
+		names, e := file.Readdirnames(-1)
+		if e != nil {
+			return e
+		}
+		fmt.Println(names)
+	}
 }
 
 // Process ...

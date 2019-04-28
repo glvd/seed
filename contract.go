@@ -229,9 +229,5 @@ func infoInput(eth *ETH, video *model.Video) (e error) {
 	if vgMax > 1 {
 		fn = multipleInput
 	}
-	if err := fn(eth, video); err != nil {
-		return err
-	}
-
-	return nil
+	return fn(eth, video)
 }

@@ -18,12 +18,12 @@ func prefix(s string) (ret string) {
 	return
 }
 
-func isVideo(suffix string) bool {
+func isVideo(filename string) bool {
 	vlist := []string{
 		".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
 	}
 	for _, v := range vlist {
-		if suffix == v {
+		if path.Ext(filename) == v {
 			return true
 		}
 	}
@@ -46,6 +46,7 @@ func QuickProcess(pathname string) (e error) {
 		if e != nil {
 			return e
 		}
+		defer file.Close()
 		names, e := file.Readdirnames(-1)
 		if e != nil {
 			return e
@@ -56,8 +57,19 @@ func QuickProcess(pathname string) (e error) {
 			if e != nil {
 				return e
 			}
-			suffix := path.Ext(s)
-			fmt.Println(s, "suffix:", suffix)
+
+			info, e := os.Stat(s)
+			if e != nil {
+				log.Error(e)
+				continue
+			}
+			dir := info.IsDir()
+			if dir {
+				continue
+			}
+			if isVideo(s) {
+				fmt.Println("not video:", s)
+			}
 		}
 
 	}

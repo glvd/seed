@@ -26,8 +26,12 @@ func init() {
 // AddOrUpdateVideo ...
 func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
 	log.Printf("%+v", *uncat)
-	if uncat.ID != "" {
-		if _, err := DB().Where("name = ?", uncat.Name).Update(uncat); err != nil {
+	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).Count()
+	if e != nil {
+		return e
+	}
+	if i > 0 {
+		if _, err := DB().Where("checksum = ?", uncat.Checksum).Update(uncat); err != nil {
 			return err
 		}
 		return nil

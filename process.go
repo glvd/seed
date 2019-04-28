@@ -64,6 +64,8 @@ func QuickProcess(pathname string) (e error) {
 				continue
 			}
 			log.Println("add ", file)
+
+			uncat.Checksum = model.Checksum(file)
 			object, e := rest.AddFile(file)
 			if e != nil {
 				log.Errorf("add file error:%+v", object)
@@ -71,6 +73,7 @@ func QuickProcess(pathname string) (e error) {
 			}
 			uncat.Hash = object.Hash
 			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
+
 			e = model.AddOrUpdateUncategorized(&uncat)
 			if e != nil {
 				log.Errorf("add file error:%+v", object)
@@ -79,10 +82,12 @@ func QuickProcess(pathname string) (e error) {
 			uncat.IsVideo = isVideo(value)
 			if uncat.IsVideo {
 				uncatvideo := model.Uncategorized{
-					Name:    value,
-					Hash:    "",
-					IsVideo: false,
-					Object:  nil,
+					Model:    model.Model{},
+					Checksum: uncat.Checksum + "_video",
+					Name:     value,
+					Hash:     "",
+					IsVideo:  false,
+					Object:   nil,
 				}
 				files, e := SplitVideo(context.Background(), hls(nil), value)
 				if e != nil {

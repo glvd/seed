@@ -127,7 +127,8 @@ func Mustring(val, src string) string {
 	return src
 }
 
-func newHLS(def *model.HLS) *model.HLS {
+// hls ...
+func hls(def *model.HLS) *model.HLS {
 	if def != nil {
 		def.Key = Mustring(def.Key, "")
 		def.M3U8 = Mustring(def.M3U8, "media.m3u8")
@@ -144,7 +145,7 @@ func newHLS(def *model.HLS) *model.HLS {
 
 func addSlice(video *model.Video, source *VideoSource) (e error) {
 	s := *source
-	s.HLS = newHLS(s.HLS)
+	s.HLS = hls(s.HLS)
 	s.Files = nil
 	for _, value := range source.Files {
 		e := SplitVideo(context.Background(), &s, value)

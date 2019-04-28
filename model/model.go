@@ -3,7 +3,7 @@ package model
 import (
 	"github.com/go-xorm/xorm"
 	"github.com/google/uuid"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"reflect"
 	"time"
 )
@@ -14,6 +14,7 @@ var syncTable = map[string]interface{}{}
 // RegisterTable ...
 func RegisterTable(v interface{}) {
 	tof := reflect.TypeOf(v).Name()
+	log.Info("register: ", tof)
 	syncTable[tof] = v
 }
 
@@ -35,7 +36,6 @@ func InitDB() (e error) {
 	}
 	eng.ShowSQL(true)
 	eng.ShowExecTime(true)
-
 	for idx, val := range syncTable {
 		log.Println("syncing ", idx)
 		e := eng.Sync2(val)

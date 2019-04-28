@@ -40,7 +40,7 @@ type VideoInfo struct {
 }
 
 func init() {
-	RegisterTable(&Video{})
+	RegisterTable(Video{})
 }
 
 // AddPeers ...

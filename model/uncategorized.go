@@ -1,6 +1,8 @@
 package model
 
-import "log"
+import (
+	log "github.com/sirupsen/logrus"
+)
 
 // Uncategorized 未分类
 type Uncategorized struct {
@@ -12,7 +14,7 @@ type Uncategorized struct {
 }
 
 func init() {
-	RegisterTable(&Uncategorized{})
+	RegisterTable(Uncategorized{})
 }
 
 // AddOrUpdateVideo ...

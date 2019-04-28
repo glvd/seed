@@ -2,7 +2,6 @@ package seed
 
 import (
 	"context"
-	"fmt"
 	shell "github.com/godcong/go-ipfs-restapi"
 	log "github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
@@ -30,10 +29,6 @@ func isVideo(filename string) bool {
 	return false
 }
 
-func getFile() {
-
-}
-
 // QuickProcess ...
 func QuickProcess(pathname string) (e error) {
 	info, e := os.Stat(pathname)
@@ -51,21 +46,58 @@ func QuickProcess(pathname string) (e error) {
 		if e != nil {
 			return e
 		}
-
 		for _, value := range names {
-			log.Println(path.Base(value))
-			fileinfo, e := os.Stat(filepath.Join("pathname", value))
+			uncat := model.Uncategorized{
+				Name:    value,
+				Hash:    "",
+				IsVideo: false,
+				Object:  nil,
+			}
+			file := filepath.Join(pathname, value)
+			fileinfo, e := os.Stat(file)
 			if e != nil {
 				log.Error(e)
 				continue
 			}
 			if fileinfo.IsDir() {
-				log.Info(value, " continue with dir")
+				log.Error(value, " continue with dir")
 				continue
 			}
-			if isVideo(path.Base(value)) {
-				fmt.Println("not video:", path.Base(value))
+			log.Println("add ", file)
+			object, e := rest.AddFile(file)
+			if e != nil {
+				log.Errorf("add file error:%+v", object)
+				continue
 			}
+			uncat.IsVideo = isVideo(value)
+			if uncat.IsVideo {
+				files, e := SplitVideo(context.Background(), hls(nil), value)
+				if e != nil {
+					log.Errorf("split file error:%+v", object)
+					continue
+				}
+				for _, value := range files {
+					rets, e := rest.AddDir(value)
+					if e != nil {
+						log.Errorf("ipfs add file error:%+v", object)
+						continue
+					}
+					last := len(rets) - 1
+					var obj *model.VideoObject
+					for idx, v := range rets {
+						if idx == last {
+							obj = model.ObjectToLink(obj, v)
+							uncat.Object = append(uncat.Object)
+							uncat.Hash = obj.Link.Hash
+							continue
+						}
+						obj = model.ObjectToLinks(obj, v)
+					}
+					uncat.Object = append(uncat.Object, obj)
+				}
+				e = model.AddOrUpdateUncategorized(&uncat)
+			}
+
 		}
 
 	}
@@ -183,7 +215,7 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 	s.HLS = hls(s.HLS)
 	s.Files = nil
 	for _, value := range source.Files {
-		e := SplitVideo(context.Background(), &s, value)
+		s.Files, e = SplitVideo(context.Background(), s.HLS, value)
 		if e != nil {
 			return e
 		}

@@ -229,7 +229,7 @@ func parseGroup(index string, source *VideoSource) *model.VideoGroup {
 		Language:     source.Language,
 		Caption:      source.Caption,
 		Sliced:       source.Slice,
-		HLS:          source.HLS,
+		HLS:          *source.HLS,
 		Object:       nil,
 	}
 

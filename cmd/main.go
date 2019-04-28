@@ -90,6 +90,10 @@ func main() {
 				}
 				return
 			}
+			if err := seed.QuickProcess(*path); err != nil {
+				log.Panic(err)
+				return
+			}
 
 		},
 	}

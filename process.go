@@ -34,6 +34,7 @@ func QuickProcess(filepath string) (e error) {
 		}
 		fmt.Println(names)
 	}
+	return nil
 }
 
 // Process ...

@@ -95,9 +95,9 @@ func QuickProcess(pathname string) (e error) {
 					}
 					uncat.Object = append(uncat.Object, obj)
 				}
-				e = model.AddOrUpdateUncategorized(&uncat)
-			}
 
+			}
+			e = model.AddOrUpdateUncategorized(&uncat)
 		}
 
 	}

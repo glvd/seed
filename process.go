@@ -89,7 +89,7 @@ func QuickProcess(pathname string) (e error) {
 					IsVideo:  uncat.IsVideo,
 					Object:   nil,
 				}
-				files, e := SplitVideo(context.Background(), hls(nil), value)
+				files, e := SplitVideo(context.Background(), hls(nil), file)
 				if e != nil {
 					log.Errorf("split file error:%+v", object)
 					continue

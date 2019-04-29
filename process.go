@@ -114,7 +114,6 @@ func QuickProcess(pathname string) (e error) {
 					obj = model.ObjectToLinks(obj, v)
 				}
 				uncatvideo.Object = append(uncatvideo.Object, obj)
-				//}
 				e = model.AddOrUpdateUncategorized(&uncatvideo)
 				if e != nil {
 					log.Errorf("insert uncategorized error:%+v", e)

@@ -32,7 +32,7 @@ func AllUncategorized() ([]*Uncategorized, error) {
 	return uncats, nil
 }
 
-// AddOrUpdateVideo ...
+// AddOrUpdateUncategorized ...
 func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
 	log.Printf("%+v", *uncat)
 	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).Count()

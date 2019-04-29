@@ -103,16 +103,15 @@ func QuickProcess(pathname string) (e error) {
 				}
 				last := len(rets) - 1
 				var obj *model.VideoObject
-				log.Info("rets:", rets)
 				for idx, v := range rets {
 					if idx == last {
 						obj = model.ObjectToLink(obj, v)
-						uncatvideo.Object = append(uncatvideo.Object)
 						uncatvideo.Hash = obj.Link.Hash
 						continue
 					}
 					obj = model.ObjectToLinks(obj, v)
 				}
+				log.Infof("%+v", *obj)
 				uncatvideo.Object = append(uncatvideo.Object, obj)
 				e = model.AddOrUpdateUncategorized(&uncatvideo)
 				if e != nil {
@@ -273,7 +272,7 @@ func add(video *model.Video, source *VideoSource) (e error) {
 			for idx, v := range rets {
 				if idx == last {
 					obj = model.ObjectToLink(obj, v)
-					group.Object = append(group.Object)
+					//group.Object = append(group.Object)
 					continue
 				}
 				obj = model.ObjectToLinks(obj, v)

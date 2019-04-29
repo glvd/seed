@@ -19,7 +19,7 @@ func prefix(s string) (ret string) {
 
 func isVideo(filename string) bool {
 	vlist := []string{
-		".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
+		"mkv", ".mp4", ".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
 	}
 	for _, v := range vlist {
 		if path.Ext(filename) == v {
@@ -86,7 +86,7 @@ func QuickProcess(pathname string) (e error) {
 					Checksum: uncat.Checksum + "_video",
 					Name:     value,
 					Hash:     "",
-					IsVideo:  false,
+					IsVideo:  uncat.IsVideo,
 					Object:   nil,
 				}
 				files, e := SplitVideo(context.Background(), hls(nil), value)

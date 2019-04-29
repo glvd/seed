@@ -73,13 +73,13 @@ func QuickProcess(pathname string) (e error) {
 			}
 			uncat.Hash = object.Hash
 			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
-
+			uncat.IsVideo = isVideo(value)
 			e = model.AddOrUpdateUncategorized(&uncat)
 			if e != nil {
 				log.Errorf("insert uncategorized error:%+v", e)
 				continue
 			}
-			uncat.IsVideo = isVideo(value)
+
 			if uncat.IsVideo {
 				uncatvideo := model.Uncategorized{
 					Model:    model.Model{},
@@ -102,6 +102,7 @@ func QuickProcess(pathname string) (e error) {
 					}
 					last := len(rets) - 1
 					var obj *model.VideoObject
+					log.Info("rets:", rets)
 					for idx, v := range rets {
 						if idx == last {
 							obj = model.ObjectToLink(obj, v)

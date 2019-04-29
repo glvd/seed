@@ -11,17 +11,17 @@ import (
 )
 
 // SplitVideo ...
-func SplitVideo(ctx context.Context, hls *model.HLS, file string) (files []string, e error) {
-	path := filepath.Join("tmp", uuid.New().String())
-	log.Debug("split path:", path)
-	path, e = filepath.Abs(path)
+func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e error) {
+	fp = filepath.Join("tmp", uuid.New().String())
+	log.Debug("split path:", fp)
+	fp, e = filepath.Abs(fp)
 	if e != nil {
-		return nil, e
+		return "", e
 	}
-	_ = os.MkdirAll(path, os.ModePerm)
+	_ = os.MkdirAll(fp, os.ModePerm)
 
 	command := cmd.NewFFMPEG()
-	command.Split(path).Strict().
+	command.Split(fp).Strict().
 		HlsSegmentFilename(hls.SegmentFile).Output(hls.M3U8).
 		Input(file).Ignore().
 		CodecAudio(cmd.String("aac")).CodecVideo(cmd.String("libx264")).
@@ -29,12 +29,12 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (files []strin
 		HlsListSize("0")
 	info := make(chan string)
 	cls := make(chan bool)
+
 	go func() {
 		e := command.RunContext(ctx, info, cls)
 		if e != nil {
 			return
 		}
-		files = append(files, path)
 	}()
 	for {
 		select {

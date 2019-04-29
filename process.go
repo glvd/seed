@@ -89,31 +89,32 @@ func QuickProcess(pathname string) (e error) {
 					IsVideo:  uncat.IsVideo,
 					Object:   nil,
 				}
-				files, e := SplitVideo(context.Background(), hls(nil), file)
+				file, e := SplitVideo(context.Background(), hls(nil), file)
 				if e != nil {
 					log.Errorf("split file error:%+v", object)
 					continue
 				}
-				for _, value := range files {
-					rets, e := rest.AddDir(value)
-					if e != nil {
-						log.Errorf("ipfs add file error:%+v", object)
+				log.Println(file)
+				//for _, value := range files {
+				rets, e := rest.AddDir(file)
+				if e != nil {
+					log.Errorf("ipfs add file error:%+v", object)
+					continue
+				}
+				last := len(rets) - 1
+				var obj *model.VideoObject
+				log.Info("rets:", rets)
+				for idx, v := range rets {
+					if idx == last {
+						obj = model.ObjectToLink(obj, v)
+						uncatvideo.Object = append(uncatvideo.Object)
+						uncatvideo.Hash = obj.Link.Hash
 						continue
 					}
-					last := len(rets) - 1
-					var obj *model.VideoObject
-					log.Info("rets:", rets)
-					for idx, v := range rets {
-						if idx == last {
-							obj = model.ObjectToLink(obj, v)
-							uncatvideo.Object = append(uncatvideo.Object)
-							uncatvideo.Hash = obj.Link.Hash
-							continue
-						}
-						obj = model.ObjectToLinks(obj, v)
-					}
-					uncatvideo.Object = append(uncatvideo.Object, obj)
+					obj = model.ObjectToLinks(obj, v)
 				}
+				uncatvideo.Object = append(uncatvideo.Object, obj)
+				//}
 				e = model.AddOrUpdateUncategorized(&uncatvideo)
 				if e != nil {
 					log.Errorf("insert uncategorized error:%+v", e)
@@ -237,10 +238,11 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 	s.HLS = hls(s.HLS)
 	s.Files = nil
 	for _, value := range source.Files {
-		s.Files, e = SplitVideo(context.Background(), s.HLS, value)
+		file, e := SplitVideo(context.Background(), s.HLS, value)
 		if e != nil {
 			return e
 		}
+		s.Files = append(s.Files, file)
 	}
 	e = add(video, &s)
 	if e != nil {

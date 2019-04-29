@@ -175,18 +175,7 @@ func Process(source *VideoSource) (e error) {
 			Peer: value.Peer,
 		})
 	}
-
-	if err := model.AddOrUpdateVideo(video); err != nil {
-		return err
-	}
-
-	//VideoListAdd(source, video)
-
-	//if err := SaveVideos(); err != nil {
-	//	return err
-	//}
-
-	return nil
+	return model.AddOrUpdateVideo(video)
 }
 
 // GetSourceInfo ...

@@ -140,10 +140,18 @@ func main() {
 			if e != nil {
 				log.Panic(e)
 			}
-			e = seed.Pin(pin)
-			if e != nil {
-				log.Panic(e)
+			if !*quick {
+				e = seed.Pin(pin)
+				if e != nil {
+					log.Panic(e)
+				}
+				return
 			}
+
+			if err := seed.QuickPin(pin); err != nil {
+				return
+			}
+
 		},
 	}
 

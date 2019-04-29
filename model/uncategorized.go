@@ -23,6 +23,15 @@ func init() {
 	RegisterTable(Uncategorized{})
 }
 
+// AllUncategorized ...
+func AllUncategorized() ([]*Uncategorized, error) {
+	var uncats []*Uncategorized
+	if err := DB().Find(&uncats); err != nil {
+		return nil, err
+	}
+	return uncats, nil
+}
+
 // AddOrUpdateVideo ...
 func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
 	log.Printf("%+v", *uncat)
@@ -42,6 +51,7 @@ func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
 	return nil
 }
 
+// Checksum ...
 func Checksum(filepath string) string {
 	hash := md5.New()
 	file, e := os.OpenFile(filepath, os.O_RDONLY, os.ModePerm)

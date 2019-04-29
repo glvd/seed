@@ -66,6 +66,23 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 	}
 }
 
+// QuickPin ...
+func QuickPin(checksum string) (e error) {
+	var wg sync.WaitGroup
+	if checksum == "" {
+		uncategorizeds, e := model.AllUncategorized()
+		if e != nil {
+			return e
+		}
+		for _, v := range uncategorizeds {
+			wg.Add(1)
+			go pin(&wg, v.Hash)
+		}
+	}
+	wg.Wait()
+	return nil
+}
+
 // Pin ...
 func Pin(ban string) (e error) {
 	wg := sync.WaitGroup{}

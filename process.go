@@ -118,10 +118,20 @@ func QuickProcess(pathname string) (e error) {
 					continue
 				}
 			}
+			if err := moveSuccess(file); err != nil {
+				return err
+			}
+
 		}
 
 	}
 	return nil
+}
+
+func moveSuccess(file string) (e error) {
+	dir, name := filepath.Split(file)
+	newPath := filepath.Join(dir, "success", name)
+	return os.Rename(file, newPath)
 }
 
 // Process ...

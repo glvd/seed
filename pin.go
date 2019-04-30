@@ -77,9 +77,10 @@ func QuickPin(checksum string) (e error) {
 		for _, v := range uncategorizeds {
 			wg.Add(1)
 			go pin(&wg, v.Hash)
+			wg.Wait()
 		}
 	}
-	wg.Wait()
+
 	return nil
 }
 

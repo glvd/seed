@@ -95,7 +95,6 @@ func QuickProcess(pathname string) (e error) {
 					continue
 				}
 				log.Println(file)
-				//for _, value := range files {
 				rets, e := rest.AddDir(file)
 				if e != nil {
 					log.Errorf("ipfs add file error:%+v", object)

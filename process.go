@@ -130,8 +130,10 @@ func QuickProcess(pathname string) (e error) {
 
 func moveSuccess(file string) (e error) {
 	dir, name := filepath.Split(file)
-	newPath := filepath.Join(dir, "success", name)
-	return os.Rename(file, newPath)
+	newPath := filepath.Join(dir, "success")
+	_ = os.MkdirAll(newPath, os.ModePerm)
+	newPathFile := filepath.Join(newPath, name)
+	return os.Rename(file, newPathFile)
 }
 
 // Process ...

@@ -49,7 +49,7 @@ func QuickProcess(pathname string) (e error) {
 		for _, value := range names {
 			uncat := model.Uncategorized{
 				Name:    value,
-				Type:    "video",
+				Type:    "other",
 				Hash:    "",
 				IsVideo: false,
 				Object:  nil,
@@ -75,6 +75,9 @@ func QuickProcess(pathname string) (e error) {
 			uncat.Hash = object.Hash
 			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
 			uncat.IsVideo = isVideo(value)
+			if uncat.IsVideo {
+				uncat.Type = "video"
+			}
 			e = model.AddOrUpdateUncategorized(&uncat)
 			if e != nil {
 				log.Errorf("insert uncategorized error:%+v", e)

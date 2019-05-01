@@ -13,6 +13,7 @@ import (
 type Uncategorized struct {
 	Model    `xorm:"extends"`
 	Checksum string
+	Type     string
 	Name     string
 	Hash     string
 	IsVideo  bool
@@ -35,7 +36,7 @@ func AllUncategorized() ([]*Uncategorized, error) {
 // AddOrUpdateUncategorized ...
 func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
 	log.Printf("%+v", *uncat)
-	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).Count()
+	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).And("type = ?", uncat.Type).Count()
 	if e != nil {
 		return e
 	}

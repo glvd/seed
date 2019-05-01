@@ -49,6 +49,7 @@ func QuickProcess(pathname string) (e error) {
 		for _, value := range names {
 			uncat := model.Uncategorized{
 				Name:    value,
+				Type:    "video",
 				Hash:    "",
 				IsVideo: false,
 				Object:  nil,
@@ -83,7 +84,8 @@ func QuickProcess(pathname string) (e error) {
 			if uncat.IsVideo {
 				uncatvideo := model.Uncategorized{
 					Model:    model.Model{},
-					Checksum: uncat.Checksum + "_video",
+					Checksum: uncat.Checksum,
+					Type:     "m3u8",
 					Name:     value,
 					Hash:     "",
 					IsVideo:  uncat.IsVideo,

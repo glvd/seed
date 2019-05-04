@@ -75,6 +75,7 @@ func QuickPin(checksum string) (e error) {
 			return e
 		}
 		for _, v := range uncategorizeds {
+			logrus.Info("pin:", v.Hash)
 			wg.Add(1)
 			go pin(&wg, v.Hash)
 			wg.Wait()

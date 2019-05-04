@@ -47,7 +47,9 @@ func pin(wg *sync.WaitGroup, hash string) {
 	if e != nil {
 		logrus.Error(e)
 	}
-	wg.Done()
+	if wg != nil {
+		wg.Done()
+	}
 }
 
 func pinVideo(wg *sync.WaitGroup, video *model.Video) {
@@ -68,7 +70,6 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 
 // QuickPin ...
 func QuickPin(checksum string) (e error) {
-	var wg sync.WaitGroup
 	if checksum == "" {
 		uncategorizeds, e := model.AllUncategorized()
 		if e != nil {
@@ -76,9 +77,7 @@ func QuickPin(checksum string) (e error) {
 		}
 		for _, v := range uncategorizeds {
 			logrus.Info("pin:", v.Hash)
-			wg.Add(1)
-			go pin(&wg, v.Hash)
-			wg.Wait()
+			pin(nil, v.Hash)
 		}
 	}
 

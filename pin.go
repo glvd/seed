@@ -80,7 +80,11 @@ func QuickPin(checksum string) (e error) {
 			pin(nil, v.Hash)
 		}
 	}
-
+	uncategorized, e := model.FindUncategorized(checksum)
+	if e != nil {
+		return e
+	}
+	pin(nil, uncategorized.Hash)
 	return nil
 }
 

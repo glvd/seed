@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/xerrors"
 	"io"
 	"os"
 )
@@ -31,6 +32,16 @@ func AllUncategorized() ([]*Uncategorized, error) {
 		return nil, err
 	}
 	return uncats, nil
+}
+
+// FindUncategorized ...
+func FindUncategorized(checksum string) (*Uncategorized, error) {
+	var uncat Uncategorized
+	b, e := DB().Where("checksum = ?", checksum).Get(&uncat)
+	if e != nil || !b {
+		return nil, xerrors.New("uncategorize not found!")
+	}
+	return &uncat, nil
 }
 
 // AddOrUpdateUncategorized ...

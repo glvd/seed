@@ -223,8 +223,8 @@ func GetPeers() []shell.SwarmConnInfo {
 	return swarmPeers.Peers[:50]
 }
 
-// Mustring  must string
-func Mustring(val, src string) string {
+// MustString  must string
+func MustString(val, src string) string {
 	if val != "" {
 		return val
 	}
@@ -234,9 +234,9 @@ func Mustring(val, src string) string {
 // hls ...
 func hls(def *model.HLS) *model.HLS {
 	if def != nil {
-		def.Key = Mustring(def.Key, "")
-		def.M3U8 = Mustring(def.M3U8, "media.m3u8")
-		def.SegmentFile = Mustring(def.SegmentFile, "media-%05d.ts")
+		def.Key = MustString(def.Key, "")
+		def.M3U8 = MustString(def.M3U8, "media.m3u8")
+		def.SegmentFile = MustString(def.SegmentFile, "media-%05d.ts")
 	}
 
 	return &model.HLS{

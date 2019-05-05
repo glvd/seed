@@ -43,6 +43,7 @@ func swarmConnects(peers []*model.SourcePeer) {
 }
 
 func pin(wg *sync.WaitGroup, hash string) {
+	logrus.Info("pin:", hash)
 	e := rest.Pin(hash)
 	if e != nil {
 		logrus.Error(e)
@@ -56,12 +57,12 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 	go swarmConnects(video.SourcePeerList)
 	logrus.Info("pin video:", video.Bangumi)
 	wg.Add(1)
-	logrus.Info("pin poster:", video.Poster)
+	//logrus.Info("pin poster:", video.Poster)
 	go pin(wg, video.Poster)
 	for _, value := range video.VideoGroupList {
 		logrus.Infof("list:%+v", value)
 		for _, val := range value.Object {
-			logrus.Info("pin media:", val.Link.Hash)
+			//logrus.Info("pin media:", val.Link.Hash)
 			wg.Add(1)
 			go pin(wg, val.Link.Hash)
 		}
@@ -70,13 +71,14 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 
 // QuickPin ...
 func QuickPin(checksum string) (e error) {
+	logrus.Info("pin checksum:", checksum)
 	if checksum == "" {
 		uncategorizeds, e := model.AllUncategorized()
 		if e != nil {
 			return e
 		}
 		for _, v := range uncategorizeds {
-			logrus.Info("pin:", v.Hash)
+
 			pin(nil, v.Hash)
 		}
 	}

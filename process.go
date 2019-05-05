@@ -161,16 +161,15 @@ func Process(source *VideoSource) (e error) {
 	video.VideoGroupList = nil
 
 	log.Printf("%+v", video)
-	if source.PosterPath != "" {
-		object, e := rest.AddFile(source.PosterPath)
-		if e != nil {
-			return e
-		}
-		video.VideoBase.Poster = object.Hash
-	}
+
+	video.VideoBase.Poster = addPoster(source)
 	log.Info(*source)
+
 	fn := add
-	if source.Slice {
+	if source.CheckFiles != nil {
+		log.Debug("add from uncategorized")
+		fn = addChecksum
+	} else if source.Slice {
 		log.Debug("add with slice")
 		fn = addSlice
 	}
@@ -192,6 +191,18 @@ func Process(source *VideoSource) (e error) {
 		})
 	}
 	return model.AddOrUpdateVideo(video)
+}
+
+func addPoster(source *VideoSource) string {
+	if source.PosterPath != "" {
+		object, e := rest.AddFile(source.PosterPath)
+		if e != nil {
+			log.Error("add poster error:", e)
+			return ""
+		}
+		return object.Hash
+	}
+	return source.Poster
 }
 
 // GetSourceInfo ...
@@ -252,6 +263,34 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 		return e
 	}
 
+	return nil
+}
+
+func addChecksum(video *model.Video, source *VideoSource) (e error) {
+	hash := Hash(source)
+	group := parseGroup(hash, source)
+	for _, value := range source.CheckFiles {
+		uncategorized, e := model.FindUncategorized(value)
+		if e != nil {
+			return e
+		}
+		group.Object = uncategorized.Object
+	}
+
+	//create if null
+	if video.VideoGroupList == nil {
+		video.VideoGroupList = []*model.VideoGroup{group}
+	}
+
+	//replace if found
+	for i, v := range video.VideoGroupList {
+		if v.Index == group.Index {
+			video.VideoGroupList[i] = group
+			return nil
+		}
+	}
+	//append if not found
+	video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
 }
 

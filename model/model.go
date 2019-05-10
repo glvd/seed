@@ -90,10 +90,10 @@ func InitDB() (e error) {
 }
 
 // InitSync ...
-func InitSync(pathname string) (e error) {
-	eng, e := xorm.NewEngine("mysql", LoadToml(pathname).Source())
+func InitSync(pathname string) (eng *xorm.Engine, e error) {
+	eng, e = xorm.NewEngine("mysql", LoadToml(pathname).Source())
 	if e != nil {
-		return e
+		return
 	}
 	eng.ShowSQL(true)
 	eng.ShowExecTime(true)
@@ -101,12 +101,11 @@ func InitSync(pathname string) (e error) {
 		log.Println("syncing ", idx)
 		e := eng.Sync2(val)
 		if e != nil {
-			return e
+			return
 		}
 	}
 
-	db = eng
-	return nil
+	return eng, nil
 }
 
 // LoadToml ...

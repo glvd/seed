@@ -32,19 +32,9 @@ func main() {
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
+	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
-	var cmdSync = &cobra.Command{
-		Use:   "sync",
-		Short: "sync the data to sql.",
-		Long:  `sync the data information from database to database`,
-		Run: func(cmd *cobra.Command, args []string) {
-			e := model.InitSync(*config)
-			if e != nil {
-				panic(e)
-			}
-		},
-	}
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",
@@ -179,12 +169,22 @@ func main() {
 			if e != nil {
 				log.Panic(e)
 			}
+			if *tipe == "mysql" {
+				eng, e := model.InitSync(*config)
+				if e != nil {
+					panic(e)
+				}
+				e = seed.TransferMysql(eng)
+				if e != nil {
+					panic(e)
+				}
+			}
 			if err := seed.Transfer(); err != nil {
 				log.Panic(e)
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract, cmdSync)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

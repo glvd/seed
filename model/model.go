@@ -99,12 +99,11 @@ func InitSync(pathname string) (eng *xorm.Engine, e error) {
 	eng.ShowExecTime(true)
 	for idx, val := range syncTable {
 		log.Println("syncing ", idx)
-		e := eng.Sync2(val)
+		e = eng.Sync2(val)
 		if e != nil {
 			return
 		}
 	}
-
 	return eng, nil
 }
 

@@ -174,7 +174,7 @@ func main() {
 				if e != nil {
 					panic(e)
 				}
-				e = seed.TransferMysql(eng)
+				e = seed.TransferMysql(eng, 1)
 				if e != nil {
 					panic(e)
 				}

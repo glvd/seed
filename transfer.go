@@ -3,6 +3,7 @@ package seed
 import (
 	"github.com/go-xorm/xorm"
 	"github.com/yinhevr/seed/model"
+	"golang.org/x/xerrors"
 	"log"
 )
 
@@ -22,22 +23,25 @@ func Transfer() (e error) {
 }
 
 // TransferMysql ...
-func TransferMysql(eng *xorm.Engine) (e error) {
-
+func TransferMysql(eng *xorm.Engine, limit int) (e error) {
 	i, e := model.DB().Count(&model.Video{})
-	if e != nil {
+	if e != nil || i <= 0 {
 		return e
 	}
-	video := model.Video{}
-	for x := int64(0); x < i; x++ {
-		b, e := model.DB().Limit(1, int(x)).Get(&video)
-		log.Printf("%+v", video)
-		if e != nil {
-			return e
+	if limit == 0 {
+		limit = 10
+	}
+	for x := 0; x <= int(i); x += limit {
+		var videos []*model.Video
+		if e = model.DB().Limit(limit, x).Find(&videos); e != nil {
+			return xerrors.Errorf("transfer error with:%d,%+v", x, e)
 		}
-		if !b {
-			continue
+		for _, v := range videos {
+			log.Println("get:", v.Bangumi)
 		}
+		insert, e := eng.Insert(videos)
+		log.Println(insert, e)
+
 	}
 	return nil
 }

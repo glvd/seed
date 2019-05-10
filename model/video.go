@@ -18,7 +18,7 @@ type Video struct {
 type VideoBase struct {
 	Bangumi      string   `xorm:"unique index bangumi" json:"bangumi"` //番組
 	Thumb        string   `json:"thumb"`                               //缩略图
-	Intro        string   `json:"intro"`                               //简介
+	Intro        string   `xorm:"varchar(1024)" json:"intro"`          //简介
 	Alias        []string `xorm:"json" json:"alias"`                   //别名，片名
 	SourceHash   string   `json:"source_hash"`                         //原片地址
 	Poster       string   `json:"poster"`                              //海报

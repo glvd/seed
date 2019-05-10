@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/godcong/go-trait"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
@@ -30,8 +31,20 @@ func main() {
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
+	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
 
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
+	var cmdSync = &cobra.Command{
+		Use:   "sync",
+		Short: "sync the data to sql.",
+		Long:  `sync the data information from database to database`,
+		Run: func(cmd *cobra.Command, args []string) {
+			e := model.InitSync(*config)
+			if e != nil {
+				panic(e)
+			}
+		},
+	}
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",
@@ -171,7 +184,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract, cmdSync)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

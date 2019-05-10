@@ -178,6 +178,7 @@ func main() {
 				if e != nil {
 					panic(e)
 				}
+				return
 			}
 			if err := seed.Transfer(); err != nil {
 				log.Panic(e)

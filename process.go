@@ -151,7 +151,7 @@ func Process(source *VideoSource) (e error) {
 	}
 	source.Bangumi = strings.ToUpper(source.Bangumi)
 	video := &model.Video{}
-	_, err := model.FindVideo(source.Bangumi, video)
+	_, err := model.FindVideo(source.Bangumi, video, false)
 	if err != nil {
 		return err
 	}
@@ -270,7 +270,7 @@ func addChecksum(video *model.Video, source *VideoSource) (e error) {
 	hash := Hash(source)
 	group := parseGroup(hash, source)
 	for _, value := range source.CheckFiles {
-		uncategorized, e := model.FindUncategorized(value)
+		uncategorized, e := model.FindUncategorized(value, false)
 		if e != nil {
 			return e
 		}

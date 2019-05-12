@@ -12,7 +12,7 @@ func Update(index string, source *VideoSource) (e error) {
 		return xerrors.New("nil source")
 	}
 	video := &model.Video{}
-	b, err := model.FindVideo(source.Bangumi, video)
+	b, err := model.FindVideo(source.Bangumi, video, false)
 	if err != nil || !b {
 		return xerrors.New("nil video")
 	}

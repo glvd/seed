@@ -16,7 +16,8 @@ type Extend struct {
 
 // VideoSource ...
 type VideoSource struct {
-	Bangumi      string     `json:"bangumi"`       //番号
+	Bangumi string `json:"bangumi"` //番号
+
 	Type         string     `json:"type"`          //类型：film，FanDrama
 	Output       string     `json:"output"`        //输出：3D，2D
 	VR           string     `json:"vr"`            //VR格式：左右，上下，平面
@@ -26,9 +27,12 @@ type VideoSource struct {
 	VideoEncode  string     `json:"video_encode"`  //视频编码
 	AudioEncode  string     `json:"audio_encode"`  //音频编码
 	Files        []string   `json:"files"`         //存放路径
+	HashFiles    []string   `json:"hash_files"`    //已上传Hash
+	CheckFiles   []string   `json:"check_files"`   //uncategorized checksum
 	Slice        bool       `json:"slice"`         //是否HLS切片
 	HLS          *model.HLS `json:"hls"`           //HLS信息
 	PosterPath   string     `json:"poster_path"`   //海报路径
+	Poster       string     `json:"poster"`        //海报HASH
 	ExtendList   []*Extend  `json:"extend_list"`   //扩展信息
 	Role         []string   `json:"role"`          //角色列表
 	Director     []string   `json:"director"`      //导演

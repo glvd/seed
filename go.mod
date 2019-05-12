@@ -11,7 +11,7 @@ require (
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/ethereum/go-ethereum v1.8.27
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a // indirect
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.1
 	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190430053212-f7288dd1dbdb
 	github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0
@@ -28,6 +28,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pborman/uuid v1.2.0 // indirect
+	github.com/pelletier/go-toml v1.4.0
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rs/cors v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.4.0

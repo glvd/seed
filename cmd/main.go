@@ -30,6 +30,9 @@ func main() {
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
+	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
+	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
+
 	check := rootCmd.PersistentFlags().BoolP("check", "c", false, "check if the video is synced")
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
@@ -141,14 +144,14 @@ func main() {
 				log.Panic(e)
 			}
 			if !*quick {
-				e = seed.Pin(pin, *check)
+				e = seed.Pin(pin)
 				if e != nil {
 					log.Panic(e)
 				}
 				return
 			}
 
-			if err := seed.QuickPin(pin, *check); err != nil {
+			if err := seed.QuickPin(pin); err != nil {
 				return
 			}
 
@@ -165,6 +168,17 @@ func main() {
 			e := model.InitDB()
 			if e != nil {
 				log.Panic(e)
+			}
+			if *tipe == "mysql" {
+				eng, e := model.InitSync(*config)
+				if e != nil {
+					panic(e)
+				}
+				e = seed.TransferMysql(eng, 1)
+				if e != nil {
+					panic(e)
+				}
+				return
 			}
 			if err := seed.Transfer(); err != nil {
 				log.Panic(e)

@@ -27,20 +27,33 @@ func init() {
 }
 
 // AllUncategorized ...
-func AllUncategorized() ([]*Uncategorized, error) {
+func AllUncategorized(check bool) ([]*Uncategorized, error) {
 	var uncats []*Uncategorized
-	if err := DB().Find(&uncats); err != nil {
-		return nil, err
+	if check {
+		if err := DB().Where("sync = ?", check).Find(&uncats); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := DB().Find(&uncats); err != nil {
+			return nil, err
+		}
 	}
 	return uncats, nil
 }
 
 // FindUncategorized ...
-func FindUncategorized(checksum string) (*Uncategorized, error) {
+func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
 	var uncat Uncategorized
-	b, e := DB().Where("checksum = ?", checksum).Get(&uncat)
-	if e != nil || !b {
-		return nil, xerrors.New("uncategorize not found!")
+	if check {
+		b, e := DB().Where("sync = ?", check).Where("checksum = ?", checksum).Get(&uncat)
+		if e != nil || !b {
+			return nil, xerrors.New("uncategorize not found!")
+		}
+	} else {
+		b, e := DB().Where("checksum = ?", checksum).Get(&uncat)
+		if e != nil || !b {
+			return nil, xerrors.New("uncategorize not found!")
+		}
 	}
 	return &uncat, nil
 }

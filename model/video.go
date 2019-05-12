@@ -6,9 +6,9 @@ import (
 
 // Video ...
 type Video struct {
-	Model      `xorm:"extends"`
-	*VideoBase `xorm:"extends"`
-	//*VideoInfo     `xorm:"extends"`
+	Model          `xorm:"extends"`
+	Sync           bool
+	*VideoBase     `xorm:"extends"`
 	VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
 	SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`
 	SourcePeerList []*SourcePeer `xorm:"json" json:"source_peer_list"`
@@ -56,7 +56,10 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 }
 
 // FindVideo ...
-func FindVideo(ban string, video *Video) (b bool, e error) {
+func FindVideo(ban string, video *Video, check bool) (b bool, e error) {
+	if check {
+		return DB().Where("sync = ?", check).Where("bangumi like ?", "%"+ban+"%").Get(video)
+	}
 	return DB().Where("bangumi like ?", "%"+ban+"%").Get(video)
 }
 
@@ -66,10 +69,16 @@ func Top(video *Video) (b bool, e error) {
 }
 
 // AllVideos ...
-func AllVideos() (v []*Video, e error) {
+func AllVideos(check bool) (v []*Video, e error) {
 	var videos = new([]*Video)
-	if e = DB().Find(videos); e != nil {
-		return
+	if check {
+		if e = DB().Where("sync = ?", check).Find(videos); e != nil {
+			return
+		}
+	} else {
+		if e = DB().Find(videos); e != nil {
+			return
+		}
 	}
 	v = *videos
 	return

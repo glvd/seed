@@ -30,7 +30,7 @@ func main() {
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
 	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
-
+	check := rootCmd.PersistentFlags().BoolP("check", "c", false, "check if the video is synced")
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
 	var cmdContract = &cobra.Command{
@@ -141,14 +141,14 @@ func main() {
 				log.Panic(e)
 			}
 			if !*quick {
-				e = seed.Pin(pin)
+				e = seed.Pin(pin, *check)
 				if e != nil {
 					log.Panic(e)
 				}
 				return
 			}
 
-			if err := seed.QuickPin(pin); err != nil {
+			if err := seed.QuickPin(pin, *check); err != nil {
 				return
 			}
 

@@ -69,9 +69,9 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 }
 
 // QuickPin ...
-func QuickPin(checksum string) (e error) {
+func QuickPin(checksum string, check bool) (e error) {
 	if checksum == "" {
-		uncategorizeds, e := model.AllUncategorized()
+		uncategorizeds, e := model.AllUncategorized(check)
 		if e != nil {
 			return e
 		}
@@ -80,7 +80,7 @@ func QuickPin(checksum string) (e error) {
 			pin(nil, v.Hash)
 		}
 	}
-	uncategorized, e := model.FindUncategorized(checksum)
+	uncategorized, e := model.FindUncategorized(checksum, check)
 	if e != nil {
 		return e
 	}
@@ -89,10 +89,10 @@ func QuickPin(checksum string) (e error) {
 }
 
 // Pin ...
-func Pin(ban string) (e error) {
+func Pin(ban string, check bool) (e error) {
 	wg := sync.WaitGroup{}
 	if ban == "" {
-		v, e := model.AllVideos()
+		v, e := model.AllVideos(check)
 		if e != nil {
 			return e
 		}
@@ -101,7 +101,7 @@ func Pin(ban string) (e error) {
 		}
 	} else {
 		var video model.Video
-		b, e := model.FindVideo(ban, &video)
+		b, e := model.FindVideo(ban, &video, check)
 		if e != nil || !b {
 			return xerrors.New("nil video")
 		}

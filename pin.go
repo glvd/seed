@@ -89,6 +89,9 @@ func QuickPin(checksum string, check bool) (e error) {
 		}
 		uncategorizeds = append(uncategorizeds, uncategorized)
 	}
+	if !check {
+		return
+	}
 	for _, v := range uncategorizeds {
 		logrus.Info("pin:", v.Hash)
 		pin(nil, v.Hash)
@@ -123,13 +126,14 @@ func Pin(ban string, poster, check bool) (e error) {
 		pinVideo(&wg, poster, video)
 	}
 	wg.Wait()
-	if check {
-		for _, video := range videos {
-			video.Sync = true
-			i, e := model.DB().Cols("sync").Update(video)
-			if e != nil {
-				return xerrors.Errorf("video nothing updated with:%d,%+v", i, e)
-			}
+	if !check {
+		return
+	}
+	for _, video := range videos {
+		video.Sync = true
+		i, e := model.DB().Cols("sync").Update(video)
+		if e != nil {
+			return xerrors.Errorf("video nothing updated with:%d,%+v", i, e)
 		}
 	}
 

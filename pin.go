@@ -53,12 +53,15 @@ func pin(wg *sync.WaitGroup, hash string) {
 	}
 }
 
-func pinVideo(wg *sync.WaitGroup, video *model.Video) {
+func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
 	go swarmConnects(video.SourcePeerList)
 	logrus.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	//logrus.Info("pin poster:", video.Poster)
 	go pin(wg, video.Poster)
+	if poster {
+		return
+	}
 	for _, value := range video.VideoGroupList {
 		logrus.Infof("list:%+v", value)
 		for _, val := range value.Object {
@@ -100,7 +103,7 @@ func QuickPin(checksum string, check bool) (e error) {
 }
 
 // Pin ...
-func Pin(ban string, check bool) (e error) {
+func Pin(ban string, poster, check bool) (e error) {
 	wg := sync.WaitGroup{}
 	var videos []*model.Video
 	if ban == "" {
@@ -117,7 +120,7 @@ func Pin(ban string, check bool) (e error) {
 		}
 	}
 	for _, video := range videos {
-		pinVideo(&wg, video)
+		pinVideo(&wg, poster, video)
 	}
 	wg.Wait()
 

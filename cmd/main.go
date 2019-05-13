@@ -32,7 +32,7 @@ func main() {
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
 	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
-
+	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
@@ -144,7 +144,7 @@ func main() {
 				panic(e)
 			}
 			if !*quick {
-				e = seed.Pin(pin, *check)
+				e = seed.Pin(pin, *poster, *check)
 				if e != nil {
 					panic(e)
 				}

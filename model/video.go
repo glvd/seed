@@ -73,7 +73,7 @@ func Top(video *Video) (b bool, e error) {
 func AllVideos(check bool) (v []*Video, e error) {
 	var videos = new([]*Video)
 	if check {
-		if e = DB().Where("sync = ?", check).Find(videos); e != nil {
+		if e = DB().Where("sync = ?", !check).Find(videos); e != nil {
 			return
 		}
 	} else {

@@ -30,7 +30,7 @@ func init() {
 func AllUncategorized(check bool) ([]*Uncategorized, error) {
 	var uncats []*Uncategorized
 	if check {
-		if err := DB().Where("sync = ?", check).Find(&uncats); err != nil {
+		if err := DB().Where("sync = ?", !check).Find(&uncats); err != nil {
 			return nil, err
 		}
 	} else {
@@ -45,7 +45,7 @@ func AllUncategorized(check bool) ([]*Uncategorized, error) {
 func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
 	var uncat Uncategorized
 	if check {
-		b, e := DB().Where("sync = ?", check).Where("checksum = ?", checksum).Get(&uncat)
+		b, e := DB().Where("sync = ?", !check).Where("checksum = ?", checksum).Get(&uncat)
 		if e != nil || !b {
 			return nil, xerrors.New("uncategorize not found!")
 		}

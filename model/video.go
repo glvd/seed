@@ -59,7 +59,7 @@ func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
 // FindVideo ...
 func FindVideo(ban string, video *Video, check bool) (b bool, e error) {
 	if check {
-		return DB().Where("sync = ?", check).Where("bangumi like ?", "%"+ban+"%").Get(video)
+		return DB().Where("sync = ?", !check).Where("bangumi like ?", "%"+ban+"%").Get(video)
 	}
 	return DB().Where("bangumi like ?", "%"+ban+"%").Get(video)
 }

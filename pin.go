@@ -72,44 +72,63 @@ func pinVideo(wg *sync.WaitGroup, video *model.Video) {
 // QuickPin ...
 func QuickPin(checksum string, check bool) (e error) {
 	logrus.Info("pin checksum:", checksum)
+	var uncategorizeds []*model.Uncategorized
 	if checksum == "" {
-		uncategorizeds, e := model.AllUncategorized(check)
+		uncategorizeds, e = model.AllUncategorized(check)
 		if e != nil {
 			return e
 		}
-		for _, v := range uncategorizeds {
-			logrus.Info("pin:", v.Hash)
-			pin(nil, v.Hash)
+
+	} else {
+		uncategorized, e := model.FindUncategorized(checksum, check)
+		if e != nil {
+			return e
+		}
+		uncategorizeds = append(uncategorizeds, uncategorized)
+	}
+	for _, v := range uncategorizeds {
+		logrus.Info("pin:", v.Hash)
+		pin(nil, v.Hash)
+		v.Sync = true
+		i, e := model.DB().Update(v)
+		if e != nil {
+			return xerrors.Errorf("uncategorized nothing updated with:%d,%+v", i, e)
 		}
 	}
-	uncategorized, e := model.FindUncategorized(checksum, check)
-	if e != nil {
-		return e
-	}
-	pin(nil, uncategorized.Hash)
+
 	return nil
 }
 
 // Pin ...
 func Pin(ban string, check bool) (e error) {
 	wg := sync.WaitGroup{}
+	var videos []*model.Video
 	if ban == "" {
-		v, e := model.AllVideos(check)
+		videos, e = model.AllVideos(check)
 		if e != nil {
 			return e
 		}
-		for _, video := range v {
-			pinVideo(&wg, video)
-		}
+
 	} else {
-		var video model.Video
-		b, e := model.FindVideo(ban, &video, check)
+		videos = append(videos, new(model.Video))
+		b, e := model.FindVideo(ban, videos[0], check)
 		if e != nil || !b {
-			return xerrors.New("nil video")
+			return xerrors.Errorf("nothing updated with:%t,%+v", b, e)
 		}
-		pinVideo(&wg, &video)
+	}
+	for _, video := range videos {
+		pinVideo(&wg, video)
 	}
 	wg.Wait()
+
+	for _, video := range videos {
+		video.Sync = true
+		i, e := model.DB().Update(video)
+		if e != nil {
+			return xerrors.Errorf("video nothing updated with:%d,%+v", i, e)
+		}
+	}
+
 	logrus.Info("success")
 	return nil
 }

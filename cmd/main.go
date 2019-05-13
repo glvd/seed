@@ -33,7 +33,7 @@ func main() {
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
 	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
 
-	check := rootCmd.PersistentFlags().BoolP("check", "k", false, "check if the video is synced")
+	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
 	var cmdContract = &cobra.Command{

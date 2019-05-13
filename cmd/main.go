@@ -60,7 +60,7 @@ func main() {
 			for _, v := range vs {
 				e := seed.Verify(v)
 				if e != nil {
-					log.Panic(e)
+					panic(e)
 				}
 				log.Infof("%+v", v)
 			}
@@ -78,14 +78,14 @@ func main() {
 			seed.InitShell(*shell)
 			e := model.InitDB()
 			if e != nil {
-				log.Panic(e)
+				panic(e)
 			}
 			if !*quick {
 				vs := seed.Load(*path)
 				for _, v := range vs {
 					e := seed.Process(v)
 					if e != nil {
-						log.Panic(e)
+						panic(e)
 					}
 					log.Infof("%+v", v)
 				}
@@ -113,7 +113,7 @@ func main() {
 			seed.InitShell(*shell)
 			e := model.InitDB()
 			if e != nil {
-				log.Panic(e)
+				panic(e)
 			}
 			vs := seed.Load(*path)
 			for _, v := range vs {
@@ -141,12 +141,12 @@ func main() {
 			seed.InitShell(*shell)
 			e := model.InitDB()
 			if e != nil {
-				log.Panic(e)
+				panic(e)
 			}
 			if !*quick {
 				e = seed.Pin(pin, *check)
 				if e != nil {
-					log.Panic(e)
+					panic(e)
 				}
 				return
 			}
@@ -181,7 +181,7 @@ func main() {
 				return
 			}
 			if err := seed.Transfer(); err != nil {
-				log.Panic(e)
+				panic(e)
 			}
 		},
 	}

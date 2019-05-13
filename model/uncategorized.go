@@ -18,7 +18,7 @@ type Uncategorized struct {
 	Name     string
 	Hash     string
 	IsVideo  bool
-	Sync     bool
+	Sync     bool           `xorm:"default(0)"`
 	Object   []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
 }
 

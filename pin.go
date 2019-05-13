@@ -93,7 +93,7 @@ func QuickPin(checksum string, check bool) (e error) {
 		logrus.Info("pin:", v.Hash)
 		pin(nil, v.Hash)
 		v.Sync = true
-		i, e := model.DB().Update(v)
+		i, e := model.DB().Cols("sync").Update(v)
 		if e != nil {
 			return xerrors.Errorf("uncategorized nothing updated with:%d,%+v", i, e)
 		}
@@ -123,12 +123,13 @@ func Pin(ban string, poster, check bool) (e error) {
 		pinVideo(&wg, poster, video)
 	}
 	wg.Wait()
-
-	for _, video := range videos {
-		video.Sync = true
-		i, e := model.DB().Update(video)
-		if e != nil {
-			return xerrors.Errorf("video nothing updated with:%d,%+v", i, e)
+	if check {
+		for _, video := range videos {
+			video.Sync = true
+			i, e := model.DB().Cols("sync").Update(video)
+			if e != nil {
+				return xerrors.Errorf("video nothing updated with:%d,%+v", i, e)
+			}
 		}
 	}
 

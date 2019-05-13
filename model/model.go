@@ -13,6 +13,12 @@ import (
 
 var db *xorm.Engine
 var syncTable = map[string]interface{}{}
+var path string
+
+// SetPath ...
+func SetPath(p string) {
+	path = p
+}
 
 // Database ...
 type Database struct {

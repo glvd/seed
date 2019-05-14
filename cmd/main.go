@@ -83,7 +83,7 @@ func main() {
 			if e != nil {
 				panic(e)
 			}
-			seed.QuickConnect(*swarm)
+
 			if !*quick {
 				vs := seed.Load(*path)
 				for _, v := range vs {
@@ -138,9 +138,6 @@ func main() {
 		Long:  `pin the video to ipfs, then user can get it more quickly`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			//run on start
-			go seed.PoolSwarmConnect()
-
 			pin := ""
 			if len(args) >= 1 {
 				pin = args[0]
@@ -150,8 +147,7 @@ func main() {
 			if e != nil {
 				panic(e)
 			}
-
-			seed.QuickConnect(*swarm)
+			go seed.PoolSwarmConnect()
 			if !*quick {
 				e = seed.Pin(pin, *poster, *check)
 				if e != nil {

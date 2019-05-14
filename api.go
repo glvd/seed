@@ -74,6 +74,9 @@ func SwarmAddList(sps []*model.SourcePeer) {
 func SwarmConnect(addr string) (e error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	logrus.Info("connect to:", addr)
+	if rest == nil {
+		return xerrors.New("rest is not inited")
+	}
 	if err := rest.SwarmConnect(ctx, addr); err != nil {
 		cancel()
 		return err

@@ -5,6 +5,7 @@ import (
 	"github.com/godcong/go-ipfs-restapi"
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
+	"golang.org/x/xerrors"
 	"sync"
 	"time"
 )
@@ -82,6 +83,9 @@ func swarmAddress(peer *model.SourcePeer) string {
 
 func swarmConnectTo(peer *model.SourcePeer) (e error) {
 	address := swarmAddress(peer)
+	if address == "" {
+		return xerrors.New("null address")
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	logrus.Info("connect to:", address)
 	if err := rest.SwarmConnect(ctx, address); err != nil {
@@ -97,7 +101,6 @@ func swarmConnects(peers []*model.SourcePeer) {
 	}
 
 	var nextPeers []*model.SourcePeer
-
 	for _, value := range peers {
 		e := swarmConnectTo(value)
 		if e != nil {

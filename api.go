@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
+	"strings"
 	"sync"
 	"time"
 )
@@ -42,6 +43,7 @@ func PoolSwarmConnect() {
 			Peer: "Qmcoz66NZhcegp58st53Khsd2mgqnkLojQx7mtjAA3EPCS",
 		},
 	})
+	logrus.Info("PoolSwarmConnect running")
 	for {
 		if s := swarms.Get(); s != nil {
 			sp, b := s.(*model.SourcePeer)
@@ -61,6 +63,11 @@ func PoolSwarmConnect() {
 // SwarmAdd ...
 func SwarmAdd(sp *model.SourcePeer) {
 	swarms.Put(sp)
+}
+
+// SwarmAddAddress ...
+func SwarmAddAddress(addr string) {
+	swarms.Put(AddressSwarm(addr))
 }
 
 // SwarmAddList ...
@@ -88,6 +95,23 @@ func swarmAddress(peer *model.SourcePeer) string {
 		return peer.Addr + "/ipfs/" + peer.Peer
 	}
 	return ""
+}
+
+// AddressSwarm ...
+func AddressSwarm(address string) (peer *model.SourcePeer) {
+	ss := strings.Split(address, "/")
+	size := len(ss)
+	logrus.Info("address:", address)
+	logrus.Info("size:", size)
+	if size < 7 {
+		return &model.SourcePeer{}
+	}
+	return &model.SourcePeer{
+		SourcePeerDetail: &model.SourcePeerDetail{
+			Addr: strings.Join(ss[:size-2], "/"),
+			Peer: ss[size-1],
+		},
+	}
 }
 
 func swarmConnectTo(peer *model.SourcePeer) (e error) {

@@ -148,6 +148,7 @@ func main() {
 				panic(e)
 			}
 			go seed.PoolSwarmConnect()
+			seed.SwarmAddAddress(bootIPFS)
 			if !*quick {
 				e = seed.Pin(pin, *poster, *check)
 				if e != nil {

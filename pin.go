@@ -1,57 +1,11 @@
 package seed
 
 import (
-	"context"
 	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"sync"
-	"time"
 )
-
-// SwarmConnect ...
-func SwarmConnect(addr string) (e error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	logrus.Info("connect to:", addr)
-	if err := rest.SwarmConnect(ctx, addr); err != nil {
-		cancel()
-		return err
-	}
-	return
-}
-
-func swarmConnectTo(peer *model.SourcePeer) (e error) {
-	address := peer.Addr + "/ipfs/" + peer.Peer
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	logrus.Info("connect to:", address)
-	if err := rest.SwarmConnect(ctx, address); err != nil {
-		cancel()
-		return err
-	}
-	return
-}
-
-func swarmConnects(peers []*model.SourcePeer) {
-	if peers == nil {
-		return
-	}
-
-	var nextPeers []*model.SourcePeer
-
-	for _, value := range peers {
-		e := swarmConnectTo(value)
-		if e != nil {
-			//logrus.Error(e)
-			time.Sleep(30 * time.Second)
-			continue
-		}
-		//filter the error peers
-		nextPeers = append(nextPeers, value)
-		time.Sleep(30 * time.Second)
-	}
-	//rerun when connect is end
-	swarmConnects(nextPeers)
-}
 
 func pin(wg *sync.WaitGroup, hash string) {
 	logrus.Info("pin:", hash)
@@ -65,7 +19,7 @@ func pin(wg *sync.WaitGroup, hash string) {
 }
 
 func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
-	go swarmConnects(video.SourcePeerList)
+	SwarmAddList(video.SourcePeerList)
 	logrus.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	//logrus.Info("pin poster:", video.Poster)

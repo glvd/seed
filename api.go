@@ -50,13 +50,14 @@ func PoolSwarmConnect() {
 			if b {
 				e := SwarmConnect(swarmAddress(sp))
 				if e != nil {
-					time.Sleep(30 * time.Second)
-					continue
+					logrus.Error("swarm connect err:", swarmAddress(sp), e)
 				}
 				swarms.Put(sp)
 			}
+			time.Sleep(30 * time.Second)
+			continue
 		}
-		time.Sleep(30 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 

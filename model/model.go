@@ -83,6 +83,11 @@ func InitDB() (e error) {
 	}
 	eng.ShowSQL(true)
 	eng.ShowExecTime(true)
+	result, e := eng.Exec("PRAGMA journal_mode = OFF;")
+	if e != nil {
+		return e
+	}
+	log.Info("result:", result)
 	for idx, val := range syncTable {
 		log.Println("syncing ", idx)
 		e := eng.Sync2(val)

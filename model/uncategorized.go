@@ -45,12 +45,12 @@ func AllUncategorized(check bool) ([]*Uncategorized, error) {
 func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
 	var uncat Uncategorized
 	if check {
-		b, e := DB().Where("sync = ?", !check).Where("checksum = ?", checksum).Get(&uncat)
+		b, e := DB().Where("type = ?", "m3u8").Where("sync = ?", !check).Where("checksum = ?", checksum).Get(&uncat)
 		if e != nil || !b {
 			return nil, xerrors.New("uncategorize not found!")
 		}
 	} else {
-		b, e := DB().Where("checksum = ?", checksum).Get(&uncat)
+		b, e := DB().Where("type = ?", "m3u8").Where("checksum = ?", checksum).Get(&uncat)
 		if e != nil || !b {
 			return nil, xerrors.New("uncategorize not found!")
 		}

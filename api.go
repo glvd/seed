@@ -16,6 +16,7 @@ func InitShell(s string) {
 
 // QuickConnect ...
 func QuickConnect(addr string) {
+	var e error
 	go func() {
 		for {
 			e = SwarmConnect(addr)

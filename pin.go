@@ -30,7 +30,7 @@ func swarmConnects(peers []*model.SourcePeer) {
 	for _, value := range peers {
 		e := swarmConnectTo(value)
 		if e != nil {
-			logrus.Error(e)
+			//logrus.Error(e)
 			time.Sleep(30 * time.Second)
 			continue
 		}
@@ -46,7 +46,7 @@ func pin(wg *sync.WaitGroup, hash string) {
 	logrus.Info("pin:", hash)
 	e := rest.Pin(hash)
 	if e != nil {
-		logrus.Error(e)
+		panic(e)
 	}
 	if wg != nil {
 		wg.Done()

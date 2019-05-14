@@ -115,6 +115,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 		Alias: alias,
 		//Language:     source.Language,
 		//Caption:      source.Caption,
+		SourceHash:   source.SourceHash,
 		Role:         source.Role,
 		Director:     source.Director,
 		Season:       source.Season,

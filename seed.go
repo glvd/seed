@@ -105,6 +105,10 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	if source.Alias != nil {
 		alias = source.Alias
 	}
+	director := []string{}
+	if source.Director != nil {
+		director = source.Director
+	}
 	video.VideoBase = &model.VideoBase{
 		Bangumi: source.Bangumi,
 		//Type:         source.Type,
@@ -117,7 +121,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 		//Caption:      source.Caption,
 		SourceHash:   source.SourceHash,
 		Role:         source.Role,
-		Director:     source.Director,
+		Director:     director,
 		Season:       source.Season,
 		Episode:      source.Episode,
 		TotalEpisode: source.TotalEpisode,

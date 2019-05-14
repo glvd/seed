@@ -138,6 +138,8 @@ func main() {
 		Long:  `pin the video to ipfs, then user can get it more quickly`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+			//run on start
+			go seed.PoolSwarmConnect()
 
 			pin := ""
 			if len(args) >= 1 {

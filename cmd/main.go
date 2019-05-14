@@ -11,6 +11,8 @@ import (
 	"os"
 )
 
+const bootIPFS = "/ip4/47.101.169.94/tcp/4001/ipfs/Qmcoz66NZhcegp58st53Khsd2mgqnkLojQx7mtjAA3EPCS"
+
 var rootCmd = &cobra.Command{
 	Use:        "seed",
 	Aliases:    nil,
@@ -34,6 +36,7 @@ func main() {
 	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
 	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
+	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
 	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
 
 	var cmdContract = &cobra.Command{
@@ -80,6 +83,7 @@ func main() {
 			if e != nil {
 				panic(e)
 			}
+			seed.QuickConnect(*swarm)
 			if !*quick {
 				vs := seed.Load(*path)
 				for _, v := range vs {
@@ -134,6 +138,7 @@ func main() {
 		Long:  `pin the video to ipfs, then user can get it more quickly`,
 		//Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
+
 			pin := ""
 			if len(args) >= 1 {
 				pin = args[0]
@@ -143,6 +148,8 @@ func main() {
 			if e != nil {
 				panic(e)
 			}
+
+			seed.QuickConnect(*swarm)
 			if !*quick {
 				e = seed.Pin(pin, *poster, *check)
 				if e != nil {

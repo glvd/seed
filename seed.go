@@ -16,8 +16,8 @@ type Extend struct {
 
 // VideoSource ...
 type VideoSource struct {
-	Bangumi string `json:"bangumi"` //番号
-
+	Bangumi      string     `json:"bangumi"`       //番号
+	SourceHash   string     `json:"source_hash"`   //原片hash
 	Type         string     `json:"type"`          //类型：film，FanDrama
 	Output       string     `json:"output"`        //输出：3D，2D
 	VR           string     `json:"vr"`            //VR格式：左右，上下，平面

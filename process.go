@@ -220,7 +220,15 @@ func GetPeers() []shell.SwarmConnInfo {
 	if e != nil {
 		return nil
 	}
-	return swarmPeers.Peers[:50]
+	size := len(swarmPeers.Peers)
+	if size == 0 {
+		return nil
+	}
+	if size > 50 {
+		size = 50
+	}
+
+	return swarmPeers.Peers[:size]
 }
 
 // MustString  must string

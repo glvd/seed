@@ -40,7 +40,7 @@ func PoolSwarmConnect() {
 	SwarmAdd(&model.SourcePeer{
 		SourcePeerDetail: &model.SourcePeerDetail{
 			Addr: "/ip4/47.101.169.94/tcp/4001",
-			Peer: "Qmcoz66NZhcegp58st53Khsd2mgqnkLojQx7mtjAA3EPCS",
+			Peer: "QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq",
 		},
 	})
 	logrus.Info("PoolSwarmConnect running")
@@ -49,8 +49,9 @@ func PoolSwarmConnect() {
 			sp, b := s.(*model.SourcePeer)
 			if b {
 				e := SwarmConnect(swarmAddress(sp))
+				logrus.Info(swarmAddress(sp))
 				if e != nil {
-					logrus.Error("swarm connect err:", swarmAddress(sp), e)
+					logrus.Error("swarm connect err:", e)
 				}
 				swarms.Put(sp)
 			}

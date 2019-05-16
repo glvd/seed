@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-const bootIPFS = "/ip4/47.101.169.94/tcp/4001/ipfs/Qmcoz66NZhcegp58st53Khsd2mgqnkLojQx7mtjAA3EPCS"
+const bootIPFS = "/ip4/47.101.169.94/tcp/4001/ipfs/QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq"
 
 var rootCmd = &cobra.Command{
 	Use:        "seed",

@@ -7,7 +7,8 @@ import (
 // Video ...
 type Video struct {
 	Model          `xorm:"extends"`
-	Sync           bool `xorm:"notnull default(0)"`
+	Sync           bool   `xorm:"notnull default(0)"`
+	Visit          uint64 `xorm:"notnull default(0)"`
 	*VideoBase     `xorm:"extends"`
 	VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
 	SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`
@@ -109,6 +110,15 @@ func AddOrUpdateVideo(video *Video) (e error) {
 		return nil
 	}
 	if _, err := DB().InsertOne(video); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Visited ...
+func Visited(video *Video) (err error) {
+	video.Visit++
+	if _, err := DB().ID(video.ID).Cols("visit").Update(video); err != nil {
 		return err
 	}
 	return nil

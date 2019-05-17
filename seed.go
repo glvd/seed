@@ -121,7 +121,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	}
 
 	intro := source.Intro
-	if intro != "" {
+	if intro == "" {
 		intro = aliasS + " " + roleS
 	}
 

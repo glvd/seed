@@ -102,26 +102,43 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 		return
 	}
 	alias := []string{}
-	if source.Alias != nil {
+	aliasS := ""
+	if source.Alias != nil || len(source.Alias) > 0 {
 		alias = source.Alias
+		aliasS = alias[0]
 	}
+
+	role := []string{}
+	roleS := ""
+	if source.Role != nil || len(source.Role) > 0 {
+		role = source.Role
+		roleS = role[0]
+	}
+
 	director := []string{}
 	if source.Director != nil {
 		director = source.Director
 	}
+
+	intro := source.Intro
+	if intro != "" {
+		intro = aliasS + " " + roleS
+	}
+
 	video.VideoBase = &model.VideoBase{
 		Bangumi: source.Bangumi,
 		//Type:         source.Type,
 		//Output:       source.Output,
 		//VR:           source.VR,
-		Thumb: source.Thumb,
-		Intro: source.Intro,
-		Alias: alias,
+		Thumb:    source.Thumb,
+		Intro:    intro,
+		Alias:    alias,
+		Role:     role,
+		Director: director,
 		//Language:     source.Language,
 		//Caption:      source.Caption,
-		SourceHash:   source.SourceHash,
-		Role:         source.Role,
-		Director:     director,
+		SourceHash: source.SourceHash,
+
 		Season:       source.Season,
 		Episode:      source.Episode,
 		TotalEpisode: source.TotalEpisode,

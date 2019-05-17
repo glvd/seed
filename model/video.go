@@ -9,6 +9,7 @@ type Video struct {
 	Model          `xorm:"extends"`
 	Sync           bool   `xorm:"notnull default(0)"`
 	Visit          uint64 `xorm:"notnull default(0)"`
+	Name           string
 	*VideoBase     `xorm:"extends"`
 	VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
 	SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`

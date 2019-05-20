@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/godcong/go-trait"
 	_ "github.com/mattn/go-sqlite3"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/yinhevr/seed"
 	"github.com/yinhevr/seed/model"
+	"go.uber.org/zap"
 	"os"
 )
 
 const bootIPFS = "/ip4/47.101.169.94/tcp/4001/ipfs/QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq"
+
+var log *zap.SugaredLogger
 
 var rootCmd = &cobra.Command{
 	Use:        "seed",
@@ -37,7 +38,7 @@ func main() {
 	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
-	trait.InitRotateLog("logs/seed.log", trait.RotateLogLevel(trait.RotateLogDebug))
+	log = seed.InitLogger()
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",

@@ -15,7 +15,7 @@ var rest *shell.Shell
 
 // InitShell ...
 func InitShell(s string) {
-	logrus.Info("ipfs shell:", s)
+	log.Info("ipfs shell:", s)
 	rest = shell.NewShell(s)
 }
 
@@ -43,15 +43,15 @@ func PoolSwarmConnect() {
 			Peer: "QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq",
 		},
 	})
-	logrus.Info("PoolSwarmConnect running")
+	log.Info("PoolSwarmConnect running")
 	for {
 		if s := swarms.Get(); s != nil {
 			sp, b := s.(*model.SourcePeer)
 			if b {
 				e := SwarmConnect(swarmAddress(sp))
-				logrus.Info(swarmAddress(sp))
+				log.Info(swarmAddress(sp))
 				if e != nil {
-					logrus.Error("swarm connect err:", e)
+					log.Error("swarm connect err:", e)
 				}
 				swarms.Put(sp)
 			}
@@ -82,7 +82,7 @@ func SwarmAddList(sps []*model.SourcePeer) {
 // SwarmConnect ...
 func SwarmConnect(addr string) (e error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	logrus.Info("connect to:", addr)
+	log.Info("connect to:", addr)
 	if rest == nil {
 		return xerrors.New("rest is not inited")
 	}
@@ -103,8 +103,8 @@ func swarmAddress(peer *model.SourcePeer) string {
 func AddressSwarm(address string) (peer *model.SourcePeer) {
 	ss := strings.Split(address, "/")
 	size := len(ss)
-	logrus.Info("address:", address)
-	logrus.Info("size:", size)
+	log.Info("address:", address)
+	log.Info("size:", size)
 	if size < 7 {
 		return &model.SourcePeer{}
 	}
@@ -122,7 +122,7 @@ func swarmConnectTo(peer *model.SourcePeer) (e error) {
 		return xerrors.New("null address")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	logrus.Info("connect to:", address)
+	log.Info("connect to:", address)
 	if err := rest.SwarmConnect(ctx, address); err != nil {
 		cancel()
 		return err
@@ -139,7 +139,7 @@ func swarmConnects(peers []*model.SourcePeer) {
 	for _, value := range peers {
 		e := swarmConnectTo(value)
 		if e != nil {
-			//logrus.Error(e)
+			//log.Error(e)
 			time.Sleep(30 * time.Second)
 			continue
 		}

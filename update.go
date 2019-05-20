@@ -32,7 +32,7 @@ func Update(index string, source *VideoSource) (e error) {
 		}
 	}
 	info := GetSourceInfo()
-	logrus.Info(*info)
+	log.Info(*info)
 
 	if info.ID != "" {
 		video.AddSourceInfo(info)

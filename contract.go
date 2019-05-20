@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"strconv"
@@ -32,7 +31,7 @@ func NewETH(key string) *ETH {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
 	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
 	if err != nil {
-		logrus.Fatalf("Failed to connect to the Ethereum client: %v", err)
+		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
 		return nil
 	}
 	return &ETH{
@@ -60,8 +59,8 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 	if e != nil {
 		return e
 	}
-	logrus.Info(ban+" checking hash:", hash)
-	if hash == "" {
+	log.Info(ban+" checking hash:", hash)
+	if hash == "" || hash == "," || len(hash) != 63 {
 		return xerrors.New(ban + " hash is not found!")
 	}
 	return nil
@@ -85,7 +84,7 @@ func Contract(key string) (e error) {
 	if key == "" {
 		key = getSeedKey()
 	}
-	logrus.Debug("key is: ", key)
+	log.Debug("key is: ", key)
 	eth := NewETH(key)
 	if eth == nil {
 		return xerrors.New("nil eth")
@@ -94,7 +93,7 @@ func Contract(key string) (e error) {
 
 		e = eth.InfoInput(v)
 		if e != nil {
-			logrus.Error("contract err:", v.Bangumi, e)
+			log.Error("contract err:", v.Bangumi, e)
 			return e
 		}
 	}
@@ -105,7 +104,7 @@ func Contract(key string) (e error) {
 func (eth *ETH) ConnectToken() (*BangumiData, error) {
 	tk, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), eth.conn)
 	if err != nil {
-		logrus.Fatalf("Failed to instantiate a Token contract: %v", err)
+		log.Fatalf("Failed to instantiate a Token contract: %v", err)
 		return &BangumiData{}, nil
 	}
 	return tk, nil
@@ -118,7 +117,7 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 	}
 	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 		return err
 	}
 
@@ -153,11 +152,11 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 		ctx := context.Background()
 		receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
 		if err != nil {
-			//logrus.Fatalf("tx mining error:%v\n", err)
+			//log.Fatalf("tx mining error:%v\n", err)
 			return err
 		}
-		logrus.Info(name + "@" + idxStr + " success")
-		logrus.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+		log.Info(name + "@" + idxStr + " success")
+		log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
 	}
 	return nil
 }
@@ -169,7 +168,7 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 	}
 	privateKey, err := crypto.HexToECDSA(eth.key)
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 		return err
 	}
 
@@ -208,11 +207,11 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 			ctx := context.Background()
 			receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
 			if err != nil {
-				//logrus.Fatalf("tx mining error:%v\n", err)
+				//log.Fatalf("tx mining error:%v\n", err)
 				return err
 			}
-			logrus.Info(name + "@" + idxStr + " success")
-			logrus.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+			log.Info(name + "@" + idxStr + " success")
+			log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
 		}
 	}
 	return nil

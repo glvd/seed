@@ -98,7 +98,7 @@ func DeepFind(s string, video *Video) (b bool, e error) {
 
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
-	log.Printf("%+v", *video)
+	log.Infof("%+v", *video)
 	if video.ID != "" {
 		log.Debug("update")
 		if _, err := DB().ID(video.ID).Update(video); err != nil {

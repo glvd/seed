@@ -3,7 +3,6 @@ package seed
 import (
 	"bufio"
 	"context"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"io"
 	"os"

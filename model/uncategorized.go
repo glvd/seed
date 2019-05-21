@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/xerrors"
 	"io"
 	"os"

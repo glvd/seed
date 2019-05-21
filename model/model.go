@@ -3,9 +3,9 @@ package model
 import (
 	"fmt"
 	"github.com/go-xorm/xorm"
+	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
-	log "github.com/sirupsen/logrus"
 	"net/url"
 	"reflect"
 	"time"
@@ -14,6 +14,7 @@ import (
 var db *xorm.Engine
 var syncTable = map[string]interface{}{}
 var path string
+var log = trait.ZapSugar()
 
 // SetPath ...
 func SetPath(p string) {

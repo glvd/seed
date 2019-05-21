@@ -1,9 +1,5 @@
 package model
 
-import (
-	log "github.com/sirupsen/logrus"
-)
-
 // Video ...
 type Video struct {
 	Model          `xorm:"extends"`

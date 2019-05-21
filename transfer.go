@@ -4,7 +4,6 @@ import (
 	"github.com/go-xorm/xorm"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
-	"log"
 )
 
 // Transfer ...
@@ -37,10 +36,10 @@ func TransferMysql(eng *xorm.Engine, limit int) (e error) {
 			return xerrors.Errorf("transfer error with:%d,%+v", x, e)
 		}
 		for _, v := range videos {
-			log.Println("get:", v.Bangumi)
+			log.Info("get:", v.Bangumi)
 		}
 		insert, e := eng.Insert(videos)
-		log.Println(insert, e)
+		log.Info(insert, e)
 
 	}
 	return nil

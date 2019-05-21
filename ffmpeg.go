@@ -4,7 +4,6 @@ import (
 	"context"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"os"
 	"path/filepath"
@@ -40,7 +39,7 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 		select {
 		case v := <-info:
 			if v != "" {
-				log.Print(v)
+				log.Info(v)
 			}
 		case c := <-cls:
 			if c == true {

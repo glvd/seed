@@ -3,7 +3,6 @@ package seed
 import (
 	"context"
 	"github.com/godcong/go-ipfs-restapi"
-	"github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"strings"
@@ -82,12 +81,12 @@ func SwarmAddList(sps []*model.SourcePeer) {
 // SwarmConnect ...
 func SwarmConnect(addr string) (e error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	log.Info("connect to:", addr)
 	if rest == nil {
 		return xerrors.New("rest is not inited")
 	}
 	if err := rest.SwarmConnect(ctx, addr); err != nil {
-		cancel()
 		return err
 	}
 	return
@@ -122,9 +121,9 @@ func swarmConnectTo(peer *model.SourcePeer) (e error) {
 		return xerrors.New("null address")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	log.Info("connect to:", address)
 	if err := rest.SwarmConnect(ctx, address); err != nil {
-		cancel()
 		return err
 	}
 	return

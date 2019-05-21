@@ -3,7 +3,6 @@ package seed
 import (
 	"context"
 	shell "github.com/godcong/go-ipfs-restapi"
-	log "github.com/sirupsen/logrus"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"os"
@@ -64,7 +63,7 @@ func QuickProcess(pathname string) (e error) {
 				log.Error(value, " continue with dir")
 				continue
 			}
-			log.Println("add ", file)
+			log.Info("add ", file)
 
 			uncat.Checksum = model.Checksum(file)
 			object, e := rest.AddFile(file)
@@ -99,7 +98,7 @@ func QuickProcess(pathname string) (e error) {
 					log.Errorf("split file error:%+v", object)
 					continue
 				}
-				log.Println(file)
+				log.Info(file)
 				rets, e := rest.AddDir(file)
 				if e != nil {
 					log.Errorf("ipfs add file error:%+v", object)
@@ -160,7 +159,7 @@ func Process(source *VideoSource) (e error) {
 	video.SourceInfoList = nil
 	video.VideoGroupList = nil
 
-	log.Printf("%+v", video)
+	log.Infof("%+v", video)
 
 	video.VideoBase.Poster = addPoster(source)
 	log.Info(*source)

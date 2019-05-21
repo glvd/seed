@@ -176,19 +176,30 @@ func main() {
 			if e != nil {
 				log.Panic(e)
 			}
-			if *tipe == "mysql" {
+
+			switch *tipe {
+			case "mysql":
+				eng, e := model.InitSync(*tipe, *config)
+				if e != nil {
+					panic(e)
+				}
+				e = seed.TransferTo(eng, 1)
+				if e != nil {
+					panic(e)
+				}
+			case "sqlite3":
 				eng, e := model.InitSync(*tipe, *path)
 				if e != nil {
 					panic(e)
 				}
-				e = seed.TransferMysql(eng, 1)
+				e = seed.TransferTo(eng, 1)
 				if e != nil {
 					panic(e)
 				}
-				return
-			}
-			if err := seed.Transfer(); err != nil {
-				panic(e)
+			default:
+				if err := seed.Transfer(); err != nil {
+					panic(e)
+				}
 			}
 		},
 	}

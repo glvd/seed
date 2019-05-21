@@ -102,8 +102,12 @@ func InitDB() (e error) {
 }
 
 // InitSync ...
-func InitSync(pathname string) (eng *xorm.Engine, e error) {
-	eng, e = xorm.NewEngine("mysql", LoadToml(pathname).Source())
+func InitSync(db, pathname string) (eng *xorm.Engine, e error) {
+	source := LoadToml(pathname).Source()
+	if db == "sqlite3" {
+		source = pathname
+	}
+	eng, e = xorm.NewEngine(db, source)
 	if e != nil {
 		return
 	}

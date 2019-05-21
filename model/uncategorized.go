@@ -59,7 +59,7 @@ func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
 
 // AddOrUpdateUncategorized ...
 func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
-	log.Printf("%+v", *uncat)
+	log.Infof("%+v", *uncat)
 	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).And("type = ?", uncat.Type).Count()
 	if e != nil {
 		return e

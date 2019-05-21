@@ -90,7 +90,7 @@ func InitDB() (e error) {
 	}
 	log.Info("result:", result)
 	for idx, val := range syncTable {
-		log.Println("syncing ", idx)
+		log.Info("syncing ", idx)
 		e := eng.Sync2(val)
 		if e != nil {
 			return e
@@ -110,7 +110,7 @@ func InitSync(pathname string) (eng *xorm.Engine, e error) {
 	eng.ShowSQL(true)
 	eng.ShowExecTime(true)
 	for idx, val := range syncTable {
-		log.Println("syncing ", idx)
+		log.Info("syncing ", idx)
 		e = eng.Sync2(val)
 		if e != nil {
 			return

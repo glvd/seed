@@ -177,7 +177,7 @@ func main() {
 				log.Panic(e)
 			}
 			if *tipe == "mysql" {
-				eng, e := model.InitSync(*config)
+				eng, e := model.InitSync(*tipe, *path)
 				if e != nil {
 					panic(e)
 				}

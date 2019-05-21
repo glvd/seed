@@ -101,13 +101,14 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	if video == nil {
 		return
 	}
+	//always not null
 	alias := []string{}
 	aliasS := ""
 	if source.Alias != nil || len(source.Alias) > 0 {
 		alias = source.Alias
 		aliasS = alias[0]
 	}
-
+	//always not null
 	role := []string{}
 	roleS := ""
 	if source.Role != nil || len(source.Role) > 0 {
@@ -115,6 +116,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 		roleS = role[0]
 	}
 
+	//always not null
 	director := []string{}
 	if source.Director != nil {
 		director = source.Director

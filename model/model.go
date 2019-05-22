@@ -14,7 +14,7 @@ import (
 var db *xorm.Engine
 var syncTable = map[string]interface{}{}
 var path string
-var log = trait.ZapSugar()
+var log = trait.Zap().Sugar()
 
 // SetPath ...
 func SetPath(p string) {

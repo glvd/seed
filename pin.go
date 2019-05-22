@@ -15,6 +15,7 @@ func pin(wg *sync.WaitGroup, hash string) {
 	if wg != nil {
 		wg.Done()
 	}
+	log.Info("pinned:", hash)
 }
 
 func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
@@ -57,7 +58,6 @@ func QuickPin(checksum string, check bool) (e error) {
 		return
 	}
 	for _, v := range uncategorizeds {
-		log.Info("pin:", v.Hash)
 		pin(nil, v.Hash)
 		v.Sync = true
 		i, e := model.DB().Cols("sync").Update(v)

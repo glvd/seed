@@ -62,7 +62,6 @@ func (d *Database) Source() string {
 // RegisterTable ...
 func RegisterTable(v interface{}) {
 	tof := reflect.TypeOf(v).Name()
-	log.Info("register: ", tof)
 	syncTable[tof] = v
 }
 

@@ -24,6 +24,7 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
+	log = seed.InitLogger()
 	defer func() {
 		if e := recover(); e != nil {
 			log.Panic(e)
@@ -38,7 +39,6 @@ func main() {
 	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
-	log = seed.InitLogger()
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",

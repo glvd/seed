@@ -29,7 +29,7 @@ func isVideo(filename string) bool {
 }
 
 // QuickProcess ...
-func QuickProcess(pathname string) (e error) {
+func QuickProcess(pathname string, needPin bool) (e error) {
 	info, e := os.Stat(pathname)
 	if e != nil {
 		return e
@@ -116,6 +116,16 @@ func QuickProcess(pathname string) (e error) {
 				}
 				log.Infof("%+v", *obj)
 				uncatvideo.Object = append(uncatvideo.Object, obj)
+				if needPin {
+					pin(nil, uncatvideo.Hash, func(hash string) {
+						uncatvideo.Sync = true
+						e = model.AddOrUpdateUncategorized(&uncatvideo)
+						if e != nil {
+							log.Errorf("insert uncategorized error:%+v", e)
+						}
+					})
+					continue
+				}
 				e = model.AddOrUpdateUncategorized(&uncatvideo)
 				if e != nil {
 					log.Errorf("insert uncategorized error:%+v", e)

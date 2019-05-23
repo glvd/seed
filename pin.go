@@ -6,7 +6,10 @@ import (
 	"sync"
 )
 
-func pin(wg *sync.WaitGroup, hash string) {
+// PinCallback ...
+type PinCallback func(hash string)
+
+func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
 	log.Info("pin:", hash)
 	e := rest.Pin(hash)
 	if e != nil {
@@ -16,6 +19,11 @@ func pin(wg *sync.WaitGroup, hash string) {
 	if wg != nil {
 		wg.Done()
 	}
+
+	for _, cb := range cbs {
+		cb(hash)
+	}
+
 	log.Info("pinned:", hash)
 }
 
@@ -59,12 +67,13 @@ func QuickPin(checksum string, check bool) (e error) {
 		return
 	}
 	for _, v := range uncategorizeds {
-		pin(nil, v.Hash)
-		v.Sync = true
-		i, e := model.DB().Cols("sync").Update(v)
-		if e != nil {
-			return xerrors.Errorf("uncategorized nothing updated with:%d,%+v", i, e)
-		}
+		pin(nil, v.Hash, func(hash string) {
+			v.Sync = true
+			i, e := model.DB().Cols("sync").Update(v)
+			if e != nil {
+				log.Errorf("uncategorized nothing updated with:%d,%+v", i, e)
+			}
+		})
 	}
 
 	return nil

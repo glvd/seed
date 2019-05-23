@@ -39,6 +39,7 @@ func main() {
 	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
+	pin := rootCmd.PersistentFlags().BoolP("pin", "i", false, "check if need pin")
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",
@@ -96,7 +97,7 @@ func main() {
 				}
 				return
 			}
-			if err := seed.QuickProcess(*path); err != nil {
+			if err := seed.QuickProcess(*path, *pin); err != nil {
 				log.Panic(err)
 				return
 			}

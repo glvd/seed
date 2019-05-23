@@ -63,9 +63,7 @@ func QuickPin(checksum string, check bool) (e error) {
 		}
 		uncategorizeds = append(uncategorizeds, uncategorized)
 	}
-	if check {
-		return
-	}
+
 	for _, v := range uncategorizeds {
 		pin(nil, v.Hash, func(hash string) {
 			v.Sync = true

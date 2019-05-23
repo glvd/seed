@@ -10,7 +10,8 @@ func pin(wg *sync.WaitGroup, hash string) {
 	log.Info("pin:", hash)
 	e := rest.Pin(hash)
 	if e != nil {
-		panic(e)
+		log.Error("pin error:", hash, e)
+		return
 	}
 	if wg != nil {
 		wg.Done()

@@ -63,7 +63,7 @@ func QuickPin(checksum string, check bool) (e error) {
 		}
 		uncategorizeds = append(uncategorizeds, uncategorized)
 	}
-	if !check {
+	if check {
 		return
 	}
 	for _, v := range uncategorizeds {

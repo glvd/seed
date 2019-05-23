@@ -63,8 +63,8 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				log.Error(value, " continue with dir")
 				continue
 			}
-			log.Info("add ", file)
 			uncat.Checksum = model.Checksum(file)
+			log.Infof("add [%s]:%s", uncat.Checksum, file)
 			object, e := rest.AddFile(file)
 			if e != nil {
 				log.Errorf("add file error:%+v", object)

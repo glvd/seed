@@ -64,13 +64,13 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				continue
 			}
 			log.Info("add ", file)
-
 			uncat.Checksum = model.Checksum(file)
 			object, e := rest.AddFile(file)
 			if e != nil {
 				log.Errorf("add file error:%+v", object)
 				continue
 			}
+			log.Info("added", uncat.Checksum)
 			uncat.Hash = object.Hash
 			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
 			uncat.IsVideo = isVideo(value)
@@ -82,7 +82,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				log.Errorf("insert uncategorized error:%+v", e)
 				continue
 			}
-
+			log.Info("inserted table", uncat)
 			if uncat.IsVideo {
 				uncatvideo := model.Uncategorized{
 					Model:    model.Model{},
@@ -116,6 +116,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				}
 				log.Infof("%+v", *obj)
 				uncatvideo.Object = append(uncatvideo.Object, obj)
+				log.Info("inserted video table", uncatvideo)
 				if needPin {
 					pin(nil, uncatvideo.Hash, func(hash string) {
 						uncatvideo.Sync = true
@@ -132,6 +133,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 					continue
 				}
 			}
+			log.Info("move file", file)
 			if err := moveSuccess(file); err != nil {
 				return err
 			}

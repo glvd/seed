@@ -40,6 +40,14 @@ func main() {
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
 	pin := rootCmd.PersistentFlags().BoolP("pin", "i", false, "check if need pin")
+	var cmdDaemon = &cobra.Command{
+		Use:   "daemon",
+		Short: "daemon the path",
+		Long:  "daemon the filepath to process",
+		Run: func(cmd *cobra.Command, args []string) {
+			seed.DaemonStart(*path)
+		},
+	}
 
 	var cmdContract = &cobra.Command{
 		Use:   "contract",
@@ -204,7 +212,7 @@ func main() {
 			}
 		},
 	}
-	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract)
+	rootCmd.AddCommand(cmdProcess, cmdTransfer, cmdUpdate, cmdPin, cmdVerify, cmdContract, cmdDaemon)
 	rootCmd.SuggestionsMinimumDistance = 1
 	Execute()
 }

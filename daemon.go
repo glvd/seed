@@ -6,14 +6,17 @@ import (
 	"time"
 )
 
+// DaemonCallback ...
+type DaemonCallback func(path string)
+
 // DaemonStart ...
 func DaemonStart(monitorPath string) {
 	for {
-		if lists := getList(monitorPath); lists != nil {
+		if lists := procList(monitorPath, func(path string) {
+
+		}); lists != nil {
 			log.Info("processing", monitorPath)
-			for _, list := range lists {
-				moveSuccess(list)
-			}
+
 		}
 		log.Info("waiting for new files")
 		time.Sleep(30 * time.Second)
@@ -21,20 +24,21 @@ func DaemonStart(monitorPath string) {
 
 }
 
-func getList(monitorPath string) (files []string) {
+func procList(monitorPath string, dc DaemonCallback) (e error) {
 	infos, e := ioutil.ReadDir(monitorPath)
 	if e != nil {
 		panic(e)
 	}
 	for _, info := range infos {
-		if !info.IsDir() {
-			name := info.Name()
-			log.Info("name:", name)
-			log.Info("ext:", filepath.Ext(name))
+		name := info.Name()
+		log.Infof("name:%s ext:%s", name, filepath.Ext(name))
+		if !info.IsDir() && filepath.Ext(name) != "filepart" {
 			fullpath := filepath.Join(monitorPath, info.Name())
-			log.Info("fullpath:", fullpath)
-
+			dc(fullpath)
+		}
+		if name == "success" {
+			continue
 		}
 	}
-	return files
+	return nil
 }

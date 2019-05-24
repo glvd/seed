@@ -31,8 +31,7 @@ func main() {
 		}
 	}()
 	path := rootCmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source")
-	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api port")
-	//action := rootCmd.PersistentFlags().StringP("action", "a", "cmdProcess", "set action to do something")
+	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api address:port")
 	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
 	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")

@@ -32,10 +32,10 @@ func main() {
 	}()
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api address:port")
 	path := rootCmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source or source path")
-
-	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
 	tipe := rootCmd.PersistentFlags().StringP("type", "t", "json", "transfer to types")
+
+	quick := rootCmd.PersistentFlags().BoolP("quick", "q", false, "process with only filepath,no detail")
 	poster := rootCmd.PersistentFlags().BoolP("poster", "o", false, "only pin poster")
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")

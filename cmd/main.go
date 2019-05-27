@@ -30,6 +30,7 @@ func main() {
 			log.Panic(e)
 		}
 	}()
+
 	shell := rootCmd.PersistentFlags().StringP("shell", "s", "localhost:5001", "set the ipfs api address:port")
 	path := rootCmd.PersistentFlags().StringP("path", "p", "seed.json", "set the path to load video source or source path")
 	config := rootCmd.PersistentFlags().StringP("config", "c", "config.toml", "file config")
@@ -40,6 +41,7 @@ func main() {
 	check := rootCmd.PersistentFlags().BoolP("check", "k", true, "check if the video is synced")
 	swarm := rootCmd.PersistentFlags().StringP("swarm", "w", bootIPFS, "quick connect to ipfs")
 	pin := rootCmd.PersistentFlags().BoolP("pin", "i", false, "check if need pin")
+
 	var cmdDaemon = &cobra.Command{
 		Use:   "daemon",
 		Short: "daemon the path",
@@ -48,7 +50,6 @@ func main() {
 			seed.DaemonStart(*path)
 		},
 	}
-
 	var cmdContract = &cobra.Command{
 		Use:   "contract",
 		Short: "contract the data to eth.",

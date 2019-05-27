@@ -138,11 +138,11 @@ func LoadToml(path string) (db *Database) {
 
 // Model ...
 type Model struct {
-	ID        string     `json:"-" xorm:"id pk"`
-	CreatedAt time.Time  `json:"-" xorm:"created_at created"`
-	UpdatedAt time.Time  `json:"-" xorm:"updated_at updated"`
-	DeletedAt *time.Time `json:"-" xorm:"deleted_at deleted"`
-	//Version   int        `json:"-" xorm:"version"`
+	ID        string     `xorm:"id pk"`
+	CreatedAt time.Time  `xorm:"created_at created"`
+	UpdatedAt time.Time  `xorm:"updated_at updated"`
+	DeletedAt *time.Time `xorm:"deleted_at deleted"`
+	Version   int        `xorm:"version"`
 }
 
 // BeforeInsert ...

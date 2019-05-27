@@ -31,10 +31,10 @@ require (
 	github.com/pelletier/go-toml v1.4.0
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rs/cors v1.6.0 // indirect
-	github.com/sirupsen/logrus v1.4.0
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	github.com/urfave/cli v1.20.0
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/zap v1.10.0
 	golang.org/x/xerrors v0.0.0-20190315151331-d61658bd2e18

@@ -21,7 +21,6 @@ func DaemonStart(monitorPath string) {
 		log.Info("waiting for new files")
 		time.Sleep(30 * time.Second)
 	}
-
 }
 
 func procList(monitorPath string, dc DaemonCallback) (e error) {

@@ -12,9 +12,7 @@ type DaemonCallback func(path string)
 // DaemonStart ...
 func DaemonStart(monitorPath string) {
 	for {
-		if lists := procList(monitorPath, func(path string) {
-
-		}); lists != nil {
+		if lists := procList(monitorPath, func(path string) {}); lists != nil {
 			log.Info("processing", monitorPath)
 
 		}

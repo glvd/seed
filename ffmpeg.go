@@ -8,133 +8,93 @@ import (
 	"github.com/yinhevr/seed/model"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
-// StreamFormat ...
-type StreamFormat struct {
-	Streams []Stream `json:"streams"`
-	Format  Format   `json:"format"`
-}
-
-// Format ...
-type Format struct {
-	Filename       string     `json:"filename"`
-	NbStreams      int64      `json:"nb_streams"`
-	NbPrograms     int64      `json:"nb_programs"`
-	FormatName     string     `json:"format_name"`
-	FormatLongName string     `json:"format_long_name"`
-	StartTime      string     `json:"start_time"`
-	Duration       string     `json:"duration"`
-	Size           string     `json:"size"`
-	BitRate        string     `json:"bit_rate"`
-	ProbeScore     int64      `json:"probe_score"`
-	Tags           FormatTags `json:"tags"`
-}
-
-// FormatTags ...
-type FormatTags struct {
-	MajorBrand       string `json:"major_brand"`
-	MinorVersion     string `json:"minor_version"`
-	CompatibleBrands string `json:"compatible_brands"`
-	Encoder          string `json:"encoder"`
-}
-
-// Stream ...
-type Stream struct {
-	Index              int64            `json:"index"`
-	CodecName          string           `json:"codec_name"`
-	CodecLongName      string           `json:"codec_long_name"`
-	Profile            string           `json:"profile"`
-	CodecType          string           `json:"codec_type"`
-	CodecTimeBase      string           `json:"codec_time_base"`
-	CodecTagString     string           `json:"codec_tag_string"`
-	CodecTag           string           `json:"codec_tag"`
-	Width              *int64           `json:"width,omitempty"`
-	Height             *int64           `json:"height,omitempty"`
-	CodedWidth         *int64           `json:"coded_width,omitempty"`
-	CodedHeight        *int64           `json:"coded_height,omitempty"`
-	HasBFrames         *int64           `json:"has_b_frames,omitempty"`
-	SampleAspectRatio  *string          `json:"sample_aspect_ratio,omitempty"`
-	DisplayAspectRatio *string          `json:"display_aspect_ratio,omitempty"`
-	PixFmt             *string          `json:"pix_fmt,omitempty"`
-	Level              *int64           `json:"level,omitempty"`
-	ColorRange         *string          `json:"color_range,omitempty"`
-	ColorSpace         *string          `json:"color_space,omitempty"`
-	ColorTransfer      *string          `json:"color_transfer,omitempty"`
-	ColorPrimaries     *string          `json:"color_primaries,omitempty"`
-	ChromaLocation     *string          `json:"chroma_location,omitempty"`
-	Refs               *int64           `json:"refs,omitempty"`
-	IsAVC              *string          `json:"is_avc,omitempty"`
-	NalLengthSize      *string          `json:"nal_length_size,omitempty"`
-	RFrameRate         string           `json:"r_frame_rate"`
-	AvgFrameRate       string           `json:"avg_frame_rate"`
-	TimeBase           string           `json:"time_base"`
-	StartPts           int64            `json:"start_pts"`
-	StartTime          string           `json:"start_time"`
-	DurationTs         int64            `json:"duration_ts"`
-	Duration           string           `json:"duration"`
-	BitRate            string           `json:"bit_rate"`
-	BitsPerRawSample   *string          `json:"bits_per_raw_sample,omitempty"`
-	NbFrames           string           `json:"nb_frames"`
-	Disposition        map[string]int64 `json:"disposition"`
-	Tags               StreamTags       `json:"tags"`
-	SampleFmt          *string          `json:"sample_fmt,omitempty"`
-	SampleRate         *string          `json:"sample_rate,omitempty"`
-	Channels           *int64           `json:"channels,omitempty"`
-	ChannelLayout      *string          `json:"channel_layout,omitempty"`
-	BitsPerSample      *int64           `json:"bits_per_sample,omitempty"`
-	MaxBitRate         *string          `json:"max_bit_rate,omitempty"`
-}
-
-// StreamTags ...
-type StreamTags struct {
-	Language    string `json:"language"`
-	HandlerName string `json:"handler_name"`
+/*
+120		160 QQVGA
+144		192				256
+160			240 HQVGA
+200				320 CGA
+240		320 QVGA	360 WQVGA	384 WQVGA	400 WQVGA	432 FWQVGA (9∶5)
+320			480 HVGA
+360		480				640 nHD
+480		640 VGA	720 WVGA or 480p	768 WVGA	800 WVGA	854 FWVGA
+540						960 qHD
+576						1024 WSVGA
+600	750	800 SVGA			1024 WSVGA (128∶75)
+640			960 DVGA	1024		1136
+720		960		1152		1280 HD/WXGA
+768	960	1024 XGA	1152 WXGA		1280 WXGA	1366 FWXGA
+800				1280 WXGA
+864		1152 XGA+	1280			1536
+900		1200		1440 WXGA+		1600 HD+
+960		1280 SXGA−/UVGA	1440 FWXGA+
+1024	1280 SXGA		1600 WSXGA
+1050		1400 SXGA+		1680 WSXGA+
+1080		1440				1920 FHD
+2048 DCI 2K (256∶135 ≈ 1.90∶1)	2560 UW-UXGA	3840
+1152						2048 QWXGA
+1200	1500	1600 UXGA		1920 WUXGA		2133		3840 (32:10)
+1280			1920
+1440		1920	2160 FHD+			2560 QHD/WQHD	3440 UWQHD (43∶18 = 2.38)	5120
+1536		2048 QXGA
+1600			2400	2560 WQXGA			3840 UW4K (12∶5 = 2.4)
+1620						2880
+1800				2880		3200 WQXGA+
+1824			2736
+1920		2560	2880	3072
+2048	2560 QSXGA			3200 WQSXGA (25∶16 = 1.5625)
+2160		2880	3240			3840 4K UHD
+4096 DCI 4K (256∶135 ≈ 1.90∶1)	5120
+2400		3200 QUXGA		3840 WQUXGA
+2560			3840	4096
+2880						5120 5K (UHD+)
+3072		4096 HXGA
+3200				5120 WHXGA
+4096	5120 HSXGA			6400 WHSXGA (25∶16 = 1.5625)
+4320						7680 8K UHD
+4800		6400 HUXGA		7680 WHUXGA
+*/
+func getVideoResolution(width, height *int64) string {
+	switch *height {
+	case 120, 144, 160, 200, 240, 320, 360, 480, 540, 576, 600, 640, 720, 768, 800, 864, 900, 960, 1024, 1050, 1080, 1152, 1200, 1280, 1440, 1536, 1600, 1620, 1800, 1824, 1920, 2048, 2160, 2400, 2560, 2880, 3072, 3200, 4096, 4320, 4800:
+		strconv.FormatInt(*height, 10)
+	default:
+		return ""
+	}
+	return ""
 }
 
 // SplitVideo ...
 func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e error) {
-	fp = filepath.Join(os.TempDir(), uuid.New().String())
+	fp = filepath.Join("tmp", uuid.New().String())
 	log.Debug("split path:", fp)
 	fp, e = filepath.Abs(fp)
 	if e != nil {
 		return "", e
 	}
 	_ = os.MkdirAll(fp, os.ModePerm)
+	format, e := cmd.FFProbeStreamFormat(file)
+	if e != nil {
+		return "", e
+	}
 
-	command := cmd.NewFFMpeg()
+	for _, s := range format.Streams {
+		if s.CodecType == "video" {
+			if s.Width != nil && s.Height != nil {
+				getVideoResolution(s.Width, s.Height)
+			}
 
+		}
+	}
+
+	//command := cmd.NewFFMpeg()
 	sf := filepath.Join(fp, hls.SegmentFile)
 	m3u8 := filepath.Join(fp, hls.M3U8)
 	args := fmt.Sprintf("-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s", file, sf, m3u8)
 	//ffmpeg -y -i $input -strict -2 -hls_segment_filename ./output/media-%03d.ts  -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 ./output/m3u8
-	command.SetArgs(args)
-	info := make(chan string)
-	cls := make(chan bool)
 
-	go func() {
-		e := command.RunContext(ctx, info, cls)
-		if e != nil {
-			return
-		}
-	}()
-	for {
-		select {
-		case v := <-info:
-			if v != "" {
-				log.Info(v)
-			}
-		case c := <-cls:
-			if c == true {
-				close(info)
-				return
-			}
-		case <-ctx.Done():
-			log.Debug("done")
-			log.Debug(ctx.Err())
-			return
-		default:
-			//log.Println("waiting:...")
-		}
-	}
+	cmd.FFMpegSpliteMedia(ctx, args)
+	return "", nil
 }

@@ -24,7 +24,6 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
-	log = seed.InitLogger()
 	defer func() {
 		if e := recover(); e != nil {
 			log.Panic(e)

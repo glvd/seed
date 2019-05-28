@@ -6,6 +6,7 @@ import (
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
+	"go.uber.org/zap"
 	"net/url"
 	"reflect"
 	"time"
@@ -13,13 +14,7 @@ import (
 
 var db *xorm.Engine
 var syncTable = map[string]interface{}{}
-var path string
-var log = trait.Zap().Sugar()
-
-// SetPath ...
-func SetPath(p string) {
-	path = p
-}
+var log = trait.NewZapSugar(zap.String("package", "model"))
 
 // Database ...
 type Database struct {

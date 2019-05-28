@@ -3,12 +3,13 @@ package seed
 import (
 	"context"
 	"fmt"
-	cmd "github.com/godcong/go-ffmpeg-cmd"
-	"github.com/google/uuid"
-	"github.com/yinhevr/seed/model"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	cmd "github.com/godcong/go-ffmpeg-cmd"
+	"github.com/google/uuid"
+	"github.com/yinhevr/seed/model"
 )
 
 /*
@@ -57,13 +58,27 @@ import (
 4800		6400 HUXGA		7680 WHUXGA
 */
 func getVideoResolution(width, height *int64) string {
-	switch *height {
-	case 120, 144, 160, 200, 240, 320, 360, 480, 540, 576, 600, 640, 720, 768, 800, 864, 900, 960, 1024, 1050, 1080, 1152, 1200, 1280, 1440, 1536, 1600, 1620, 1800, 1824, 1920, 2048, 2160, 2400, 2560, 2880, 3072, 3200, 4096, 4320, 4800:
-		strconv.FormatInt(*height, 10)
-	default:
-		return ""
+	idx := getResolutionIndex(*height, 0, -1)
+	return strconv.FormatInt(int64(resolution[idx]), 10) + "P"
+
+}
+
+var resolution = []int{120, 144, 160, 200, 240, 320, 360, 480, 540, 576, 600, 640, 720, 768, 800, 864, 900, 960, 1024, 1050, 1080, 1152, 1200, 1280, 1440, 1536, 1600, 1620, 1800, 1824, 1920, 2048, 2160, 2400, 2560, 2880, 3072, 3200, 4096, 4320, 4800}
+
+func getResolutionIndex(n int64, sta, end int) int {
+	if end == -1 {
+		end = len(resolution)
 	}
-	return ""
+	if idx := (sta + end) / 2; idx > sta {
+		if int64(resolution[idx]) > n {
+			return getResolutionIndex(n, sta, idx)
+		}
+		return getResolutionIndex(n, idx, end)
+	}
+	if int64(resolution[sta]) != n && sta < len(resolution)-1 {
+		return sta + 1
+	}
+	return sta
 }
 
 // SplitVideo ...

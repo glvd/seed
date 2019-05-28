@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"fmt"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"github.com/google/uuid"
 	"github.com/yinhevr/seed/model"
@@ -93,7 +94,7 @@ type StreamTags struct {
 
 // SplitVideo ...
 func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e error) {
-	fp = filepath.Join("tmp", uuid.New().String())
+	fp = filepath.Join(os.TempDir(), uuid.New().String())
 	log.Debug("split path:", fp)
 	fp, e = filepath.Abs(fp)
 	if e != nil {
@@ -101,14 +102,13 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 	}
 	_ = os.MkdirAll(fp, os.ModePerm)
 
-	command := cmd.NewFFMPEG()
-	//ffmpeg -y -i %input -strict -2 -hls_segment_filename %hls  -c:a %aac -c:v copy %libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 %output
-	command.Split(fp).Strict().
-		HlsSegmentFilename(hls.SegmentFile).Output(hls.M3U8).
-		Input(file).Ignore().
-		CodecAudio(cmd.String("aac")).CodecVideo(cmd.String("libx264")).
-		BitStreamFiltersVideo("h264_mp4toannexb").Format("hls").HlsTime("10").
-		HlsListSize("0")
+	command := cmd.NewFFMpeg()
+
+	sf := filepath.Join(fp, hls.SegmentFile)
+	m3u8 := filepath.Join(fp, hls.M3U8)
+	args := fmt.Sprintf("ffmpeg -y -i %s -strict -2 -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s", file, sf, m3u8)
+	//ffmpeg -y -i $input -strict -2 -hls_segment_filename ./output/media-%03d.ts  -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 ./output/m3u8
+	command.SetArgs(args)
 	info := make(chan string)
 	cls := make(chan bool)
 

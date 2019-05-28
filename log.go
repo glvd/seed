@@ -5,11 +5,4 @@ import (
 	"go.uber.org/zap"
 )
 
-var log *zap.SugaredLogger
-
-// InitLogger ...
-func InitLogger() *zap.SugaredLogger {
-	trait.InitGlobalZapSugar()
-	log = trait.ZapSugar()
-	return log
-}
+var log = trait.NewZapSugar(zap.String("package", "seed"))

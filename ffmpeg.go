@@ -102,6 +102,7 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 	_ = os.MkdirAll(fp, os.ModePerm)
 
 	command := cmd.NewFFMPEG()
+	//ffmpeg -y -i %input -strict -2 -hls_segment_filename %hls  -c:a %aac -c:v copy %libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 %output
 	command.Split(fp).Strict().
 		HlsSegmentFilename(hls.SegmentFile).Output(hls.M3U8).
 		Input(file).Ignore().

@@ -66,9 +66,14 @@ func getVideoResolution(width, height *int64) string {
 var resolution = []int{120, 144, 160, 200, 240, 320, 360, 480, 540, 576, 600, 640, 720, 768, 800, 864, 900, 960, 1024, 1050, 1080, 1152, 1200, 1280, 1440, 1536, 1600, 1620, 1800, 1824, 1920, 2048, 2160, 2400, 2560, 2880, 3072, 3200, 4096, 4320, 4800}
 
 func getResolutionIndex(n int64, sta, end int) int {
+	//log.Infof("%d,%d,%d", n, sta, end)
+	//if int64(resolution[sta]) == n {
+	//	return sta
+	//}
 	if end == -1 {
 		end = len(resolution)
 	}
+
 	if idx := (sta + end) / 2; idx > sta {
 		if int64(resolution[idx]) > n {
 			return getResolutionIndex(n, sta, idx)

@@ -106,7 +106,7 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 
 	sf := filepath.Join(fp, hls.SegmentFile)
 	m3u8 := filepath.Join(fp, hls.M3U8)
-	args := fmt.Sprintf("ffmpeg -y -i %s -strict -2 -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s", file, sf, m3u8)
+	args := fmt.Sprintf("-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s", file, sf, m3u8)
 	//ffmpeg -y -i $input -strict -2 -hls_segment_filename ./output/media-%03d.ts  -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 ./output/m3u8
 	command.SetArgs(args)
 	info := make(chan string)

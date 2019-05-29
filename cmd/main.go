@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
+	"github.com/godcong/go-trait"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/cobra"
-	"github.com/urfave/cli"
-	"go.uber.org/zap"
+	"gopkg.in/urfave/cli.v2"
 	"os"
+	"sort"
 )
 
 const bootIPFS = "/ip4/47.101.169.94/tcp/4001/ipfs/QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq"
 
-var log *zap.SugaredLogger
+var log = trait.NewZapSugar()
 
 var rootCmd = &cobra.Command{
 	Use:        "seed",
@@ -23,24 +24,61 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
-	app := cli.NewApp()
-	app.Version = "v0.0.1"
-	app.Name = "seed"
-	app.Usage = "seed is a video manage tool use ipfs,eth,sqlite3,and so on."
-	app.Action = func(c *cli.Context) error {
 
-		return nil
+	app := &cli.App{
+		Version: "v0.0.1",
+		Name:    "seed",
+		Usage:   "seed is a video manage tool use ipfs,eth,sqlite3,and so on.",
+		Action: func(c *cli.Context) error {
+			log.Info(c.String("s"))
+			return nil
+		},
+		Commands: []*cli.Command{
+			{
+				Name:    "complete",
+				Aliases: []string{"c"},
+				Usage:   "complete a task on the list",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			{
+				Name:  "process",
+				Usage: "add a task to the list",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+		},
 	}
-	shell := cli.StringFlag{
-		Name:  "shell,s",
-		Value: "localhost:5001",
-		Usage: "set the ipfs api address:port",
+
+	//cli.HelpFlag = &cli.BoolFlag{
+	//	Name:    "help",
+	//	Aliases: []string{"h"},
+	//	Usage:   "show help",
+	//	Value:   true,
+	//}
+	shell := &cli.StringFlag{
+		Name:    "shell",
+		Aliases: []string{"s"},
+		Value:   "localhost:5001",
+		Usage:   "set the ipfs api address:port",
+		//DefaultText: "localhost:5001",
+	}
+
+	quick := &cli.BoolFlag{
+		Name:    "quick",
+		Aliases: []string{"q"},
+		Usage:   "set the ipfs api address:port",
+		//DefaultText: "localhost:5001",
 	}
 
 	app.Flags = []cli.Flag{
-		shell,
+		shell, quick,
 	}
 
+	sort.Sort(cli.FlagsByName(app.Flags))
+	sort.Sort(cli.CommandsByName(app.Commands))
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)

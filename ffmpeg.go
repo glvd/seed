@@ -57,10 +57,22 @@ import (
 4320						7680 8K UHD
 4800		6400 HUXGA		7680 WHUXGA
 */
-func getVideoResolution(width, height *int64) string {
-	idx := getResolutionIndex(*height, 0, -1)
-	return strconv.FormatInt(int64(resolution[idx]), 10) + "P"
+func getVideoResolution(format *cmd.StreamFormat) string {
+	idx := 0
+	for _, s := range format.Streams {
+		if s.CodecType == "video" {
+			if s.Height != nil {
+				height := int64(720)
+				if *s.Height != 0 {
+					height = *s.Height
+				}
+				idx = getResolutionIndex(height, 0, -1)
+				break
+			}
 
+		}
+	}
+	return strconv.FormatInt(int64(resolution[idx]), 10) + "P"
 }
 
 var resolution = []int{120, 144, 160, 200, 240, 320, 360, 480, 540, 576, 600, 640, 720, 768, 800, 864, 900, 960, 1024, 1050, 1080, 1152, 1200, 1280, 1440, 1536, 1600, 1620, 1800, 1824, 1920, 2048, 2160, 2400, 2560, 2880, 3072, 3200, 4096, 4320, 4800}
@@ -95,23 +107,10 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 		return "", e
 	}
 	_ = os.MkdirAll(fp, os.ModePerm)
-	format, e := cmd.FFProbeStreamFormat(file)
-	if e != nil {
-		return "", e
-	}
 
-	for _, s := range format.Streams {
-		if s.CodecType == "video" {
-			if s.Width != nil && s.Height != nil {
-				getVideoResolution(s.Width, s.Height)
-			}
-
-		}
-	}
-
-	//command := cmd.NewFFMpeg()
 	sf := filepath.Join(fp, hls.SegmentFile)
 	m3u8 := filepath.Join(fp, hls.M3U8)
+
 	args := fmt.Sprintf("-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s", file, sf, m3u8)
 	//ffmpeg -y -i $input -strict -2 -hls_segment_filename ./output/media-%03d.ts  -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 ./output/m3u8
 

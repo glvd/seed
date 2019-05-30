@@ -1,24 +1,36 @@
 package seed
 
 import (
+	"gopkg.in/urfave/cli.v2"
 	"io/ioutil"
 	"path/filepath"
-	"time"
 )
 
 // DaemonCallback ...
 type DaemonCallback func(path string)
 
-// DaemonStart ...
-func DaemonStart(monitorPath string) {
-	for {
-		if lists := procList(monitorPath, func(path string) {}); lists != nil {
-			log.Info("processing", monitorPath)
-
-		}
-		log.Info("waiting for new files")
-		time.Sleep(30 * time.Second)
+// CmdDaemon ...
+func CmdDaemon(flags []cli.Flag) *cli.Command {
+	return &cli.Command{
+		Name:    "daemon",
+		Aliases: []string{"D"},
+		Usage:   "daemon the filepath to process",
+		Action: func(context *cli.Context) error {
+			log.Info("daemon call")
+			return nil
+		},
+		Subcommands: nil,
+		Flags:       flags,
 	}
+
+	//for {
+	//	if lists := procList(monitorPath, func(path string) {}); lists != nil {
+	//		log.Info("processing", monitorPath)
+	//
+	//	}
+	//	log.Info("waiting for new files")
+	//	time.Sleep(30 * time.Second)
+	//}
 }
 
 func procList(monitorPath string, dc DaemonCallback) (e error) {

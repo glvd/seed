@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
+	"gopkg.in/urfave/cli.v2"
 	"strconv"
 	"strings"
 	"syscall"
@@ -75,7 +76,7 @@ func (eth *ETH) Close() {
 }
 
 // Contract ...
-func Contract(key string) (e error) {
+func Contract(key string, contract string) (e error) {
 	var videos = new([]*model.Video)
 
 	if e = model.DB().Find(videos); e != nil {
@@ -86,6 +87,7 @@ func Contract(key string) (e error) {
 	}
 	log.Debug("key is: ", key)
 	eth := NewETH(key)
+	eth.ContractAddress = contract
 	if eth == nil {
 		return xerrors.New("nil eth")
 	}
@@ -100,9 +102,45 @@ func Contract(key string) (e error) {
 	return
 }
 
+// CmdContract ...
+func CmdContract(app *cli.App) *cli.Command {
+	//"0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"
+	flags := append(app.Flags,
+		&cli.StringFlag{
+			Name:    "address",
+			Aliases: []string{"a"},
+			Value:   "0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37",
+			Usage:   "contract address",
+		},
+		&cli.StringFlag{
+			Name:    "type",
+			Aliases: []string{"t"},
+			Value:   "video",
+			Usage:   "contract process type",
+		},
+	)
+	return &cli.Command{
+		Name:    "contract",
+		Aliases: []string{"C"},
+		Usage:   "contract share the video info to contract.",
+		Action: func(context *cli.Context) error {
+			log.Info("contract call")
+			key := ""
+			if context.NArg() > 0 {
+				key = context.Args().Get(0)
+			}
+			addr := context.String("address")
+			log.Info(addr)
+			return Contract(key, addr)
+		},
+		Subcommands: nil,
+		Flags:       flags,
+	}
+}
+
 // ConnectToken ...
 func (eth *ETH) ConnectToken() (*BangumiData, error) {
-	tk, err := NewBangumiData(common.HexToAddress("0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"), eth.conn)
+	tk, err := NewBangumiData(common.HexToAddress(eth.ContractAddress), eth.conn)
 	if err != nil {
 		log.Fatalf("Failed to instantiate a Token contract: %v", err)
 		return &BangumiData{}, nil

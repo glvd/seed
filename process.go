@@ -30,14 +30,15 @@ func isVideo(filename string) bool {
 }
 
 // CmdProcess ...
-func CmdProcess(flags []cli.Flag) *cli.Command {
-	flags = append(flags, &cli.BoolFlag{
-		Name:        "quick",
-		Aliases:     []string{"q"},
-		Usage:       "process data to ipfs skip read json",
-		Value:       false,
-		Destination: nil,
-	})
+func CmdProcess(app *cli.App) *cli.Command {
+	flags := append(app.Flags,
+		&cli.BoolFlag{
+			Name:        "quick",
+			Aliases:     []string{"q"},
+			Usage:       "process data to ipfs skip read json",
+			Value:       false,
+			Destination: nil,
+		})
 
 	return &cli.Command{
 		Name:    "process",

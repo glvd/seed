@@ -26,20 +26,57 @@ var rootCmd = &cobra.Command{
 
 func globalFlags() []cli.Flag {
 	shell := &cli.StringFlag{
-		Name:    "shell",
-		Aliases: []string{"s"},
-		//Value:       "localhost:5001",
+		Name:        "shell",
+		Aliases:     []string{"s"},
+		Value:       "localhost:5001",
 		Usage:       "set the ipfs api address:port",
 		DefaultText: "localhost:5001",
 	}
 
-	quick := &cli.BoolFlag{
-		Name:    "quick",
-		Aliases: []string{"q"},
-		Usage:   "set the ipfs api address:port",
+	database := &cli.StringFlag{
+		Name:    "database",
+		Aliases: []string{"db"},
+		Usage:   "set the database path",
 	}
+
+	config := &cli.StringFlag{
+		Name:    "config",
+		Aliases: []string{"c"},
+		Usage:   "sometime need set config",
+	}
+
+	userpass := &cli.StringFlag{
+		Name:    "userpass",
+		Aliases: []string{"u"},
+		Usage:   "set the database user:password",
+	}
+
+	json := &cli.StringFlag{
+		Name:    "json",
+		Aliases: []string{"j"},
+		Usage:   "set the json file path",
+	}
+
+	boot := &cli.StringFlag{
+		Name:    "bootstrap",
+		Aliases: []string{"b"},
+		Usage:   "set the ipfs bootstrap swarm address to quick connect",
+	}
+
+	pin := &cli.BoolFlag{
+		Name:    "pin",
+		Aliases: []string{"p"},
+		Usage:   "set to pin on ipfs",
+	}
+
+	sync := &cli.BoolFlag{
+		Name:    "sync",
+		Aliases: []string{"n"},
+		Usage:   "check if the video is synced",
+	}
+
 	return []cli.Flag{
-		shell, quick,
+		shell, database, userpass, json, boot, pin, sync, config,
 	}
 
 }
@@ -49,21 +86,17 @@ func runApp() error {
 	app := &cli.App{
 		Version: "v0.0.1",
 		Name:    "seed",
-		Usage:   "seed is a video manage tool use ipfs,eth,sqlite3,and so on.",
+		Usage:   "seed is a video manage tool use ipfs,eth,sqlite3 and so on.",
 		Action: func(c *cli.Context) error {
 			log.Info(c.String("s"))
 			return nil
 		},
-		Commands: []*cli.Command{
-			seed.CmdDaemon(flags),
-			{
-				Name:  "process",
-				Usage: "add a task to the list",
-				Action: func(c *cli.Context) error {
-					return nil
-				},
-			},
-		},
+		Flags: flags,
+	}
+
+	app.Commands = []*cli.Command{
+		seed.CmdDaemon(app),
+		seed.CmdProcess(app),
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

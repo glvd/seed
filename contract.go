@@ -50,12 +50,32 @@ func (eth *ETH) InfoInput(video *model.Video) (e error) {
 	return nil
 }
 
+// CheckNameExists ...
+func (eth *ETH) CheckNameExists(ban string, idx ...int) (e error) {
+	idxStr := ""
+	nb := ""
+	if idx == nil {
+		idx = append(idx, 1)
+	}
+
+	for _, i := range idx {
+		idxStr = strconv.FormatInt(int64(i), 10)
+		nb = strings.ToUpper(ban + "@" + idxStr)
+		e = eth.CheckExist(nb)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
 // CheckExist ...
 func (eth *ETH) CheckExist(ban string) (e error) {
 	tk, e := eth.ConnectToken()
 	if e != nil {
 		return e
 	}
+
 	hash, e := tk.QueryHash(&bind.CallOpts{Pending: true}, ban)
 	if e != nil {
 		return e
@@ -64,6 +84,7 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 	if hash == "" || hash == "," || len(hash) != 46 {
 		return xerrors.New(ban + " hash is not found!")
 	}
+
 	return nil
 }
 
@@ -104,7 +125,6 @@ func Contract(key string, contract string) (e error) {
 
 // CmdContract ...
 func CmdContract(app *cli.App) *cli.Command {
-	//"0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37"
 	flags := append(app.Flags,
 		&cli.StringFlag{
 			Name:    "address",
@@ -118,6 +138,10 @@ func CmdContract(app *cli.App) *cli.Command {
 			Value:   "video",
 			Usage:   "contract process type",
 		},
+		&cli.StringFlag{
+			Name:  "ban",
+			Usage: "ban no to check",
+		},
 	)
 	return &cli.Command{
 		Name:    "contract",
@@ -129,9 +153,20 @@ func CmdContract(app *cli.App) *cli.Command {
 			if context.NArg() > 0 {
 				key = context.Args().Get(0)
 			}
-			addr := context.String("address")
-			log.Info(addr)
-			return Contract(key, addr)
+
+			switch context.String("t") {
+			case "video":
+				addr := context.String("address")
+				log.Info(addr)
+				return Contract(key, addr)
+			case "check":
+				e := NewETH(key).CheckNameExists(context.String("ban"), 1, 2, 3, 4, 5, 6, 7, 8)
+				if e != nil {
+					log.Error(e)
+					return e
+				}
+			}
+			return nil
 		},
 		Subcommands: nil,
 		Flags:       flags,

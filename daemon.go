@@ -10,7 +10,7 @@ import (
 type DaemonCallback func(path string)
 
 // CmdDaemon ...
-func CmdDaemon(flags []cli.Flag) *cli.Command {
+func CmdDaemon(app *cli.App) *cli.Command {
 	return &cli.Command{
 		Name:    "daemon",
 		Aliases: []string{"D"},
@@ -20,7 +20,7 @@ func CmdDaemon(flags []cli.Flag) *cli.Command {
 			return nil
 		},
 		Subcommands: nil,
-		Flags:       flags,
+		Flags:       app.Flags,
 	}
 
 	//for {

@@ -97,6 +97,7 @@ func runApp() error {
 	app.Commands = []*cli.Command{
 		seed.CmdDaemon(app),
 		seed.CmdProcess(app),
+		seed.CmdContract(app),
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

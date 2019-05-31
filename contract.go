@@ -81,6 +81,23 @@ func (eth *ETH) GetLastVersionCode() (code *big.Int, e error) {
 	return
 }
 
+// GetLastHash ...
+func (eth *ETH) GetLastHash() (ver, hash string, e error) {
+	tk, e := eth.ConnectDHash()
+	if e != nil {
+		return "", "", e
+	}
+	_, version, e := tk.GetLatest(&bind.CallOpts{Pending: true})
+	if e != nil {
+		return "", "", e
+	}
+	s, e := tk.GetHash(&bind.CallOpts{Pending: true}, version)
+	if e != nil {
+		return "", "", e
+	}
+	return version, s, nil
+}
+
 // CheckExist ...
 func (eth *ETH) CheckExist(ban string) (e error) {
 	tk, e := eth.ConnectBangumi()
@@ -201,11 +218,27 @@ func CmdContract(app *cli.App) *cli.Command {
 			case "hot":
 
 			case "app":
-				e := eth.UpdateApp(version, hash)
-				if e != nil {
-					log.Error(e)
-					return e
+				if path != "" {
+					if err := eth.UpdateAppWithPath(version, path); err != nil {
+						log.Error(err)
+						return err
+					}
+					return nil
+				} else if hash != "" {
+					e := eth.UpdateApp(version, hash)
+					if e != nil {
+						log.Error(e)
+						return e
+					}
+				} else {
+					ver, lastHash, e := eth.GetLastHash()
+					if e != nil {
+						log.Error(e)
+						return e
+					}
+					log.With("version", ver, "hash", lastHash).Info("last")
 				}
+
 			}
 
 			return nil

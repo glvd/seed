@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"math/big"
 	"strconv"
 	"strings"
 	"syscall"
@@ -70,13 +71,22 @@ func (eth *ETH) CheckNameExists(ban string, idx ...int) (e error) {
 	return nil
 }
 
+// GetLastVersionCode ...
+func (eth *ETH) GetLastVersionCode() (code *big.Int, e error) {
+	tk, e := eth.ConnectDHash()
+	if e != nil {
+		return nil, e
+	}
+	code, _, e = tk.GetLatest(&bind.CallOpts{Pending: true})
+	return
+}
+
 // CheckExist ...
 func (eth *ETH) CheckExist(ban string) (e error) {
-	tk, e := eth.ConnectToken()
+	tk, e := eth.ConnectBangumi()
 	if e != nil {
 		return e
 	}
-
 	hash, e := tk.QueryHash(&bind.CallOpts{Pending: true}, ban)
 	if e != nil {
 		return e
@@ -175,7 +185,12 @@ func CmdContract(app *cli.App) *cli.Command {
 					log.Error(e)
 					return e
 				}
+			case "hot":
+
+			case "app":
+
 			}
+
 			return nil
 		},
 		Subcommands: nil,
@@ -183,8 +198,8 @@ func CmdContract(app *cli.App) *cli.Command {
 	}
 }
 
-// ConnectToken ...
-func (eth *ETH) ConnectToken() (*BangumiData, error) {
+// ConnectBangumi ...
+func (eth *ETH) ConnectBangumi() (*BangumiData, error) {
 	tk, err := NewBangumiData(common.HexToAddress(eth.ContractAddress), eth.conn)
 	if err != nil {
 		log.Fatalf("Failed to instantiate a Token contract: %v", err)
@@ -193,8 +208,18 @@ func (eth *ETH) ConnectToken() (*BangumiData, error) {
 	return tk, nil
 }
 
+// ConnectDHash ...
+func (eth *ETH) ConnectDHash() (*Dhash, error) {
+	tk, err := NewDhash(common.HexToAddress(eth.ContractAddress), eth.conn)
+	if err != nil {
+		log.Fatalf("Failed to instantiate a Token contract: %v", err)
+		return &Dhash{}, nil
+	}
+	return tk, nil
+}
+
 func singleInput(eth *ETH, video *model.Video) (e error) {
-	tk, e := eth.ConnectToken()
+	tk, e := eth.ConnectBangumi()
 	if e != nil {
 		return e
 	}
@@ -245,7 +270,7 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 }
 
 func multipleInput(eth *ETH, video *model.Video) (e error) {
-	tk, e := eth.ConnectToken()
+	tk, e := eth.ConnectBangumi()
 	if e != nil {
 		return e
 	}
@@ -312,4 +337,44 @@ func infoInput(eth *ETH, video *model.Video) (e error) {
 		fn = multipleInput
 	}
 	return fn(eth, video)
+}
+
+// UpdateApp ...
+func (eth *ETH) UpdateApp(version string, hash string) (e error) {
+	return update(eth, version, hash)
+}
+
+func update(eth *ETH, version string, hash string) (e error) {
+	tk, e := eth.ConnectDHash()
+	if e != nil {
+		return e
+	}
+	privateKey, err := crypto.HexToECDSA(eth.key)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	code, e := eth.GetLastVersionCode()
+	if e != nil {
+		log.Fatal(err)
+		return e
+	}
+	one := big.NewInt(1)
+	code = code.Add(code, one)
+
+	opt := bind.NewKeyedTransactor(privateKey)
+	transaction, err := tk.UpdateVersion(opt, version, hash, code)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+	receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+	if err != nil {
+		//log.Fatalf("tx mining error:%v\n", err)
+		return err
+	}
+	log.Info(version + "@" + hash + " success")
+	log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+	return nil
 }

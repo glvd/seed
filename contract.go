@@ -155,17 +155,22 @@ func CmdContract(app *cli.App) *cli.Command {
 				key = context.Args().Get(0)
 			}
 			address := context.String("a")
-			log.Info("address:", context.String("a"))
 			if address == "" {
 				panic("address must set use -address,-a")
 			}
-			log.Info("type:", context.String("t"))
+
 			switch context.String("t") {
 			case "video":
+				log.Info("video:", context.String("ban"))
 				addr := context.String("address")
 				log.Info(addr)
 				return Contract(key, addr)
 			case "check":
+				ban := context.String("ban")
+				if ban == "" {
+					return nil
+				}
+				log.Info("check:", context.String("ban"))
 				e := NewETH(key).CheckNameExists(context.String("ban"), 1, 2, 3, 4, 5, 6, 7, 8)
 				if e != nil {
 					log.Error(e)

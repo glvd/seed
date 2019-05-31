@@ -2,6 +2,10 @@ package seed
 
 import (
 	"context"
+	"strconv"
+	"strings"
+	"syscall"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -9,9 +13,6 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"gopkg.in/urfave/cli.v2"
-	"strconv"
-	"strings"
-	"syscall"
 )
 
 //ETH ...
@@ -153,7 +154,12 @@ func CmdContract(app *cli.App) *cli.Command {
 			if context.NArg() > 0 {
 				key = context.Args().Get(0)
 			}
-
+			address := context.String("a")
+			log.Info("address:", context.String("a"))
+			if address == "" {
+				panic("address must set use -address,-a")
+			}
+			log.Info("type:", context.String("t"))
 			switch context.String("t") {
 			case "video":
 				addr := context.String("address")

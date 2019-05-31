@@ -153,6 +153,16 @@ func CmdContract(app *cli.App) *cli.Command {
 			Name:  "ban",
 			Usage: "ban no to check",
 		},
+		&cli.StringFlag{
+			Name:    "appver",
+			Value:   "v0.0.1",
+			Aliases: []string{"av"},
+			Usage:   "set the application version",
+		},
+		&cli.StringFlag{
+			Name:  "hash",
+			Usage: "set the app ipfs hash",
+		},
 	)
 	return &cli.Command{
 		Name:    "contract",
@@ -168,6 +178,9 @@ func CmdContract(app *cli.App) *cli.Command {
 			if address == "" {
 				panic("address must set use -address,-a")
 			}
+			version := context.String("av")
+			path := context.String("p")
+			hash := context.String("hash")
 			eth := NewETH(key)
 			eth.ContractAddress = address
 			switch context.String("t") {
@@ -188,7 +201,11 @@ func CmdContract(app *cli.App) *cli.Command {
 			case "hot":
 
 			case "app":
-
+				e := eth.UpdateApp(version, hash)
+				if e != nil {
+					log.Error(e)
+					return e
+				}
 			}
 
 			return nil
@@ -337,6 +354,15 @@ func infoInput(eth *ETH, video *model.Video) (e error) {
 		fn = multipleInput
 	}
 	return fn(eth, video)
+}
+
+// UpdateAppWithPath ...
+func (eth *ETH) UpdateAppWithPath(version, path string) (e error) {
+	obj, e := rest.AddFile(path)
+	if e != nil {
+		return e
+	}
+	return eth.UpdateApp(version, obj.Hash)
 }
 
 // UpdateApp ...

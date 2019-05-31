@@ -81,7 +81,7 @@ func (eth *ETH) CheckExist(ban string) (e error) {
 	if e != nil {
 		return e
 	}
-	log.With("size", len(hash), "hash", hash, "ban", ban).Info("checked")
+	log.With("size", len(hash), "hash", hash, "name", ban).Info("checked")
 	if hash == "" || hash == "," || len(hash) != 46 {
 		return xerrors.New(ban + " hash is not found!")
 	}

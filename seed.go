@@ -42,7 +42,7 @@ type VideoSource struct {
 	TotalEpisode string     `json:"total_episode"` //总集数
 	Sharpness    string     `json:"sharpness"`     //清晰度
 	Publish      string     `json:"publish"`       //发行日
-	Data         string     `json:"data"`          //发行日
+	Date         string     `json:"date"`          //发行日
 	Length       string     `json:"length"`        //片长
 	Producer     string     `json:"producer"`      //制片商
 	Series       string     `json:"series"`        //系列
@@ -51,6 +51,7 @@ type VideoSource struct {
 	Language     string     `json:"language"`      //语言
 	Caption      string     `json:"caption"`       //字幕
 	MagnetLinks  []string   `json:"magnet_links"`  //磁链
+	Uncensored   bool       `json:"uncensored"`    //有码,无码
 }
 
 // VideoLink ...

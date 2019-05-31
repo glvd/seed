@@ -180,6 +180,10 @@ func CmdContract(app *cli.App) *cli.Command {
 			Name:  "hash",
 			Usage: "set the app ipfs hash",
 		},
+		&cli.StringFlag{
+			Name:  "path",
+			Usage: "set the app path to add  hash",
+		},
 	)
 	return &cli.Command{
 		Name:    "contract",
@@ -196,7 +200,7 @@ func CmdContract(app *cli.App) *cli.Command {
 				panic("address must set use -address,-a")
 			}
 			version := context.String("av")
-			path := context.String("p")
+			path := context.String("path")
 			hash := context.String("hash")
 			eth := NewETH(key)
 			eth.ContractAddress = address

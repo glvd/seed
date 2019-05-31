@@ -11,14 +11,15 @@ import (
 
 // Uncategorized 未分类
 type Uncategorized struct {
-	Model    `xorm:"extends"`
-	Checksum string
-	Type     string
-	Name     string
-	Hash     string
-	IsVideo  bool           `xorm:"default(0)"`
-	Sync     bool           `xorm:"default(0)"`
-	Object   []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
+	Model        `xorm:"extends"`
+	Checksum     string         `xorm:"checksum"`
+	Type         string         `xorm:"type"`
+	Name         string         `xorm:"name"`
+	Hash         string         `xorm:"hash"`
+	IsVideo      bool           `xorm:"default(0)"`
+	Sync         bool           `xorm:"default(0)"`
+	SourcePeerID string         `xorm:"source_peer_id"`
+	Object       []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
 }
 
 func init() {

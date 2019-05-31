@@ -129,7 +129,7 @@ func CmdContract(app *cli.App) *cli.Command {
 		&cli.StringFlag{
 			Name:    "address",
 			Aliases: []string{"a"},
-			Value:   "0xb5eb6bf5eab725e9285d0d27201603ecf31a1d37",
+			Value:   "",
 			Usage:   "contract address",
 		},
 		&cli.StringFlag{

@@ -1,9 +1,10 @@
 package seed
 
 import (
+	"sync"
+
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
-	"sync"
 )
 
 // PinCallback ...
@@ -32,7 +33,7 @@ func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
 	log.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	//log.Info("pin poster:", video.Poster)
-	go pin(wg, video.Poster)
+	go pin(wg, video.PosterHash)
 	if poster {
 		return
 	}

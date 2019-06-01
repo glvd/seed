@@ -3,9 +3,10 @@ package seed
 import (
 	"crypto/sha1"
 	"fmt"
+	"strings"
+
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
-	"strings"
 )
 
 // Extend ...
@@ -135,25 +136,23 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 		intro = aliasS + " " + roleS
 	}
 
-	video.VideoBase = &model.VideoBase{
-		Bangumi: source.Bangumi,
-		//Type:         source.Type,
-		//Output:       source.Output,
-		//VR:           source.VR,
-		Thumb:    source.Thumb,
-		Intro:    intro,
-		Alias:    alias,
-		Role:     role,
-		Director: director,
-		//Language:     source.Language,
-		//Caption:      source.Caption,
-		SourceHash: source.SourceHash,
+	video.Bangumi = source.Bangumi
+	//video.Type = source.Type
+	//video.Output = source.Output
+	//video.VR = source.VR
+	video.Thumb = source.Thumb
+	video.Intro = intro
+	video.Alias = alias
+	video.Role = role
+	video.Director = director
+	//video.Language = source.Language
+	//video.Caption = source.Caption
+	video.SourceHash = source.SourceHash
+	video.Season = source.Season
+	video.Episode = source.Episode
+	video.TotalEpisode = source.TotalEpisode
+	video.Publish = source.Publish
 
-		Season:       source.Season,
-		Episode:      source.Episode,
-		TotalEpisode: source.TotalEpisode,
-		Publish:      source.Publish,
-	}
 }
 
 // NewVideo ...
@@ -163,23 +162,21 @@ func NewVideo(source *VideoSource) *model.Video {
 		alias = source.Alias
 	}
 	return &model.Video{
-		VideoBase: &model.VideoBase{
-			Bangumi: strings.ToUpper(source.Bangumi),
-			//Type:         source.Type,
-			//Output:       source.Output,
-			//VR:           source.VR,
-			Thumb: source.Thumb,
-			Intro: source.Intro,
-			Alias: alias,
-			//Language:     source.Language,
-			//Caption:      source.Caption,
-			Role:         source.Role,
-			Director:     source.Director,
-			Season:       source.Season,
-			Episode:      source.Episode,
-			TotalEpisode: source.TotalEpisode,
-			Publish:      source.Publish,
-		},
+		Bangumi: strings.ToUpper(source.Bangumi),
+		//Type:         source.Type,
+		//Output:       source.Output,
+		//VR:           source.VR,
+		Thumb: source.Thumb,
+		Intro: source.Intro,
+		Alias: alias,
+		//Language:     source.Language,
+		//Caption:      source.Caption,
+		Role:           source.Role,
+		Director:       source.Director,
+		Season:         source.Season,
+		Episode:        source.Episode,
+		TotalEpisode:   source.TotalEpisode,
+		Publish:        source.Publish,
 		VideoGroupList: nil,
 		SourceInfoList: nil,
 	}

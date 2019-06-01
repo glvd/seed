@@ -19,6 +19,7 @@ type VideoBase struct {
 	Intro        string   `xorm:"varchar(2048)" json:"intro"` //简介
 	Alias        []string `xorm:"json" json:"alias"`          //别名，片名
 	SourceHash   string   `json:"source_hash"`                //原片地址
+	M3U8Hash     string   `json:"m3u8_hash"`                  // 切片地址
 	Poster       string   `json:"poster"`                     //海报
 	Role         []string `xorm:"json" json:"role"`           //主演
 	Director     []string `xorm:"json" json:"director"`       //导演

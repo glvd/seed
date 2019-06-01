@@ -5,6 +5,7 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
+	"gopkg.in/urfave/cli.v2"
 	"os"
 	"path"
 	"path/filepath"
@@ -26,6 +27,36 @@ func isVideo(filename string) bool {
 		}
 	}
 	return false
+}
+
+// CmdProcess ...
+func CmdProcess(app *cli.App) *cli.Command {
+	flags := append(app.Flags,
+		&cli.BoolFlag{
+			Name:        "quick",
+			Aliases:     []string{"q"},
+			Usage:       "process data to ipfs skip read json",
+			Value:       false,
+			Destination: nil,
+		})
+
+	return &cli.Command{
+		Name:    "process",
+		Aliases: []string{"P"},
+		Usage:   "",
+		Action: func(context *cli.Context) error {
+			log.Info("process call")
+
+			if context.Bool("q") {
+				//QuickProcess()
+			}
+			//Process()
+
+			return nil
+		},
+		Subcommands: nil,
+		Flags:       flags,
+	}
 }
 
 // QuickProcess ...

@@ -111,7 +111,7 @@ func SplitVideo(ctx context.Context, hls *model.HLS, file string) (fp string, e 
 	for _, s := range format.Streams {
 		if s.CodecType == "video" {
 			if s.Width != nil && s.Height != nil {
-				getVideoResolution(s.Width, s.Height)
+				getVideoResolution(format)
 			}
 
 		}

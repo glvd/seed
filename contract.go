@@ -297,7 +297,7 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 		}
 		transaction, err := tk.InfoInput(opt,
 			strings.ToUpper(upperName),
-			video.Poster,
+			video.PosterHash,
 			video.Role[0],
 			list.Object[i].Link.Hash,
 			video.Alias[0],
@@ -352,7 +352,7 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 			}
 			transaction, err := tk.InfoInput(opt,
 				strings.ToUpper(upperName),
-				video.Poster,
+				video.PosterHash,
 				video.Role[0],
 				list.Object[i].Link.Hash,
 				video.Alias[0],

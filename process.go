@@ -2,14 +2,15 @@ package seed
 
 import (
 	"context"
-	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
-	"golang.org/x/xerrors"
-	"gopkg.in/urfave/cli.v2"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	shell "github.com/godcong/go-ipfs-restapi"
+	"github.com/yinhevr/seed/model"
+	"golang.org/x/xerrors"
+	"gopkg.in/urfave/cli.v2"
 )
 
 func prefix(s string) (ret string) {
@@ -204,7 +205,7 @@ func Process(source *VideoSource) (e error) {
 
 	log.Infof("%+v", video)
 
-	video.VideoBase.Poster = addPoster(source)
+	video.PosterHash = addPosterHash(source)
 	log.Info(*source)
 
 	fn := add
@@ -235,7 +236,7 @@ func Process(source *VideoSource) (e error) {
 	return model.AddOrUpdateVideo(video)
 }
 
-func addPoster(source *VideoSource) string {
+func addPosterHash(source *VideoSource) string {
 	if source.PosterPath != "" {
 		object, e := rest.AddFile(source.PosterPath)
 		if e != nil {

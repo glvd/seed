@@ -60,6 +60,31 @@ func CmdProcess(app *cli.App) *cli.Command {
 	}
 }
 
+type FileProcess func(pathname string) (e error)
+
+func loadFile(path string, fp FileProcess) (e error) {
+	file, e := os.Open(path)
+	if e != nil {
+		return e
+	}
+	defer file.Close()
+	info, e := file.Stat()
+	if e != nil {
+		return e
+	}
+
+	if b := info.IsDir(); !b {
+		names, e := file.Readdirnames(-1)
+		if e != nil {
+			return e
+		}
+		for _, name := range names {
+			return loadFile(filepath.Join(path, name), fp)
+		}
+	}
+	return fp(path)
+}
+
 // QuickProcess ...
 func QuickProcess(pathname string, needPin bool) (e error) {
 	info, e := os.Stat(pathname)

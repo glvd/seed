@@ -16,6 +16,9 @@ import (
 	"gopkg.in/urfave/cli.v2"
 )
 
+// GatwayAddress ...
+const defaultGatewayAddress = "https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj"
+
 //ETH ...
 type ETH struct {
 	conn            *ethclient.Client
@@ -30,9 +33,9 @@ func getSeedKey() string {
 }
 
 // NewETH ...
-func NewETH(key string) *ETH {
+func NewETH(key string, supported ...interface{}) *ETH {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
-	conn, err := ethclient.Dial("https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj")
+	conn, err := ethclient.Dial(defaultGatewayAddress)
 	if err != nil {
 		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
 		return nil
@@ -250,6 +253,11 @@ func CmdContract(app *cli.App) *cli.Command {
 		Subcommands: nil,
 		Flags:       flags,
 	}
+}
+
+// Connection ...
+type Connection interface {
+	ProcContract(eth *ETH, args ...interface{})
 }
 
 // ConnectBangumi ...

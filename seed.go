@@ -55,14 +55,6 @@ type VideoSource struct {
 	Uncensored   bool       `json:"uncensored"`    //有码,无码
 }
 
-// VideoLink ...
-type VideoLink struct {
-	Hash string `json:"hash,omitempty"`
-	Name string `json:"name,omitempty"`
-	Size uint64 `json:"size,omitempty"`
-	Type int    `json:"type,omitempty"`
-}
-
 // VideoList ...
 var VideoList = LoadVideo()
 
@@ -138,7 +130,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 
 	video.Bangumi = source.Bangumi
 	//video.Type = source.Type
-	//video.Output = source.Output
+	//video.Format = source.Format
 	//video.VR = source.VR
 	video.Thumb = source.Thumb
 	video.Intro = intro
@@ -164,7 +156,7 @@ func NewVideo(source *VideoSource) *model.Video {
 	return &model.Video{
 		Bangumi: strings.ToUpper(source.Bangumi),
 		//Type:         source.Type,
-		//Output:       source.Output,
+		//Format:       source.Format,
 		//VR:           source.VR,
 		Thumb: source.Thumb,
 		Intro: source.Intro,

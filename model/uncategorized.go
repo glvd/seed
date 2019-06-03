@@ -17,8 +17,13 @@ type Uncategorized struct {
 	Name         string         `xorm:"name"`
 	Hash         string         `xorm:"hash"`
 	IsVideo      bool           `xorm:"default(0)"`
-	Sync         bool           `xorm:"default(0)"`
+	Sync         bool           `xorm:"default(0)"` //是否同步
 	SourcePeerID string         `xorm:"source_peer_id"`
+	Sliced       bool           `json:"sliced"`                       //切片
+	Encrypt      bool           `json:"encrypt"`                      //加密
+	Key          string         `json:"key"`                          //秘钥
+	M3U8         string         `json:"m3u8"`                         //M3U8名
+	SegmentFile  string         `json:"segment_file"`                 //ts切片名
 	Object       []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
 }
 

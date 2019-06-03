@@ -1,4 +1,4 @@
-package contract
+package seed
 
 import (
 	"github.com/ethereum/go-ethereum"

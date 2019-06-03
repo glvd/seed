@@ -24,7 +24,7 @@ type ETH struct {
 	conn            *ethclient.Client
 	key             string
 	ContractAddress string
-	DialAddress     string
+	gatewayAddress  string
 }
 
 func getSeedKey() string {
@@ -32,9 +32,19 @@ func getSeedKey() string {
 	return key
 }
 
+// Contract ...
+type Contract struct {
+}
+
 // NewETH ...
 func NewETH(key string, supported ...interface{}) *ETH {
 	// Create an IPC based RPC connection to a remote node and instantiate a contract binding
+	return &ETH{
+		conn:            nil,
+		key:             key,
+		gatewayAddress:  defaultGatewayAddress,
+		ContractAddress: "",
+	}
 	conn, err := ethclient.Dial(defaultGatewayAddress)
 	if err != nil {
 		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
@@ -127,8 +137,8 @@ func (eth *ETH) Close() {
 	eth.conn.Close()
 }
 
-// Contract ...
-func Contract(key string, contract string) (e error) {
+// ContractProc ...
+func ContractProc(key string, contract string) (e error) {
 	var videos = new([]*model.Video)
 
 	if e = model.DB().Find(videos); e != nil {
@@ -174,9 +184,9 @@ func CmdContract(app *cli.App) *cli.Command {
 			Usage: "ban no to check",
 		},
 		&cli.StringFlag{
-			Name:    "appver",
+			Name:    "release",
 			Value:   "v0.0.1",
-			Aliases: []string{"av"},
+			Aliases: []string{"r"},
 			Usage:   "set the application version",
 		},
 		&cli.StringFlag{
@@ -187,6 +197,11 @@ func CmdContract(app *cli.App) *cli.Command {
 			Name:  "path",
 			Usage: "set the app path to add  hash",
 		},
+		&cli.StringFlag{
+			Name:    "key",
+			Usage:   "set the contract process key",
+			EnvVars: []string{"ContractKey"},
+		},
 	)
 	return &cli.Command{
 		Name:    "contract",
@@ -194,15 +209,15 @@ func CmdContract(app *cli.App) *cli.Command {
 		Usage:   "contract share the video info to contract.",
 		Action: func(context *cli.Context) error {
 			log.Info("contract call")
-			key := ""
-			if context.NArg() > 0 {
-				key = context.Args().Get(0)
+			key := context.String("key")
+			if key == "" {
+				panic("key must set use -key or Env(ContractKey)")
 			}
 			address := context.String("a")
 			if address == "" {
 				panic("address must set use -address,-a")
 			}
-			version := context.String("av")
+			version := context.String("release")
 			path := context.String("path")
 			hash := context.String("hash")
 			eth := NewETH(key)
@@ -210,7 +225,7 @@ func CmdContract(app *cli.App) *cli.Command {
 			switch context.String("t") {
 			case "video":
 				log.Info("video:", context.String("ban"))
-				return Contract(key, address)
+				return ContractProc(key, address)
 			case "check":
 				ban := context.String("ban")
 				if ban == "" {

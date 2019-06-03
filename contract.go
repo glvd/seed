@@ -1,4 +1,4 @@
-package contract
+package seed
 
 import (
 	"context"
@@ -19,7 +19,6 @@ import (
 const defaultGatewayAddress = "https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj"
 
 var eth *ETH
-var log = trait.NewZapSugar()
 
 func bangumi() ProcessorFunc {
 	return func(eth *ETH) interface{} {
@@ -136,7 +135,7 @@ func GetLastVersionCode() (code *big.Int, e error) {
 		if !b {
 			return false, nil
 		}
-		code, _, e = data.GetLatest(&bind.CallOpts{Pending: true})
+		code, _, e = GetLatest(&bind.CallOpts{Pending: true})
 		return true, e
 	})
 	if err != nil {
@@ -152,11 +151,11 @@ func GetLastVersionHash() (ver, hash string, e error) {
 		if !b {
 			return false, nil
 		}
-		_, ver, e = data.GetLatest(&bind.CallOpts{Pending: true})
+		_, ver, e = GetLatest(&bind.CallOpts{Pending: true})
 		if e != nil {
 			return false, e
 		}
-		hash, e = data.GetHash(&bind.CallOpts{Pending: true}, ver)
+		hash, e = GetHash(&bind.CallOpts{Pending: true}, ver)
 		if e != nil {
 			return true, e
 		}
@@ -175,7 +174,7 @@ func CheckExist(ban string) (e error) {
 		if !b {
 			return false, nil
 		}
-		hash, e := data.QueryHash(&bind.CallOpts{Pending: true}, "ban")
+		hash, e := QueryHash(&bind.CallOpts{Pending: true}, "ban")
 		log.With("size", len(hash), "hash", hash, "name", ban).Info("checked")
 		if hash == "" || hash == "," || len(hash) != 46 {
 			return true, xerrors.New(ban + " hash is not found!")
@@ -216,7 +215,7 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 			if e == nil {
 				continue
 			}
-			transaction, err := data.InfoInput(opt,
+			transaction, err := InfoInput(opt,
 				strings.ToUpper(upperName),
 				video.PosterHash,
 				video.Role[0],
@@ -267,7 +266,7 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 				if e == nil {
 					continue
 				}
-				transaction, err := data.InfoInput(opt,
+				transaction, err := InfoInput(opt,
 					strings.ToUpper(upperName),
 					video.PosterHash,
 					video.Role[0],
@@ -332,7 +331,7 @@ func update(version string, hash string) (e error) {
 		code = code.Add(code, one)
 		key := eth.PrivateKey()
 		opt := bind.NewKeyedTransactor(key)
-		transaction, err := data.UpdateVersion(opt, version, hash, code)
+		transaction, err := UpdateVersion(opt, version, hash, code)
 		if err != nil {
 			return true, e
 		}

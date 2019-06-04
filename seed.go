@@ -166,14 +166,14 @@ func NewVideo(source *VideoSource) *model.Video {
 		Alias: alias,
 		//Language:     source.Language,
 		//Caption:      source.Caption,
-		Role:           source.Role,
-		Director:       source.Director,
-		Season:         source.Season,
-		Episode:        source.Episode,
-		TotalEpisode:   source.TotalEpisode,
-		Publish:        source.Publish,
-		VideoGroupList: nil,
-		SourceInfoList: nil,
+		Role:         source.Role,
+		Director:     source.Director,
+		Season:       source.Season,
+		Episode:      source.Episode,
+		TotalEpisode: source.TotalEpisode,
+		Publish:      source.Publish,
+		//VideoGroupList: nil,
+		//SourceInfoList: nil,
 	}
 }
 

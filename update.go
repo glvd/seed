@@ -21,28 +21,28 @@ func Update(index string, source *VideoSource) (e error) {
 		return nil
 	}
 
-	group := parseGroup(hash, source)
-	for idx := range video.VideoGroupList {
-		if video.VideoGroupList[idx].Index == index {
-			objBak := video.VideoGroupList[idx].Object
-			video.VideoGroupList[idx] = group
-			video.VideoGroupList[idx].Object = objBak
-			break
-		}
-	}
+	//group := parseGroup(hash, source)
+	//for idx := range video.VideoGroupList {
+	//	if video.VideoGroupList[idx].Index == index {
+	//		objBak := video.VideoGroupList[idx].Object
+	//		video.VideoGroupList[idx] = group
+	//		video.VideoGroupList[idx].Object = objBak
+	//		break
+	//	}
+	//}
 	info := GetSourceInfo()
 	log.Info(*info)
 
 	if info.ID != "" {
-		video.AddSourceInfo(info)
+		//video.AddSourceInfo(info)
 	}
 
-	for _, value := range GetPeers() {
-		video.AddPeers(&model.SourcePeerDetail{
-			Addr: value.Addr,
-			Peer: value.Peer,
-		})
-	}
+	//for _, value := range GetPeers() {
+	//video.AddPeers(&model.SourcePeerDetail{
+	//	Addr: value.Addr,
+	//	Peer: value.Peer,
+	//})
+	//}
 
 	return model.AddOrUpdateVideo(video)
 }

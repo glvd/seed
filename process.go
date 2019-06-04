@@ -27,6 +27,11 @@ type Process struct {
 	JSONPath  string `json:"json_path"`
 	Before    CallbackFunc
 	After     CallbackFunc
+	ignores   map[string][]byte
+}
+
+func initIgnore() map[string][]byte {
+	return make(map[string][]byte, 3)
 }
 
 // NewProcess ...
@@ -38,6 +43,7 @@ func NewProcess() *Process {
 		MovePath: "tmp",
 		JSON:     false,
 		JSONPath: "seed.json",
+		ignores:  initIgnore(),
 	}
 }
 
@@ -89,14 +95,35 @@ func CmdProcess(app *cli.App) *cli.Command {
 }
 
 // Run ...
-func (p *Process) Run() (e error) {
-	getFiles(p.Workspace)
+func (p *Process) Run() (err error) {
+	p.Ignore()
+
+	if p.Before != nil {
+		if err = p.Before(p); err != nil {
+			return err
+		}
+	}
+	p.getFiles(p.Workspace)
 
 	//uncat := model.Uncategorized{}
 	return nil
 }
 
-func getFiles(ws string) (files []string) {
+// Ignore ...
+func (p *Process) Ignore() {
+	p.ignores[p.MovePath] = nil
+	//p.ignores[p.j]
+}
+
+func (p *Process) checkIgnore(name string) (b bool) {
+	if p.ignores == nil {
+		return false
+	}
+	_, b = p.ignores[name]
+	return
+}
+
+func (p *Process) getFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
 		return nil
@@ -111,8 +138,10 @@ func getFiles(ws string) (files []string) {
 		if e != nil {
 			return nil
 		}
+		var fullpath string
 		for _, name := range names {
-			tmp := getFiles(filepath.Join(ws, name))
+			fullpath = filepath.Join(ws, name)
+			tmp := p.getFiles(fullpath)
 			if tmp != nil {
 				files = append(files, tmp...)
 			}
@@ -283,16 +312,16 @@ func ProcessVideo(source *VideoSource) (e error) {
 	info := GetSourceInfo()
 	log.Info(*info)
 
-	if info.ID != "" {
-		video.AddSourceInfo(info)
-	}
-
-	for _, value := range GetPeers() {
-		video.AddPeers(&model.SourcePeerDetail{
-			Addr: value.Addr,
-			Peer: value.Peer,
-		})
-	}
+	//if info.ID != "" {
+	//	video.AddSourceInfo(info)
+	//}
+	//
+	//for _, value := range GetPeers() {
+	//	video.AddPeers(&model.SourcePeerDetail{
+	//		Addr: value.Addr,
+	//		Peer: value.Peer,
+	//	})
+	//}
 	return model.AddOrUpdateVideo(video)
 }
 

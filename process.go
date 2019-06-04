@@ -13,6 +13,16 @@ import (
 	"gopkg.in/urfave/cli.v2"
 )
 
+// Process ...
+type Process struct {
+	Pin      bool   `json:"pin"`
+	Slice    bool   `json:"slice"`
+	Move     bool   `json:"move"`
+	MovePath string `json:"move_path"`
+	JSON     bool   `json:"json"`
+	JSONPath string `json:"json_path"`
+}
+
 func prefix(s string) (ret string) {
 	ret = "/ipfs/" + s
 	return
@@ -51,7 +61,7 @@ func CmdProcess(app *cli.App) *cli.Command {
 			if context.Bool("q") {
 				//QuickProcess()
 			}
-			//Process()
+			//ProcessVideo()
 
 			return nil
 		},
@@ -184,8 +194,8 @@ func moveSuccess(file string) (e error) {
 	return os.Rename(file, newPathFile)
 }
 
-// Process ...
-func Process(source *VideoSource) (e error) {
+// ProcessVideo ...
+func ProcessVideo(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}

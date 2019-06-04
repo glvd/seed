@@ -2,6 +2,8 @@ package seed
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -97,29 +99,34 @@ func CmdProcess(app *cli.App) *cli.Command {
 // Run ...
 func (p *Process) Run() (err error) {
 	p.Ignore()
-
 	if p.Before != nil {
 		if err = p.Before(p); err != nil {
 			return err
 		}
 	}
 	p.getFiles(p.Workspace)
-
 	//uncat := model.Uncategorized{}
+
 	return nil
+}
+
+// PathMD5 ...
+func PathMD5(s ...string) string {
+	str := filepath.Join(s...)
+	return fmt.Sprintf("%x", md5.Sum([]byte(str)))
 }
 
 // Ignore ...
 func (p *Process) Ignore() {
-	p.ignores[p.MovePath] = nil
-	//p.ignores[p.j]
+	p.ignores[PathMD5(p.Workspace, p.MovePath)] = nil
 }
 
-func (p *Process) checkIgnore(name string) (b bool) {
+// CheckIgnore ...
+func (p *Process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
-	_, b = p.ignores[name]
+	_, b = p.ignores[PathMD5(name)]
 	return
 }
 
@@ -141,6 +148,9 @@ func (p *Process) getFiles(ws string) (files []string) {
 		var fullpath string
 		for _, name := range names {
 			fullpath = filepath.Join(ws, name)
+			if p.CheckIgnore(fullpath) {
+				continue
+			}
 			tmp := p.getFiles(fullpath)
 			if tmp != nil {
 				files = append(files, tmp...)

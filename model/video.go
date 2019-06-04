@@ -9,6 +9,8 @@ type Video struct {
 	Intro        string   `xorm:"varchar(2048)" json:"intro"` //简介
 	Alias        []string `xorm:"json" json:"alias"`          //别名，片名
 	SourceHash   string   `json:"source_hash"`                //原片地址
+	Key          string   `json:"key"`                        //秘钥
+	M3U8         string   `json:"m3u8"`                       //M3U8名
 	M3U8Hash     string   `json:"m3u8_hash"`                  //切片地址
 	PosterHash   string   `json:"poster_hash"`                //海报地址
 	Role         []string `xorm:"json" json:"role"`           //主演
@@ -26,9 +28,10 @@ type Video struct {
 	Index        string   `json:"index"`                      //索引
 	Sharpness    string   `json:"sharpness"`                  //清晰度
 	Sliced       bool     `json:"sliced"`                     //切片
-	HLS          HLS      `xorm:"json" json:"hls,omitempty"`  //切片信息
 	Sync         bool     `xorm:"notnull default(0)"`         //是否已同步
 	Visit        uint64   `xorm:"notnull default(0)"`         //访问统计
+
+	//HLS          HLS      `xorm:"json" json:"hls,omitempty"`  //切片信息
 	//VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
 	//SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`
 	//SourcePeerList []*SourcePeer `xorm:"json" json:"source_peer_list"`
@@ -36,18 +39,6 @@ type Video struct {
 
 func init() {
 	RegisterTable(Video{})
-}
-
-// AddPeers ...
-func (v *Video) AddPeers(p ...*SourcePeerDetail) {
-	for _, value := range p {
-		v.SourcePeerList = append(v.SourcePeerList, &SourcePeer{SourcePeerDetail: value})
-	}
-}
-
-// AddSourceInfo ...
-func (v *Video) AddSourceInfo(info *SourceInfoDetail) {
-	addSourceInfo(v, info)
 }
 
 // FindVideo ...

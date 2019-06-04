@@ -15,8 +15,8 @@ import (
 	"gopkg.in/urfave/cli.v2"
 )
 
-// CallbackFunc ...
-type CallbackFunc func(interface{}) error
+// ProcessCallbackFunc ...
+type ProcessCallbackFunc func(process *Process) error
 
 // Process ...
 type Process struct {
@@ -27,8 +27,8 @@ type Process struct {
 	MovePath  string `json:"move_path"`
 	JSON      bool   `json:"json"`
 	JSONPath  string `json:"json_path"`
-	Before    CallbackFunc
-	After     CallbackFunc
+	Before    ProcessCallbackFunc
+	After     ProcessCallbackFunc
 	ignores   map[string][]byte
 }
 
@@ -36,16 +36,32 @@ func initIgnore() map[string][]byte {
 	return make(map[string][]byte, 3)
 }
 
+func tmp(path string, name string) string {
+	mp, e := filepath.Abs(path)
+	if e != nil {
+		mp, e = filepath.Abs(filepath.Dir(os.Args[0]))
+		if e != nil {
+			//ignore error
+			mp, _ = os.UserHomeDir()
+		}
+	}
+	return filepath.Join(mp, name)
+}
+
 // NewProcess ...
-func NewProcess() *Process {
+func NewProcess(ws string) *Process {
+
 	return &Process{
-		Pin:      false,
-		Slice:    true,
-		Move:     true,
-		MovePath: "tmp",
-		JSON:     false,
-		JSONPath: "seed.json",
-		ignores:  initIgnore(),
+		Workspace: ws,
+		Pin:       false,
+		Slice:     true,
+		Move:      true,
+		MovePath:  tmp(ws, "tmp"),
+		JSON:      false,
+		JSONPath:  "seed.json",
+		Before:    nil,
+		After:     nil,
+		ignores:   initIgnore(),
 	}
 }
 
@@ -98,14 +114,16 @@ func CmdProcess(app *cli.App) *cli.Command {
 
 // Run ...
 func (p *Process) Run() (err error) {
-	p.Ignore()
+	p.ignore()
 	if p.Before != nil {
 		if err = p.Before(p); err != nil {
 			return err
 		}
 	}
-	p.getFiles(p.Workspace)
-	//uncat := model.Uncategorized{}
+	files := p.getFiles(p.Workspace)
+	for _, file := range files {
+		log.Info(file)
+	}
 
 	return nil
 }
@@ -117,8 +135,8 @@ func PathMD5(s ...string) string {
 }
 
 // Ignore ...
-func (p *Process) Ignore() {
-	p.ignores[PathMD5(p.Workspace, p.MovePath)] = nil
+func (p *Process) ignore() {
+	p.ignores[PathMD5(p.MovePath)] = nil
 }
 
 // CheckIgnore ...

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
+	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
 	"path"
 	"path/filepath"
@@ -113,7 +114,7 @@ func CmdProcess(app *cli.App) *cli.Command {
 }
 
 // Run ...
-func (p *Process) Run() (err error) {
+func (p *Process) Run(thread int) (err error) {
 	p.ignore()
 	if p.Before != nil {
 		if err = p.Before(p); err != nil {
@@ -163,21 +164,43 @@ func (p *Process) getFiles(ws string) (files []string) {
 		if e != nil {
 			return nil
 		}
-		var fullpath string
+		var fullPath string
 		for _, name := range names {
-			fullpath = filepath.Join(ws, name)
-			if p.CheckIgnore(fullpath) {
+			fullPath = filepath.Join(ws, name)
+			if p.CheckIgnore(fullPath) {
 				continue
 			}
-			tmp := p.getFiles(fullpath)
+			tmp := p.getFiles(fullPath)
 			if tmp != nil {
 				files = append(files, tmp...)
 			}
 		}
 		return files
 	}
-	files = append(files, ws)
-	return
+	return append(files, ws)
+}
+
+// DefaultUncategorized ...
+func DefaultUncategorized(name string) *model.Uncategorized {
+	_, file := filepath.Split(name)
+	uncat := &model.Uncategorized{
+		Name:    file,
+		Type:    "other",
+		Hash:    "",
+		IsVideo: false,
+		Object:  nil,
+	}
+	uncat.Checksum = model.Checksum(name)
+	format, e := cmd.FFProbeStreamFormat(name)
+	if e != nil {
+		return uncat
+	}
+
+	if format.IsVideo() {
+		file = format.NameAnalyze().ToString()
+	}
+
+	return uncat
 }
 
 // QuickProcess ...
@@ -215,7 +238,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				log.Error(value, " continue with dir")
 				continue
 			}
-			uncat.Checksum = model.Checksum(file)
+
 			log.Infof("add [%s]:%s", uncat.Checksum, file)
 			object, e := rest.AddFile(file)
 			if e != nil {

@@ -13,7 +13,7 @@ type VideoLink struct {
 // VideoObject ...
 type VideoObject struct {
 	Links []*VideoLink `json:"links,omitempty"`
-	Link  VideoLink    `json:",inline"`
+	Link  VideoLink    `xorm:"extends"  json:",inline"`
 }
 
 // LinkObjectToObject ...

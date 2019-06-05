@@ -29,7 +29,7 @@ func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
 }
 
 func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
-	SwarmAddList(video.SourcePeerList)
+	//SwarmAddList(video.SourcePeerList)
 	log.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	//log.Info("pin poster:", video.Poster)
@@ -37,14 +37,14 @@ func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
 	if poster {
 		return
 	}
-	for _, value := range video.VideoGroupList {
-		log.Infof("list:%+v", value)
-		for _, val := range value.Object {
-			//log.Info("pin media:", val.Link.Hash)
-			wg.Add(1)
-			go pin(wg, val.Link.Hash)
-		}
-	}
+	//for _, value := range video.VideoGroupList {
+	//	log.Infof("list:%+v", value)
+	//	for _, val := range value.Object {
+	//log.Info("pin media:", val.Link.Hash)
+	//wg.Add(1)
+	//go pin(wg, val.Link.Hash)
+	//}
+	//}
 }
 
 // QuickPin ...

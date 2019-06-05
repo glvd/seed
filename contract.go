@@ -204,40 +204,39 @@ func singleInput(eth *ETH, video *model.Video) (e error) {
 		}
 		opt := bind.NewKeyedTransactor(eth.PrivateKey())
 		name := video.Bangumi
-		list := video.VideoGroupList[0]
-		objMax := len(list.Object)
-		objMaxStr := strconv.FormatInt(int64(objMax), 10)
-		for i := 0; i < objMax; i++ {
-			idxStr := strconv.FormatInt(int64(i+1), 10)
-			upperName := strings.ToUpper(name + "@" + idxStr)
-			e = CheckExist(upperName)
-			if e == nil {
-				continue
-			}
-			transaction, err := data.InfoInput(opt,
-				strings.ToUpper(upperName),
-				video.PosterHash,
-				video.Role[0],
-				list.Object[i].Link.Hash,
-				video.Alias[0],
-				list.Sharpness,
-				idxStr,
-				objMaxStr,
-				list.Season,
-				list.Output,
-				"",
-				"")
-			if err != nil {
-				return true, err
-			}
-			ctx := context.Background()
-			receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
-			if err != nil {
-				return true, err
-			}
-			log.Info(name + "@" + idxStr + " success")
-			log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+		//list := video.VideoGroupList[0]
+		//objMax := len(list.Object)
+		//objMaxStr := strconv.FormatInt(int64(objMax), 10)
+		//for i := 0; i < objMax; i++ {
+		//	idxStr := strconv.FormatInt(int64(i+1), 10)
+		upperName := strings.ToUpper(name + "@" + video.Episode)
+		e = CheckExist(upperName)
+		if e == nil {
+			return
 		}
+		transaction, err := data.InfoInput(opt,
+			strings.ToUpper(upperName),
+			video.PosterHash,
+			video.Role[0],
+			video.M3U8Hash,
+			video.Alias[0],
+			video.Sharpness,
+			video.Episode,
+			video.TotalEpisode,
+			video.Season,
+			video.Format,
+			"",
+			"")
+		if err != nil {
+			return true, err
+		}
+		ctx := context.Background()
+		receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+		if err != nil {
+			return true, err
+		}
+		log.Info(name + "@" + video.Episode + " success")
+		log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
 		return true, nil
 	})
 
@@ -252,45 +251,36 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 		opt := bind.NewKeyedTransactor(eth.PrivateKey())
 		name := video.Bangumi
 
-		for _, list := range video.VideoGroupList {
-			objMax := len(list.Object)
-			if objMax > 1 {
-				return true, xerrors.New("multiple group list can only use object with 1 ")
-			}
-
-			for i := 0; i < objMax; i++ {
-				idxStr := strconv.FormatInt(int64(i+1), 10)
-				upperName := strings.ToUpper(name + "@" + idxStr)
-				e = CheckExist(upperName)
-				if e == nil {
-					continue
-				}
-				transaction, err := data.InfoInput(opt,
-					strings.ToUpper(upperName),
-					video.PosterHash,
-					video.Role[0],
-					list.Object[i].Link.Hash,
-					video.Alias[0],
-					list.Sharpness,
-					list.Episode,
-					list.TotalEpisode,
-					list.Season,
-					list.Output,
-					"",
-					"")
-				if err != nil {
-					return true, err
-				}
-				ctx := context.Background()
-				receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
-				if err != nil {
-					//log.Fatalf("tx mining error:%v\n", err)
-					return true, err
-				}
-				log.Info(name + "@" + idxStr + " success")
-				log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
-			}
+		upperName := strings.ToUpper(name + "@" + video.Episode)
+		e = CheckExist(upperName)
+		if e == nil {
+			return
 		}
+		transaction, err := data.InfoInput(opt,
+			strings.ToUpper(upperName),
+			video.PosterHash,
+			video.Role[0],
+			video.M3U8Hash,
+			video.Alias[0],
+			video.Sharpness,
+			video.Episode,
+			video.TotalEpisode,
+			video.Season,
+			video.Format,
+			"",
+			"")
+		if err != nil {
+			return true, err
+		}
+		ctx := context.Background()
+		receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+		if err != nil {
+			//log.Fatalf("tx mining error:%v\n", err)
+			return true, err
+		}
+		log.Info(name + "@" + video.Episode + " success")
+		log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+
 		return true, nil
 	})
 
@@ -298,15 +288,15 @@ func multipleInput(eth *ETH, video *model.Video) (e error) {
 
 // InfoInput ...
 func infoInput(eth *ETH, video *model.Video) (e error) {
-	if video == nil || video.VideoGroupList == nil {
-		return
-	}
-
-	vgMax := len(video.VideoGroupList)
+	//if video == nil || video.VideoGroupList == nil {
+	//	return
+	//}
+	//
+	//vgMax := len(video.VideoGroupList)
 	fn := singleInput
-	if vgMax > 1 {
-		fn = multipleInput
-	}
+	//if vgMax > 1 {
+	//	fn = multipleInput
+	//}
 	return fn(eth, video)
 }
 

@@ -14,24 +14,3 @@ type SourceInfo struct {
 	//Model             `xorm:"extends"`
 	*SourceInfoDetail `xorm:"extends"`
 }
-
-// AddSourceInfo ...
-func addSourceInfo(video *Video, info *SourceInfoDetail) {
-	if video.SourceInfoList == nil {
-		video.SourceInfoList = []*SourceInfo{{
-			SourceInfoDetail: info,
-		}}
-		return
-	}
-	for idx, value := range video.SourceInfoList {
-		if value.SourceInfoDetail.ID == info.ID {
-			video.SourceInfoList[idx] = &SourceInfo{
-				SourceInfoDetail: info,
-			}
-			return
-		}
-	}
-	video.SourceInfoList = append(video.SourceInfoList, &SourceInfo{
-		SourceInfoDetail: info,
-	})
-}

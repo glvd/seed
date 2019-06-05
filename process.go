@@ -199,7 +199,7 @@ func DefaultUncategorized(name string) *model.Uncategorized {
 	if format.IsVideo() {
 		file = format.NameAnalyze().ToString()
 	}
-
+	uncat.Name = file
 	return uncat
 }
 

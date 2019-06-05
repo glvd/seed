@@ -13,16 +13,6 @@ type VideoGroup struct {
 	Object      []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
 }
 
-// HLS ...
-type HLS struct {
+func init() {
+	RegisterTable(VideoGroup{})
 }
-
-//// NewVideoGroup ...
-//func NewVideoGroup() *VideoGroup {
-//	return &VideoGroup{
-//		Sharpness: "",
-//		Sliced:    false,
-//		HLS:       nil,
-//		Object:    nil,
-//	}
-//}

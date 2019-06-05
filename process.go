@@ -2,6 +2,9 @@ package seed
 
 import (
 	"context"
+	"crypto/md5"
+	"fmt"
+	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +15,56 @@ import (
 	"golang.org/x/xerrors"
 	"gopkg.in/urfave/cli.v2"
 )
+
+// ProcessCallbackFunc ...
+type ProcessCallbackFunc func(process *Process) error
+
+// Process ...
+type Process struct {
+	Workspace string `json:"workspace"`
+	Pin       bool   `json:"pin"`
+	Slice     bool   `json:"slice"`
+	Move      bool   `json:"move"`
+	MovePath  string `json:"move_path"`
+	JSON      bool   `json:"json"`
+	JSONPath  string `json:"json_path"`
+	Before    ProcessCallbackFunc
+	After     ProcessCallbackFunc
+	ignores   map[string][]byte
+}
+
+func initIgnore() map[string][]byte {
+	return make(map[string][]byte, 3)
+}
+
+func tmp(path string, name string) string {
+	mp, e := filepath.Abs(path)
+	if e != nil {
+		mp, e = filepath.Abs(filepath.Dir(os.Args[0]))
+		if e != nil {
+			//ignore error
+			mp, _ = os.UserHomeDir()
+		}
+	}
+	return filepath.Join(mp, name)
+}
+
+// NewProcess ...
+func NewProcess(ws string) *Process {
+
+	return &Process{
+		Workspace: ws,
+		Pin:       false,
+		Slice:     true,
+		Move:      true,
+		MovePath:  tmp(ws, "tmp"),
+		JSON:      false,
+		JSONPath:  "seed.json",
+		Before:    nil,
+		After:     nil,
+		ignores:   initIgnore(),
+	}
+}
 
 func prefix(s string) (ret string) {
 	ret = "/ipfs/" + s
@@ -51,7 +104,7 @@ func CmdProcess(app *cli.App) *cli.Command {
 			if context.Bool("q") {
 				//QuickProcess()
 			}
-			//Process()
+			//ProcessVideo()
 
 			return nil
 		},
@@ -60,29 +113,94 @@ func CmdProcess(app *cli.App) *cli.Command {
 	}
 }
 
-type FileProcess func(pathname string) (e error)
-
-func loadFile(path string, fp FileProcess) (e error) {
-	file, e := os.Open(path)
-	if e != nil {
-		return e
+// Run ...
+func (p *Process) Run(thread int) (err error) {
+	p.ignore()
+	if p.Before != nil {
+		if err = p.Before(p); err != nil {
+			return err
+		}
 	}
-	defer file.Close()
-	info, e := file.Stat()
-	if e != nil {
-		return e
+	files := p.getFiles(p.Workspace)
+	for _, file := range files {
+		log.Info(file)
 	}
 
-	if b := info.IsDir(); !b {
+	return nil
+}
+
+// PathMD5 ...
+func PathMD5(s ...string) string {
+	str := filepath.Join(s...)
+	return fmt.Sprintf("%x", md5.Sum([]byte(str)))
+}
+
+// Ignore ...
+func (p *Process) ignore() {
+	p.ignores[PathMD5(p.MovePath)] = nil
+}
+
+// CheckIgnore ...
+func (p *Process) CheckIgnore(name string) (b bool) {
+	if p.ignores == nil {
+		return false
+	}
+	_, b = p.ignores[PathMD5(name)]
+	return
+}
+
+func (p *Process) getFiles(ws string) (files []string) {
+	info, e := os.Stat(ws)
+	if e != nil {
+		return nil
+	}
+	if info.IsDir() {
+		file, e := os.Open(ws)
+		if e != nil {
+			return nil
+		}
+		defer file.Close()
 		names, e := file.Readdirnames(-1)
 		if e != nil {
-			return e
+			return nil
 		}
+		var fullPath string
 		for _, name := range names {
-			return loadFile(filepath.Join(path, name), fp)
+			fullPath = filepath.Join(ws, name)
+			if p.CheckIgnore(fullPath) {
+				continue
+			}
+			tmp := p.getFiles(fullPath)
+			if tmp != nil {
+				files = append(files, tmp...)
+			}
 		}
+		return files
 	}
-	return fp(path)
+	return append(files, ws)
+}
+
+// DefaultUncategorized ...
+func DefaultUncategorized(name string) *model.Uncategorized {
+	_, file := filepath.Split(name)
+	uncat := &model.Uncategorized{
+		Name:    file,
+		Type:    "other",
+		Hash:    "",
+		IsVideo: false,
+		Object:  nil,
+	}
+	uncat.Checksum = model.Checksum(name)
+	format, e := cmd.FFProbeStreamFormat(name)
+	if e != nil {
+		return uncat
+	}
+
+	if format.IsVideo() {
+		file = format.NameAnalyze().ToString()
+	}
+
+	return uncat
 }
 
 // QuickProcess ...
@@ -120,7 +238,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				log.Error(value, " continue with dir")
 				continue
 			}
-			uncat.Checksum = model.Checksum(file)
+
 			log.Infof("add [%s]:%s", uncat.Checksum, file)
 			object, e := rest.AddFile(file)
 			if e != nil {
@@ -150,7 +268,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 					IsVideo:  uncat.IsVideo,
 					Object:   nil,
 				}
-				file, e := SplitVideo(context.Background(), hls(nil), file)
+				file, e := SplitVideo(context.Background(), nil, file)
 				if e != nil {
 					log.Errorf("split file error:%+v", object)
 					continue
@@ -209,8 +327,8 @@ func moveSuccess(file string) (e error) {
 	return os.Rename(file, newPathFile)
 }
 
-// Process ...
-func Process(source *VideoSource) (e error) {
+// ProcessVideo ...
+func ProcessVideo(source *VideoSource) (e error) {
 	if source == nil {
 		return xerrors.New("nil source")
 	}
@@ -224,9 +342,6 @@ func Process(source *VideoSource) (e error) {
 		return err
 	}
 	parseVideoBase(video, source)
-	video.SourcePeerList = nil
-	video.SourceInfoList = nil
-	video.VideoGroupList = nil
 
 	log.Infof("%+v", video)
 
@@ -248,16 +363,16 @@ func Process(source *VideoSource) (e error) {
 	info := GetSourceInfo()
 	log.Info(*info)
 
-	if info.ID != "" {
-		video.AddSourceInfo(info)
-	}
-
-	for _, value := range GetPeers() {
-		video.AddPeers(&model.SourcePeerDetail{
-			Addr: value.Addr,
-			Peer: value.Peer,
-		})
-	}
+	//if info.ID != "" {
+	//	video.AddSourceInfo(info)
+	//}
+	//
+	//for _, value := range GetPeers() {
+	//	video.AddPeers(&model.SourcePeerDetail{
+	//		Addr: value.Addr,
+	//		Peer: value.Peer,
+	//	})
+	//}
 	return model.AddOrUpdateVideo(video)
 }
 
@@ -308,33 +423,25 @@ func MustString(val, src string) string {
 }
 
 // hls ...
-func hls(def *model.HLS) *model.HLS {
-	if def != nil {
-		def.Key = MustString(def.Key, "")
-		def.M3U8 = MustString(def.M3U8, "media.m3u8")
-		def.SegmentFile = MustString(def.SegmentFile, "media-%05d.ts")
-	}
-
-	return &model.HLS{
-		Encrypt:     false,
-		Key:         "",
-		M3U8:        "media.m3u8",
-		SegmentFile: "media-%05d.ts",
+func initHLS(source *VideoSource) {
+	if source != nil {
+		source.Key = MustString(source.Key, "")
+		source.M3U8 = MustString(source.M3U8, "media.m3u8")
+		source.SegmentFile = MustString(source.SegmentFile, "media-%05d.ts")
 	}
 }
 
 func addSlice(video *model.Video, source *VideoSource) (e error) {
-	s := *source
-	s.HLS = hls(s.HLS)
-	s.Files = nil
+	initHLS(source)
+	source.Files = nil
 	for _, value := range source.Files {
-		file, e := SplitVideo(context.Background(), s.HLS, value)
+		file, e := SplitVideo(context.Background(), nil, value)
 		if e != nil {
 			return e
 		}
-		s.Files = append(s.Files, file)
+		source.Files = append(source.Files, file)
 	}
-	e = add(video, &s)
+	e = add(video, source)
 	if e != nil {
 		return e
 	}
@@ -354,19 +461,19 @@ func addChecksum(video *model.Video, source *VideoSource) (e error) {
 	}
 
 	//create if null
-	if video.VideoGroupList == nil {
-		video.VideoGroupList = []*model.VideoGroup{group}
-	}
-
-	//replace if found
-	for i, v := range video.VideoGroupList {
-		if v.Index == group.Index {
-			video.VideoGroupList[i] = group
-			return nil
-		}
-	}
-	//append if not found
-	video.VideoGroupList = append(video.VideoGroupList, group)
+	//if video.VideoGroupList == nil {
+	//	video.VideoGroupList = []*model.VideoGroup{group}
+	//}
+	//
+	////replace if found
+	//for i, v := range video.VideoGroupList {
+	//	if v.Index == group.Index {
+	//		video.VideoGroupList[i] = group
+	//		return nil
+	//	}
+	//}
+	////append if not found
+	//video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
 }
 
@@ -411,35 +518,35 @@ func add(video *model.Video, source *VideoSource) (e error) {
 	}
 
 	//create if null
-	if video.VideoGroupList == nil {
-		video.VideoGroupList = []*model.VideoGroup{group}
-	}
-
-	//replace if found
-	for i, v := range video.VideoGroupList {
-		if v.Index == group.Index {
-			video.VideoGroupList[i] = group
-			return nil
-		}
-	}
-	//append if not found
-	video.VideoGroupList = append(video.VideoGroupList, group)
+	//if video.VideoGroupList == nil {
+	//	video.VideoGroupList = []*model.VideoGroup{group}
+	//}
+	//
+	////replace if found
+	//for i, v := range video.VideoGroupList {
+	//	if v.Index == group.Index {
+	//		video.VideoGroupList[i] = group
+	//		return nil
+	//	}
+	//}
+	////append if not found
+	//video.VideoGroupList = append(video.VideoGroupList, group)
 	return nil
 }
 
 func parseGroup(index string, source *VideoSource) *model.VideoGroup {
 	return &model.VideoGroup{
-		Index:        index,
-		Sharpness:    source.Sharpness,
-		Output:       source.Output,
-		Season:       source.Season,
-		TotalEpisode: source.TotalEpisode,
-		Episode:      source.Episode,
-		Language:     source.Language,
-		Caption:      source.Caption,
-		Sliced:       source.Slice,
-		HLS:          *hls(source.HLS),
-		Object:       nil,
+		Index: index,
+		//Sharpness:    source.Sharpness,
+		//Output:       source.Output,
+		//Season:       source.Season,
+		//TotalEpisode: source.TotalEpisode,
+		//Episode:      source.Episode,
+		//Language:     source.Language,
+		//Caption:      source.Caption,
+		Sliced: source.Slice,
+		//HLS:          *hls(source.HLS),
+		Object: nil,
 	}
 
 }

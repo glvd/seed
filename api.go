@@ -12,8 +12,12 @@ import (
 
 var rest *shell.Shell
 
-func init() {
-	rest = shell.NewShell("localhost:5001")
+// Rest ...
+func Rest() *shell.Shell {
+	if rest == nil {
+		rest = shell.NewShell("localhost:5001")
+	}
+	return rest
 }
 
 // InitShell ...

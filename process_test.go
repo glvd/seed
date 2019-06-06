@@ -5,7 +5,8 @@ import "testing"
 // TestGetFiles ...
 func TestGetFiles(t *testing.T) {
 	process := NewProcess("D:\\video")
-	process.Run(3)
+	err := process.Run(3)
+	log.Info(err)
 
 }
 

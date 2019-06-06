@@ -17,6 +17,7 @@ type Uncategorized struct {
 	Name        string         `xorm:"name"`
 	Hash        string         `xorm:"hash"`                         //哈希地址
 	IsVideo     bool           `xorm:"default(0)"`                   //视频文件
+	Sharpness   string         `json:"sharpness"`                    //清晰度
 	Sync        bool           `xorm:"default(0)"`                   //是否同步
 	Sliced      bool           `json:"sliced"`                       //切片
 	Encrypt     bool           `json:"encrypt"`                      //加密

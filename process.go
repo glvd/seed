@@ -124,6 +124,42 @@ func (p *Process) Run(thread int) (err error) {
 	files := p.getFiles(p.Workspace)
 	for _, file := range files {
 		log.Info(file)
+		uncategorized := DefaultUncategorized(file)
+		object, err := rest.AddFile(file)
+		if err != nil {
+			return err
+		}
+		uncategorized.Hash = object.Hash
+
+		//fix name and get format
+		format, err := parseUncategorizedFromStreamFormat(uncategorized)
+		err = model.AddOrUpdateUncategorized(uncategorized)
+		if err != nil {
+			return err
+		}
+		log.Info(uncategorized.ID)
+		ctx := cmd.FFmpegContext()
+		if uncategorized.IsVideo {
+			sa, err := cmd.FFMpegSplitToM3U8(ctx, file, cmd.StreamFormatOption(format))
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			dirs, err := rest.AddDir(sa.Output)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			if len(dirs) > 0 {
+				uncategorized.Hash = dirs[0].Hash
+				uncategorized.Type = "m3u8"
+			}
+			err = model.AddOrUpdateUncategorized(uncategorized)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+		}
 	}
 
 	return nil
@@ -180,26 +216,40 @@ func (p *Process) getFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
+func parseUncategorizedFromStreamFormat(u *model.Uncategorized) (format *cmd.StreamFormat, e error) {
+	format, e = cmd.FFProbeStreamFormat(u.Name)
+	if e != nil {
+		return nil, e
+	}
+
+	if format.IsVideo() {
+		u.Type = "video"
+		u.Name = format.NameAnalyze().ToString()
+		u.Sharpness = getVideoResolution(format)
+	}
+	return format, nil
+}
+
 // DefaultUncategorized ...
 func DefaultUncategorized(name string) *model.Uncategorized {
 	_, file := filepath.Split(name)
 	uncat := &model.Uncategorized{
-		Name:    file,
-		Type:    "other",
-		Hash:    "",
-		IsVideo: false,
-		Object:  nil,
+		Model:       model.Model{},
+		Checksum:    "",
+		Type:        "other",
+		Name:        file,
+		Hash:        "",
+		IsVideo:     false,
+		Sync:        false,
+		Sliced:      false,
+		Encrypt:     false,
+		Key:         "",
+		M3U8:        "media.m3u8",
+		SegmentFile: "media-%05d.ts",
+		Caption:     "",
+		Object:      nil,
 	}
 	uncat.Checksum = model.Checksum(name)
-	format, e := cmd.FFProbeStreamFormat(name)
-	if e != nil {
-		return uncat
-	}
-
-	if format.IsVideo() {
-		file = format.NameAnalyze().ToString()
-	}
-	uncat.Name = file
 	return uncat
 }
 

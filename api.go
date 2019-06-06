@@ -12,6 +12,10 @@ import (
 
 var rest *shell.Shell
 
+func init() {
+	rest = shell.NewShell("localhost:5001")
+}
+
 // InitShell ...
 func InitShell(s string) {
 	log.Info("ipfs shell:", s)

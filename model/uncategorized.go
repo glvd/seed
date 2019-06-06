@@ -12,20 +12,20 @@ import (
 // Uncategorized 未分类
 type Uncategorized struct {
 	Model       `xorm:"extends"`
-	Checksum    string         `xorm:"checksum"`
-	Type        string         `xorm:"type"`
-	Name        string         `xorm:"name"`
-	Hash        string         `xorm:"hash"`                         //哈希地址
-	IsVideo     bool           `xorm:"default(0)"`                   //视频文件
-	Sharpness   string         `json:"sharpness"`                    //清晰度
-	Sync        bool           `xorm:"default(0)"`                   //是否同步
-	Sliced      bool           `json:"sliced"`                       //切片
-	Encrypt     bool           `json:"encrypt"`                      //加密
-	Key         string         `json:"key"`                          //秘钥
-	M3U8        string         `json:"m3u8"`                         //M3U8名
-	Caption     string         `json:"caption"`                      //字幕
-	SegmentFile string         `json:"segment_file"`                 //ts切片名
-	Object      []*VideoObject `xorm:"json" json:"object,omitempty"` //视频信息
+	Checksum    string       `xorm:"checksum default()"`
+	Type        string       `xorm:"type default()"`
+	Name        string       `xorm:"default()" xorm:"name"`
+	Hash        string       `xorm:"default()" xorm:"hash"`         //哈希地址
+	IsVideo     bool         `xorm:"default(0)"`                    //视频文件
+	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
+	Sync        bool         `xorm:"default(0)"`                    //是否同步
+	Sliced      bool         `json:"sliced"`                        //切片
+	Encrypt     bool         `json:"encrypt"`                       //加密
+	Key         string       `xorm:"default()"json:"key"`           //秘钥
+	M3U8        string       `xorm:"m3u8 default()" json:"m3u8"`    //M3U8名
+	Caption     string       `xorm:"default()" json:"caption"`      //字幕
+	SegmentFile string       `xorm:"default()" json:"segment_file"` //ts切片名
+	Object      *VideoObject `xorm:"json" json:"object,omitempty"`  //视频信息
 }
 
 func init() {

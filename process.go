@@ -122,6 +122,7 @@ func (p *Process) Run(thread int) (err error) {
 		}
 	}
 	files := p.getFiles(p.Workspace)
+	log.Info(files)
 	for _, file := range files {
 		log.Info(file)
 		uncategorized := DefaultUncategorized(file)
@@ -150,6 +151,7 @@ func (p *Process) Run(thread int) (err error) {
 				log.Error(err)
 				continue
 			}
+			uncategorized.Object = dirs
 			if len(dirs) > 0 {
 				uncategorized.Hash = dirs[0].Hash
 				uncategorized.Type = "m3u8"
@@ -297,7 +299,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 			}
 			log.Info("added", uncat.Checksum)
 			uncat.Hash = object.Hash
-			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
+			uncat.Object = append(uncat.Object, model.ObjectIntoLink(nil, object))
 			uncat.IsVideo = isVideo(value)
 			if uncat.IsVideo {
 				uncat.Type = "video"
@@ -333,11 +335,11 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 				var obj *model.VideoObject
 				for idx, v := range rets {
 					if idx == last {
-						obj = model.ObjectToLink(obj, v)
+						obj = model.ObjectIntoLink(obj, v)
 						uncatvideo.Hash = obj.Link.Hash
 						continue
 					}
-					obj = model.ObjectToLinks(obj, v)
+					obj = model.ObjectIntoLinks(obj, v)
 				}
 				log.Infof("%+v", *obj)
 				uncatvideo.Object = append(uncatvideo.Object, obj)
@@ -548,11 +550,11 @@ func add(video *model.Video, source *VideoSource) (e error) {
 			var obj *model.VideoObject
 			for idx, v := range rets {
 				if idx == last {
-					obj = model.ObjectToLink(obj, v)
+					obj = model.ObjectIntoLink(obj, v)
 					//group.Object = append(group.Object)
 					continue
 				}
-				obj = model.ObjectToLinks(obj, v)
+				obj = model.ObjectIntoLinks(obj, v)
 			}
 			group.Object = append(group.Object, obj)
 
@@ -564,7 +566,7 @@ func add(video *model.Video, source *VideoSource) (e error) {
 			continue
 		}
 		//hash = ret.Hash
-		group.Object = append(group.Object, model.ObjectToLink(nil, ret))
+		group.Object = append(group.Object, model.ObjectIntoLink(nil, ret))
 	}
 
 	//create if null

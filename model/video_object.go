@@ -16,16 +16,31 @@ type VideoObject struct {
 	Link  VideoLink    `xorm:"extends"  json:",inline"`
 }
 
-// LinkObjectToObject ...
-func LinkObjectToObject(obj interface{}) *VideoObject {
+// ObjectFromLink ...
+func ObjectFromLink(obj interface{}) *VideoObject {
 	if v, b := obj.(*VideoObject); b {
 		return v
 	}
 	return &VideoObject{}
 }
 
-// ObjectToLink ...
-func ObjectToLink(obj *VideoObject, ret *shell.Object) *VideoObject {
+// LinkFromLink ...
+func LinkFromLink(obj interface{}) *VideoLink {
+	if v, b := obj.(*VideoLink); b {
+		return v
+	}
+	return &VideoLink{}
+}
+
+// ParseLinks ...
+func (obj *VideoObject) ParseLinks(links []*shell.Object) {
+	for _, link := range links {
+		obj.Links = append(obj.Links, LinkFromLink(link))
+	}
+}
+
+// ObjectIntoLink ...
+func ObjectIntoLink(obj *VideoObject, ret *shell.Object) *VideoObject {
 	if obj != nil {
 		obj.Link.Hash = ret.Hash
 		obj.Link.Name = ret.Name
@@ -43,8 +58,8 @@ func ObjectToLink(obj *VideoObject, ret *shell.Object) *VideoObject {
 	}
 }
 
-// ObjectToLinks ...
-func ObjectToLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
+// ObjectIntoLinks ...
+func ObjectIntoLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
 	if obj != nil {
 		obj.Links = append(obj.Links, &VideoLink{
 			Hash: ret.Hash,

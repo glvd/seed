@@ -13,55 +13,52 @@ type VideoLink struct {
 // VideoObject ...
 type VideoObject struct {
 	Links []*VideoLink `json:"links,omitempty"`
-	Link  VideoLink    `xorm:"extends"  json:",inline"`
+	Link  *VideoLink   `xorm:"extends"  json:",inline"`
 }
 
-// LinkObjectToObject ...
-func LinkObjectToObject(obj interface{}) *VideoObject {
-	if v, b := obj.(*VideoObject); b {
-		return v
-	}
-	return &VideoObject{}
-}
-
-// ObjectToLink ...
-func ObjectToLink(obj *VideoObject, ret *shell.Object) *VideoObject {
-	if obj != nil {
-		obj.Link.Hash = ret.Hash
-		obj.Link.Name = ret.Name
-		obj.Link.Size = ret.Size
-		obj.Link.Type = 2
-		return obj
-	}
-	return &VideoObject{
-		Link: VideoLink{
-			Hash: ret.Hash,
-			Name: ret.Name,
-			Size: ret.Size,
-			Type: 2,
-		},
+// ObjectToVideoLink ...
+func ObjectToVideoLink(obj *shell.Object) *VideoLink {
+	return &VideoLink{
+		Hash: obj.Hash,
+		Name: obj.Name,
+		Size: obj.Size,
+		Type: -1,
 	}
 }
 
-// ObjectToLinks ...
-func ObjectToLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
-	if obj != nil {
-		obj.Links = append(obj.Links, &VideoLink{
-			Hash: ret.Hash,
-			Name: ret.Name,
-			Size: ret.Size,
-			Type: 2,
-		})
-		return obj
+// ParseLinks ...
+func (obj *VideoObject) ParseLinks(links []*shell.Object) *VideoLink {
+	last := len(links) - 1
+	for i, link := range links {
+		if i == last || last == 0 {
+			obj.Link = ObjectToVideoLink(link)
+			break
+		}
+		obj.Links = append(obj.Links, ObjectToVideoLink(link))
 	}
-	return &VideoObject{
-		Links: []*VideoLink{
-			{
-				Hash: ret.Hash,
-				Name: ret.Name,
-				Size: ret.Size,
-				Type: 2,
-			},
-		},
-	}
+	return obj.Link
 }
+
+//
+//// ObjectIntoLinks ...
+//func ObjectIntoLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
+//	if obj != nil {
+//		obj.Links = append(obj.Links, &VideoLink{
+//			Hash: ret.Hash,
+//			Name: ret.Name,
+//			Size: ret.Size,
+//			Type: 2,
+//		})
+//		return obj
+//	}
+//	return &VideoObject{
+//		Links: []*VideoLink{
+//			{
+//				Hash: ret.Hash,
+//				Name: ret.Name,
+//				Size: ret.Size,
+//				Type: 2,
+//			},
+//		},
+//	}
+//}

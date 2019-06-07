@@ -2,7 +2,6 @@ package seed
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -12,7 +11,7 @@ import (
 	"github.com/yinhevr/seed/model"
 )
 
-const sliceM3u8FfmpegTemplate = "-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s"
+const sliceM3u8FFmpegTemplate = "-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 -hls_segment_filename %s %s"
 
 /*
 120		160 QQVGA
@@ -97,7 +96,7 @@ func getResolutionIndex(n int64, sta, end int) int {
 }
 
 // SplitVideo ...
-func SplitVideo(ctx context.Context, uncat *model.Uncategorized, file string) (fp string, e error) {
+func SplitVideo(ctx context.Context, uncat *model.Unfinished, file string) (fp string, e error) {
 	fp = filepath.Join("tmp", uuid.New().String())
 	log.Debug("split path:", fp)
 	fp, e = filepath.Abs(fp)
@@ -120,11 +119,11 @@ func SplitVideo(ctx context.Context, uncat *model.Uncategorized, file string) (f
 	}
 
 	//command := cmd.NewFFMpeg()
-	sf := filepath.Join(fp, uncat.SegmentFile)
-	m3u8 := filepath.Join(fp, uncat.M3U8)
-	args := fmt.Sprintf(sliceM3u8FfmpegTemplate, file, sf, m3u8)
+	//sf := filepath.Join(fp, uncat.SegmentFile)
+	//m3u8 := filepath.Join(fp, uncat.M3U8)
+	//args := fmt.Sprintf(sliceM3u8FFmpegTemplate, file, sf, m3u8)
 	//ffmpeg -y -i $input -strict -2 -hls_segment_filename ./output/media-%03d.ts  -c:a aac -c:v copy libx264 -bsf:v h264_mp4toannexb -f hls -hls_time 10 -hls_list_size 0 ./output/m3u8
 
-	cmd.FFMpegSpliteMedia(ctx, args)
+	//cmd.FFMpegRun(ctx, args)
 	return "", nil
 }

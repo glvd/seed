@@ -29,7 +29,7 @@ type VideoSource struct {
 	AudioEncode  string    `json:"audio_encode"`  //音频编码
 	Files        []string  `json:"files"`         //存放路径
 	HashFiles    []string  `json:"hash_files"`    //已上传Hash
-	CheckFiles   []string  `json:"check_files"`   //uncategorized checksum
+	CheckFiles   []string  `json:"check_files"`   //Unfinished checksum
 	Slice        bool      `json:"slice"`         //是否HLS切片
 	Encrypt      bool      `json:"encrypt"`       //加密
 	Key          string    `json:"key"`           //秘钥

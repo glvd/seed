@@ -13,7 +13,7 @@ require (
 	github.com/fjl/memsize v0.0.0-20180929194037-2a09253e352a // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/go-xorm/xorm v0.7.1
-	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190606070937-01500bd4899d
+	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190606083945-fd782012474f
 	github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0
 	github.com/godcong/go-trait v0.0.0-20190528080809-9a857488365f
 	github.com/google/uuid v1.1.1

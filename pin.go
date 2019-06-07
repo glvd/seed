@@ -50,27 +50,27 @@ func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
 // QuickPin ...
 func QuickPin(checksum string, check bool) (e error) {
 	log.Info("pin checksum:", checksum)
-	var uncategorizeds []*model.Uncategorized
+	var Unfinisheds []*model.Unfinished
 	if checksum == "" {
-		uncategorizeds, e = model.AllUncategorized(check)
+		Unfinisheds, e = model.AllUnfinished(check)
 		if e != nil {
 			return e
 		}
 
 	} else {
-		uncategorized, e := model.FindUncategorized(checksum, check)
+		Unfinished, e := model.FindUnfinished(checksum, check)
 		if e != nil {
 			return e
 		}
-		uncategorizeds = append(uncategorizeds, uncategorized)
+		Unfinisheds = append(Unfinisheds, Unfinished)
 	}
 
-	for _, v := range uncategorizeds {
+	for _, v := range Unfinisheds {
 		pin(nil, v.Hash, func(hash string) {
 			v.Sync = true
 			i, e := model.DB().Cols("sync").Update(v)
 			if e != nil {
-				log.Errorf("uncategorized nothing updated with:%d,%+v", i, e)
+				log.Errorf("Unfinished nothing updated with:%d,%+v", i, e)
 			}
 		})
 	}

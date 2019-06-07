@@ -9,8 +9,8 @@ import (
 	"os"
 )
 
-// Uncategorized 未分类
-type Uncategorized struct {
+// Unfinished 未分类
+type Unfinished struct {
 	Model       `xorm:"extends"`
 	Checksum    string       `xorm:"checksum default()"`
 	Type        string       `xorm:"type default()"`
@@ -29,12 +29,12 @@ type Uncategorized struct {
 }
 
 func init() {
-	RegisterTable(Uncategorized{})
+	RegisterTable(Unfinished{})
 }
 
-// AllUncategorized ...
-func AllUncategorized(check bool) ([]*Uncategorized, error) {
-	var uncats []*Uncategorized
+// AllUnfinished ...
+func AllUnfinished(check bool) ([]*Unfinished, error) {
+	var uncats []*Unfinished
 	if check {
 		if err := DB().Where("sync = ?", !check).Find(&uncats); err != nil {
 			return nil, err
@@ -47,9 +47,9 @@ func AllUncategorized(check bool) ([]*Uncategorized, error) {
 	return uncats, nil
 }
 
-// FindUncategorized ...
-func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
-	var uncat Uncategorized
+// FindUnfinished ...
+func FindUnfinished(checksum string, check bool) (*Unfinished, error) {
+	var uncat Unfinished
 	if check {
 		b, e := DB().Where("type = ?", "m3u8").Where("sync = ?", !check).Where("checksum = ?", checksum).Get(&uncat)
 		if e != nil || !b {
@@ -64,14 +64,16 @@ func FindUncategorized(checksum string, check bool) (*Uncategorized, error) {
 	return &uncat, nil
 }
 
-// AddOrUpdateUncategorized ...
-func AddOrUpdateUncategorized(uncat *Uncategorized) (e error) {
+// AddOrUpdateUnfinished ...
+func AddOrUpdateUnfinished(uncat *Unfinished) (e error) {
 	log.Infof("%+v", *uncat)
-	i, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).And("type = ?", uncat.Type).Count()
+	tmp := new(Unfinished)
+	b, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).And("type = ?", uncat.Type).Get(tmp)
 	if e != nil {
 		return e
 	}
-	if i > 0 {
+	if b {
+		uncat.Version = tmp.Version
 		if _, err := DB().Where("checksum = ?", uncat.Checksum).Update(uncat); err != nil {
 			return err
 		}

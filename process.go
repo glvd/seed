@@ -28,6 +28,7 @@ type Process struct {
 	MovePath  string `json:"move_path"`
 	JSON      bool   `json:"json"`
 	JSONPath  string `json:"json_path"`
+	Thread    int    `json:"thread"`
 	Before    ProcessCallbackFunc
 	After     ProcessCallbackFunc
 	ignores   map[string][]byte
@@ -51,13 +52,12 @@ func tmp(path string, name string) string {
 
 // NewProcess ...
 func NewProcess(ws string) *Process {
-
 	return &Process{
 		Workspace: ws,
 		Pin:       false,
 		Slice:     true,
 		Move:      true,
-		MovePath:  tmp(ws, "tmp"),
+		MovePath:  tmp(ws, "success"),
 		JSON:      false,
 		JSONPath:  "seed.json",
 		Before:    nil,
@@ -114,34 +114,42 @@ func CmdProcess(app *cli.App) *cli.Command {
 }
 
 // Run ...
-func (p *Process) Run(thread int) (err error) {
+func (p *Process) Run() {
 	p.ignore()
 	if p.Before != nil {
-		if err = p.Before(p); err != nil {
-			return err
+		if err := p.Before(p); err != nil {
+			log.Error(err)
+			return
 		}
 	}
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
 	for _, file := range files {
 		log.Info(file)
-		uncategorized := DefaultUncategorized(file)
+		Unfinished := DefaultUnfinished(file)
 		object, err := rest.AddFile(file)
 		if err != nil {
-			return err
+			log.Error(err)
+			continue
 		}
-		uncategorized.Hash = object.Hash
-
+		Unfinished.Hash = object.Hash
+		Unfinished.Object = model.ObjectIntoLink(Unfinished.Object, object)
 		//fix name and get format
-		format, err := parseUncategorizedFromStreamFormat(uncategorized)
-		err = model.AddOrUpdateUncategorized(uncategorized)
+		format, err := parseUnfinishedFromStreamFormat(file, Unfinished)
 		if err != nil {
-			return err
+			log.Error(err)
+			continue
 		}
-		log.Info(uncategorized.ID)
-		ctx := cmd.FFmpegContext()
-		if uncategorized.IsVideo {
-			sa, err := cmd.FFMpegSplitToM3U8(ctx, file, cmd.StreamFormatOption(format))
+		log.Infof("%+v", format)
+		err = model.AddOrUpdateUnfinished(Unfinished)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+
+		if Unfinished.IsVideo && p.Slice {
+			log.With("split", file).Info("process")
+			sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format))
 			if err != nil {
 				log.Error(err)
 				continue
@@ -151,20 +159,23 @@ func (p *Process) Run(thread int) (err error) {
 				log.Error(err)
 				continue
 			}
-			uncategorized.Object = dirs
+
 			if len(dirs) > 0 {
-				uncategorized.Hash = dirs[0].Hash
-				uncategorized.Type = "m3u8"
+				Unfinished.Hash = dirs[0].Hash
+				Unfinished.Type = "m3u8"
 			}
-			err = model.AddOrUpdateUncategorized(uncategorized)
+			Unfinished.Object = model.ObjectIntoLink(Unfinished.Object, dirs[0])
+			Unfinished.Object.ParseLinks(dirs)
+			err = model.AddOrUpdateUnfinished(Unfinished)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 		}
+
 	}
 
-	return nil
+	return
 }
 
 // PathMD5 ...
@@ -218,13 +229,14 @@ func (p *Process) getFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
-func parseUncategorizedFromStreamFormat(u *model.Uncategorized) (format *cmd.StreamFormat, e error) {
-	format, e = cmd.FFProbeStreamFormat(u.Name)
+func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {
+	format, e = cmd.FFProbeStreamFormat(file)
 	if e != nil {
 		return nil, e
 	}
 
 	if format.IsVideo() {
+		u.IsVideo = true
 		u.Type = "video"
 		u.Name = format.NameAnalyze().ToString()
 		u.Sharpness = getVideoResolution(format)
@@ -232,10 +244,10 @@ func parseUncategorizedFromStreamFormat(u *model.Uncategorized) (format *cmd.Str
 	return format, nil
 }
 
-// DefaultUncategorized ...
-func DefaultUncategorized(name string) *model.Uncategorized {
+// DefaultUnfinished ...
+func DefaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
-	uncat := &model.Uncategorized{
+	uncat := &model.Unfinished{
 		Model:       model.Model{},
 		Checksum:    "",
 		Type:        "other",
@@ -273,7 +285,7 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 			return e
 		}
 		for _, value := range names {
-			uncat := model.Uncategorized{
+			uncat := model.Unfinished{
 				Name:    value,
 				Type:    "other",
 				Hash:    "",
@@ -299,19 +311,19 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 			}
 			log.Info("added", uncat.Checksum)
 			uncat.Hash = object.Hash
-			uncat.Object = append(uncat.Object, model.ObjectIntoLink(nil, object))
+			//uncat.Object = append(uncat.Object, model.ObjectIntoLink(nil, object))
 			uncat.IsVideo = isVideo(value)
 			if uncat.IsVideo {
 				uncat.Type = "video"
 			}
-			e = model.AddOrUpdateUncategorized(&uncat)
+			e = model.AddOrUpdateUnfinished(&uncat)
 			if e != nil {
-				log.Errorf("insert uncategorized error:%+v", e)
+				log.Errorf("insert Unfinished error:%+v", e)
 				continue
 			}
 			log.Info("inserted table", uncat)
 			if uncat.IsVideo {
-				uncatvideo := model.Uncategorized{
+				uncatvideo := model.Unfinished{
 					Model:    model.Model{},
 					Checksum: uncat.Checksum,
 					Type:     "m3u8",
@@ -342,21 +354,21 @@ func QuickProcess(pathname string, needPin bool) (e error) {
 					obj = model.ObjectIntoLinks(obj, v)
 				}
 				log.Infof("%+v", *obj)
-				uncatvideo.Object = append(uncatvideo.Object, obj)
+				//uncatvideo.Object = append(uncatvideo.Object, obj)
 				log.Info("inserted video table", uncatvideo)
 				if needPin {
 					pin(nil, uncatvideo.Hash, func(hash string) {
 						uncatvideo.Sync = true
-						e = model.AddOrUpdateUncategorized(&uncatvideo)
+						e = model.AddOrUpdateUnfinished(&uncatvideo)
 						if e != nil {
-							log.Errorf("insert uncategorized error:%+v", e)
+							log.Errorf("insert Unfinished error:%+v", e)
 						}
 					})
 					continue
 				}
-				e = model.AddOrUpdateUncategorized(&uncatvideo)
+				e = model.AddOrUpdateUnfinished(&uncatvideo)
 				if e != nil {
-					log.Errorf("insert uncategorized error:%+v", e)
+					log.Errorf("insert Unfinished error:%+v", e)
 					continue
 				}
 			}
@@ -402,7 +414,7 @@ func ProcessVideo(source *VideoSource) (e error) {
 
 	fn := add
 	if source.CheckFiles != nil {
-		log.Debug("add from uncategorized")
+		log.Debug("add from Unfinished")
 		fn = addChecksum
 	} else if source.Slice {
 		log.Debug("add with slice")
@@ -505,11 +517,11 @@ func addChecksum(video *model.Video, source *VideoSource) (e error) {
 	hash := Hash(source)
 	group := parseGroup(hash, source)
 	for _, value := range source.CheckFiles {
-		uncategorized, e := model.FindUncategorized(value, false)
+		Unfinished, e := model.FindUnfinished(value, false)
 		if e != nil {
 			return e
 		}
-		group.Object = uncategorized.Object
+		group.Object = []*model.VideoObject{Unfinished.Object}
 	}
 
 	//create if null

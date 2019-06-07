@@ -51,13 +51,13 @@ func tmp(path string, name string) string {
 	return filepath.Join(mp, name)
 }
 
-// NewProcess ...
-func NewProcess(ws string, ps ...Options) Seeder {
+// NewProcessSeeder ...
+func NewProcessSeeder(ws string, ps ...Options) Seeder {
 	process := &Process{
 		Workspace: ws,
 		ignores:   make(map[string][]byte, 3),
 	}
-	ps = append(ps, ProcessOption(process))
+	ps = append(ps, FirstRunOption(process))
 	return NewSeed(ps...)
 }
 

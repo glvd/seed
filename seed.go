@@ -58,9 +58,9 @@ func (seed *seed) Err() error {
 }
 
 func (seed *seed) Start() {
-	log.Info("first running")
+	seed.wg.Add(1)
 	go func() {
-		seed.wg.Add(1)
+		log.Info("first running")
 		defer seed.wg.Done()
 		if seed.Runnable != nil {
 			seed.Runnable.Run(seed.ctx)
@@ -77,11 +77,16 @@ func (seed *seed) Wait() {
 //type ProcessCallbackFunc func(process *Process) error
 
 func NewSeed(ops ...Options) Seeder {
+	ctx, cancel := context.WithCancel(context.Background())
 	seed := &seed{
-		wg:      &sync.WaitGroup{},
-		runner:  make(map[int][]Runnable),
-		ignores: make(map[string][]byte),
-		threads: 0,
+		Runnable: nil,
+		wg:       &sync.WaitGroup{},
+		ctx:      ctx,
+		cancel:   cancel,
+		threads:  0,
+		runner:   make(map[int][]Runnable),
+		ignores:  make(map[string][]byte),
+		err:      nil,
 	}
 	for _, op := range ops {
 		op(seed)

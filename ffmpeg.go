@@ -96,7 +96,7 @@ func getResolutionIndex(n int64, sta, end int) int {
 }
 
 // SplitVideo ...
-func SplitVideo(ctx context.Context, uncat *model.Uncategorized, file string) (fp string, e error) {
+func SplitVideo(ctx context.Context, uncat *model.Unfinished, file string) (fp string, e error) {
 	fp = filepath.Join("tmp", uuid.New().String())
 	log.Debug("split path:", fp)
 	fp, e = filepath.Abs(fp)

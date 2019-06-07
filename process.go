@@ -24,9 +24,9 @@ func dummy(process *Process) (e error) {
 type Process struct {
 	Shell     *shell.Shell
 	Workspace string `json:"workspace"`
-	process   map[string]ProcessCallbackFunc
-	thread    int `json:"thread"`
-	ignores   map[string][]byte
+	//process   map[string]ProcessCallbackFunc
+	thread  int `json:"thread"`
+	ignores map[string][]byte
 	//Pin       bool   `json:"pin"`
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
@@ -52,7 +52,7 @@ func tmp(path string, name string) string {
 }
 
 // NewProcess ...
-func NewProcess(ws string, ps ...Options) Runnable {
+func NewProcess(ws string, ps ...Options) Seeder {
 	process := &Process{
 		Workspace: ws,
 		ignores:   make(map[string][]byte, 3),
@@ -86,49 +86,42 @@ func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file 
 }
 
 // Run ...
-func (p *Process) Run() {
-	if err := p.cb("before")(p); err != nil {
-		log.Error(err)
-		return
-	}
+func (p *Process) Run(ctx context.Context) {
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
 	for _, file := range files {
 		log.Info(file)
-		unfin := DefaultUnfinished(file)
-		object, err := rest.AddFile(file)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		//fix name and get format
-		format, err := parseUnfinishedFromStreamFormat(file, unfin)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		log.Infof("%+v", format)
-
-		unfin.Hash = object.Hash
-		unfin.Object.Link = model.ObjectToVideoLink(object)
-		if unfin.IsVideo {
-			err := p.slice(unfin, format, file)
+		select {
+		case <-ctx.Done():
+			if err := ctx.Err(); err != nil {
+				log.Error(err)
+			}
+			return
+		default:
+			unfin := DefaultUnfinished(file)
+			object, err := rest.AddFile(file)
 			if err != nil {
-				log.With("split", file).Error(err)
+				log.Error(err)
+				continue
+			}
+			//fix name and get format
+			format, err := parseUnfinishedFromStreamFormat(file, unfin)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			log.Infof("%+v", format)
+
+			unfin.Hash = object.Hash
+			unfin.Object.Link = model.ObjectToVideoLink(object)
+			if unfin.IsVideo {
+				err := p.slice(unfin, format, file)
+				if err != nil {
+					log.With("split", file).Error(err)
+				}
 			}
 		}
-		err = p.cb("move")(p)
-		if err != nil {
-			return
-		}
-
-		err = p.cb("pin")(p)
-		if err != nil {
-			return
-		}
-
 	}
-
 	return
 }
 

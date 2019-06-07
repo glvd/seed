@@ -23,7 +23,7 @@ type Unfinished struct {
 	Caption     string       `xorm:"default()" json:"caption"`      //字幕
 	SegmentFile string       `xorm:"default()" json:"segment_file"` //ts切片名
 	Object      *VideoObject `xorm:"json" json:"object,omitempty"`  //视频信息
-	SliceObject *VideoObject `xorm:"json"`
+	SliceObject *VideoObject `xorm:"json" json:"slice_object,omitempty"`
 }
 
 func init() {

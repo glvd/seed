@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/md5"
 	"fmt"
+	"github.com/go-xorm/xorm"
 	"golang.org/x/xerrors"
 	"io"
 	"os"
@@ -35,70 +36,38 @@ func init() {
 }
 
 // AllUnfinished ...
-func AllUnfinished(check bool) ([]*Unfinished, error) {
-	var uncats []*Unfinished
-	if check {
-		if err := DB().Where("sync = ?", !check).Find(&uncats); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := DB().Find(&uncats); err != nil {
-			return nil, err
-		}
+func AllUnfinished(session *xorm.Session, limit int, start ...int) (unfins []*Unfinished, e error) {
+	unfins = []*Unfinished{}
+	if err := MustSession(session).Limit(limit, start...).Find(&unfins); err != nil {
+		return nil, err
 	}
-	return uncats, nil
+	return unfins, nil
 }
 
 // FindUnfinished ...
-func FindUnfinished(checksum string, check bool) (*Unfinished, error) {
-	var uncat Unfinished
-	if check {
-		b, e := DB().Where("type = ?", "m3u8").Where("sync = ?", !check).Where("checksum = ?", checksum).Get(&uncat)
-		if e != nil || !b {
-			return nil, xerrors.New("uncategorize not found!")
-		}
-	} else {
-		b, e := DB().Where("type = ?", "m3u8").Where("checksum = ?", checksum).Get(&uncat)
-		if e != nil || !b {
-			return nil, xerrors.New("uncategorize not found!")
-		}
+func FindUnfinished(session *xorm.Session, checksum string) (unfin *Unfinished, e error) {
+	unfin = new(Unfinished)
+	b, e := MustSession(session).Where("checksum = ?", checksum).Get(unfin)
+	if e != nil || !b {
+		return nil, xerrors.New("uncategorize not found!")
 	}
-	return &uncat, nil
+	return unfin, nil
 }
 
 // AddOrUpdateUnfinished ...
-func AddOrUpdateUnfinished(uncat *Unfinished) (e error) {
-	log.Infof("%+v", *uncat)
+func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 	tmp := new(Unfinished)
-	b, e := DB().Table(uncat).Where("checksum = ?", uncat.Checksum).And("type = ?", uncat.Type).Get(tmp)
+	found, e := DB().Table(unfin).Where("checksum = ?", unfin.Checksum).Get(tmp)
 	if e != nil {
 		return e
 	}
-	if b {
-		uncat.Version = tmp.Version
-		if _, err := DB().Where("checksum = ?", uncat.Checksum).Update(uncat); err != nil {
-			return err
+	if found {
+		unfin.Version = tmp.Version
+		if _, e = DB().Where("checksum = ?", unfin.Checksum).Update(unfin); e != nil {
+			return e
 		}
 		return nil
 	}
-	if _, err := DB().InsertOne(uncat); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Checksum ...
-func Checksum(filepath string) string {
-	hash := md5.New()
-	file, e := os.OpenFile(filepath, os.O_RDONLY, os.ModePerm)
-	if e != nil {
-		return ""
-	}
-	defer file.Close()
-	reader := bufio.NewReader(file)
-	_, e = io.Copy(hash, reader)
-	if e != nil {
-		return ""
-	}
-	return fmt.Sprintf("%x", hash.Sum(nil))
+	_, e = DB().InsertOne(unfin)
+	return
 }

@@ -12,10 +12,11 @@ import (
 // Unfinished 未分类
 type Unfinished struct {
 	Model       `xorm:"extends"`
-	Checksum    string       `xorm:"checksum default()"`
-	Type        string       `xorm:"type default()"`
-	Name        string       `xorm:"default()" xorm:"name"`
-	Hash        string       `xorm:"default()" xorm:"hash"`         //哈希地址
+	Checksum    string       `xorm:"default() checksum"`
+	Type        string       `xorm:"default() type"`
+	Name        string       `xorm:"default() name"`
+	Hash        string       `xorm:"default() hash"` //哈希地址
+	SliceHash   string       `xorm:"default()" json:"slice_hash"`
 	IsVideo     bool         `xorm:"default(0)"`                    //视频文件
 	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
 	Sync        bool         `xorm:"default(0)"`                    //是否同步
@@ -26,6 +27,7 @@ type Unfinished struct {
 	Caption     string       `xorm:"default()" json:"caption"`      //字幕
 	SegmentFile string       `xorm:"default()" json:"segment_file"` //ts切片名
 	Object      *VideoObject `xorm:"json" json:"object,omitempty"`  //视频信息
+	SliceObject *VideoObject `xorm:"json"`
 }
 
 func init() {

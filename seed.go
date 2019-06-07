@@ -1,48 +1,87 @@
 package seed
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"strings"
+	"sync"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
 )
 
-type Options func(*Seed)
+type Options func(*seed)
+
+type Thread struct {
+	wg sync.WaitGroup
+}
+
+type Threader interface {
+}
 
 type Runnable interface {
-	Run()
+	Run(context.Context)
 }
 
-type Seed struct {
-	runner  map[string]Runnable
+type Stepper int
+
+const StepperProcess = 10
+
+type Seeder interface {
+	Start()
+	Wait()
+	Stop()
+	Err() error
+}
+
+type seed struct {
+	Runnable
+	wg      *sync.WaitGroup
+	ctx     context.Context
+	cancel  context.CancelFunc
+	threads int
+	runner  map[int][]Runnable
 	ignores map[string][]byte
-	thread  int
+	err     error
 }
 
-func (seed *Seed) Start() {
+func (seed *seed) Stop() {
+	if seed.cancel != nil {
+		seed.cancel()
+	}
+
+}
+
+func (seed *seed) Err() error {
+	return seed.err
+}
+
+func (seed *seed) Start() {
+	log.Info("first running")
 	go func() {
-		for key, r := range seed.runner {
-			log.With("run", key).Info("running")
-			r.Run()
+		seed.wg.Add(1)
+		defer seed.wg.Done()
+		if seed.Runnable != nil {
+			seed.Runnable.Run(seed.ctx)
 		}
 	}()
 
 }
 
-func (seed *Seed) Stop() {
-
+func (seed *seed) Wait() {
+	seed.wg.Wait()
 }
 
 //ProcessCallbackFunc ...
 //type ProcessCallbackFunc func(process *Process) error
 
-func NewSeed(ops ...Options) *Seed {
-	seed := &Seed{
-		runner:  make(map[string]Runnable),
+func NewSeed(ops ...Options) Seeder {
+	seed := &seed{
+		wg:      &sync.WaitGroup{},
+		runner:  make(map[int][]Runnable),
 		ignores: make(map[string][]byte),
-		thread:  0,
+		threads: 0,
 	}
 	for _, op := range ops {
 		op(seed)
@@ -50,14 +89,20 @@ func NewSeed(ops ...Options) *Seed {
 	return seed
 }
 
+func FirstRunOption(runnable Runnable) Options {
+	return func(seed *seed) {
+		seed.Runnable = runnable
+	}
+}
+
 func ProcessOption(process *Process) Options {
-	return func(seed *Seed) {
-		seed.runner["process"] = process
+	return func(seed *seed) {
+		seed.runner[StepperProcess] = []Runnable{process}
 	}
 }
 
 func IgnoreOption(ignores ...string) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		for _, i := range ignores {
 			seed.ignores[PathMD5(i)] = nil
 		}
@@ -65,8 +110,8 @@ func IgnoreOption(ignores ...string) Options {
 }
 
 func ThreadOption(t int) Options {
-	return func(seed *Seed) {
-		seed.thread = t
+	return func(seed *seed) {
+		seed.threads = t
 	}
 }
 

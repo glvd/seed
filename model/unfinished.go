@@ -1,13 +1,8 @@
 package model
 
 import (
-	"bufio"
-	"crypto/md5"
-	"fmt"
 	"github.com/go-xorm/xorm"
 	"golang.org/x/xerrors"
-	"io"
-	"os"
 )
 
 // Unfinished 未分类

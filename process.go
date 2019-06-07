@@ -85,12 +85,20 @@ func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file 
 	return model.AddOrUpdateUnfinished(unfin)
 }
 
+func fixname(file string) string {
+	n := strings.Replace(file, " ", "", -1)
+	e := os.Rename(file, n)
+	log.Error(e)
+	return n
+}
+
 // Run ...
 func (p *Process) Run(ctx context.Context) {
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
-	for _, file := range files {
-		log.Info(file)
+	for _, oldFile := range files {
+		file := fixname(oldFile)
+		log.With("old", oldFile, "new", file).Info("print filename")
 		select {
 		case <-ctx.Done():
 			if err := ctx.Err(); err != nil {
@@ -98,6 +106,7 @@ func (p *Process) Run(ctx context.Context) {
 			}
 			return
 		default:
+			log.With("file", file).Info("process run")
 			unfin := DefaultUnfinished(file)
 			object, err := rest.AddFile(file)
 			if err != nil {

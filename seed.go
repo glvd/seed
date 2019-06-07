@@ -9,6 +9,67 @@ import (
 	"github.com/yinhevr/seed/model"
 )
 
+type Options func(*Seed)
+
+type Runnable interface {
+	Run()
+}
+
+type Seed struct {
+	runner  map[string]Runnable
+	ignores map[string][]byte
+	thread  int
+}
+
+func (seed *Seed) Start() {
+	go func() {
+		for key, r := range seed.runner {
+			log.With("run", key).Info("running")
+			r.Run()
+		}
+	}()
+
+}
+
+func (seed *Seed) Stop() {
+
+}
+
+//ProcessCallbackFunc ...
+//type ProcessCallbackFunc func(process *Process) error
+
+func NewSeed(ops ...Options) *Seed {
+	seed := &Seed{
+		runner:  make(map[string]Runnable),
+		ignores: make(map[string][]byte),
+		thread:  0,
+	}
+	for _, op := range ops {
+		op(seed)
+	}
+	return seed
+}
+
+func ProcessOption(process *Process) Options {
+	return func(seed *Seed) {
+		seed.runner["process"] = process
+	}
+}
+
+func IgnoreOption(ignores ...string) Options {
+	return func(seed *Seed) {
+		for _, i := range ignores {
+			seed.ignores[PathMD5(i)] = nil
+		}
+	}
+}
+
+func ThreadOption(t int) Options {
+	return func(seed *Seed) {
+		seed.thread = t
+	}
+}
+
 // Extend ...
 type Extend struct {
 	Path    string `json:"path"`

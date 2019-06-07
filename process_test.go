@@ -1,7 +1,10 @@
 package seed
 
-import "testing"
-import _ "github.com/mattn/go-sqlite3"
+import (
+	"testing"
+
+	_ "github.com/mattn/go-sqlite3"
+)
 
 // TestGetFiles ...
 func TestGetFiles(t *testing.T) {

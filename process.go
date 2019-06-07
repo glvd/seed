@@ -6,7 +6,6 @@ import (
 	"fmt"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -69,18 +68,6 @@ func NewProcess(ws string) *Process {
 func prefix(s string) (ret string) {
 	ret = "/ipfs/" + s
 	return
-}
-
-func isVideo(filename string) bool {
-	vlist := []string{
-		"mkv", ".mp4", ".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
-	}
-	for _, v := range vlist {
-		if path.Ext(filename) == v {
-			return true
-		}
-	}
-	return false
 }
 
 // CmdProcess ...

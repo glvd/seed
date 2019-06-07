@@ -4,33 +4,35 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
 	"path/filepath"
 	"strings"
 
+	cmd "github.com/godcong/go-ffmpeg-cmd"
+
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
-	"gopkg.in/urfave/cli.v2"
 )
 
-// ProcessCallbackFunc ...
-type ProcessCallbackFunc func(process *Process) error
+func dummy(process *Process) (e error) {
+	log.Info("dummy called")
+	return
+}
 
 // Process ...
 type Process struct {
+	Shell     *shell.Shell
 	Workspace string `json:"workspace"`
-	Pin       bool   `json:"pin"`
-	Slice     bool   `json:"slice"`
-	Move      bool   `json:"move"`
-	MovePath  string `json:"move_path"`
-	JSON      bool   `json:"json"`
-	JSONPath  string `json:"json_path"`
-	Thread    int    `json:"thread"`
-	Before    ProcessCallbackFunc
-	After     ProcessCallbackFunc
+	process   map[string]ProcessCallbackFunc
+	thread    int `json:"thread"`
 	ignores   map[string][]byte
+	//Pin       bool   `json:"pin"`
+	//Slice     bool   `json:"slice"`
+	//Move      bool   `json:"move"`
+	//MovePath  string `json:"move_path"`
+	//JSON      bool   `json:"json"`
+	//JSONPath  string `json:"json_path"`
 }
 
 func initIgnore() map[string][]byte {
@@ -50,19 +52,13 @@ func tmp(path string, name string) string {
 }
 
 // NewProcess ...
-func NewProcess(ws string) *Process {
-	return &Process{
+func NewProcess(ws string, ps ...Options) Runnable {
+	process := &Process{
 		Workspace: ws,
-		Pin:       false,
-		Slice:     true,
-		Move:      true,
-		MovePath:  tmp(ws, "success"),
-		JSON:      false,
-		JSONPath:  "seed.json",
-		Before:    nil,
-		After:     nil,
-		ignores:   initIgnore(),
+		ignores:   make(map[string][]byte, 3),
 	}
+	ps = append(ps, ProcessOption(process))
+	return NewSeed(ps...)
 }
 
 func prefix(s string) (ret string) {
@@ -70,44 +66,30 @@ func prefix(s string) (ret string) {
 	return
 }
 
-// CmdProcess ...
-func CmdProcess(app *cli.App) *cli.Command {
-	flags := append(app.Flags,
-		&cli.BoolFlag{
-			Name:        "update",
-			Aliases:     []string{"u"},
-			Usage:       "update json config into video only",
-			Value:       false,
-			Destination: nil,
-		})
-
-	return &cli.Command{
-		Name:    "process",
-		Aliases: []string{"P"},
-		Usage:   "",
-		Action: func(context *cli.Context) error {
-			log.Info("process call")
-
-			if context.Bool("q") {
-				//QuickProcess()
-			}
-			//ProcessVideo()
-
-			return nil
-		},
-		Subcommands: nil,
-		Flags:       flags,
+func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
+	if err != nil {
+		return
 	}
+	log.Infof("%+v", sa)
+	dirs, err := rest.AddDir(sa.Output)
+	if err != nil {
+		return err
+	}
+
+	last := unfin.SliceObject.ParseLinks(dirs)
+	if last != nil {
+		unfin.SliceHash = last.Hash
+	}
+
+	return model.AddOrUpdateUnfinished(unfin)
 }
 
 // Run ...
 func (p *Process) Run() {
-	p.ignore()
-	if p.Before != nil {
-		if err := p.Before(p); err != nil {
-			log.Error(err)
-			return
-		}
+	if err := p.cb("before")(p); err != nil {
+		log.Error(err)
+		return
 	}
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
@@ -119,8 +101,6 @@ func (p *Process) Run() {
 			log.Error(err)
 			continue
 		}
-		unfin.Hash = object.Hash
-		unfin.Object.Link = model.ObjectToVideoLink(object)
 		//fix name and get format
 		format, err := parseUnfinishedFromStreamFormat(file, unfin)
 		if err != nil {
@@ -128,30 +108,23 @@ func (p *Process) Run() {
 			continue
 		}
 		log.Infof("%+v", format)
-		if unfin.IsVideo && p.Slice {
-			log.With("split", file).Info("process")
-			sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
-			if err != nil {
-				log.Error(err)
-				continue
-			}
-			log.Infof("%+v", sa)
-			dirs, err := rest.AddDir(sa.Output)
-			if err != nil {
-				log.Error(err)
-				continue
-			}
 
-			last := unfin.SliceObject.ParseLinks(dirs)
-			if last != nil {
-				unfin.SliceHash = last.Hash
-			}
-
-			err = model.AddOrUpdateUnfinished(unfin)
+		unfin.Hash = object.Hash
+		unfin.Object.Link = model.ObjectToVideoLink(object)
+		if unfin.IsVideo {
+			err := p.slice(unfin, format, file)
 			if err != nil {
-				log.Error(err)
-				continue
+				log.With("split", file).Error(err)
 			}
+		}
+		err = p.cb("move")(p)
+		if err != nil {
+			return
+		}
+
+		err = p.cb("pin")(p)
+		if err != nil {
+			return
 		}
 
 	}
@@ -163,11 +136,6 @@ func (p *Process) Run() {
 func PathMD5(s ...string) string {
 	str := filepath.Join(s...)
 	return fmt.Sprintf("%x", md5.Sum([]byte(str)))
-}
-
-// Ignore ...
-func (p *Process) ignore() {
-	p.ignores[PathMD5(p.MovePath)] = nil
 }
 
 // CheckIgnore ...

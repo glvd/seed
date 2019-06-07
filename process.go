@@ -87,9 +87,9 @@ func isVideo(filename string) bool {
 func CmdProcess(app *cli.App) *cli.Command {
 	flags := append(app.Flags,
 		&cli.BoolFlag{
-			Name:        "quick",
-			Aliases:     []string{"q"},
-			Usage:       "process data to ipfs skip read json",
+			Name:        "update",
+			Aliases:     []string{"u"},
+			Usage:       "update json config into video only",
 			Value:       false,
 			Destination: nil,
 		})
@@ -126,34 +126,29 @@ func (p *Process) Run() {
 	log.Info(files)
 	for _, file := range files {
 		log.Info(file)
-		Unfinished := DefaultUnfinished(file)
+		unfin := DefaultUnfinished(file)
 		object, err := rest.AddFile(file)
 		if err != nil {
 			log.Error(err)
 			continue
 		}
-		Unfinished.Hash = object.Hash
-		Unfinished.Object = model.ObjectIntoLink(Unfinished.Object, object)
+		unfin.Hash = object.Hash
+		unfin.Object = model.ObjectIntoLink(unfin.Object, object)
 		//fix name and get format
-		format, err := parseUnfinishedFromStreamFormat(file, Unfinished)
+		format, err := parseUnfinishedFromStreamFormat(file, unfin)
 		if err != nil {
 			log.Error(err)
 			continue
 		}
 		log.Infof("%+v", format)
-		err = model.AddOrUpdateUnfinished(Unfinished)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		if Unfinished.IsVideo && p.Slice {
+		if unfin.IsVideo && p.Slice {
 			log.With("split", file).Info("process")
-			sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format))
+			sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
 			if err != nil {
 				log.Error(err)
 				continue
 			}
+			log.Infof("%+v", sa)
 			dirs, err := rest.AddDir(sa.Output)
 			if err != nil {
 				log.Error(err)
@@ -161,12 +156,11 @@ func (p *Process) Run() {
 			}
 
 			if len(dirs) > 0 {
-				Unfinished.Hash = dirs[0].Hash
-				Unfinished.Type = "m3u8"
+				unfin.SliceHash = dirs[0].Hash
 			}
-			Unfinished.Object = model.ObjectIntoLink(Unfinished.Object, dirs[0])
-			Unfinished.Object.ParseLinks(dirs)
-			err = model.AddOrUpdateUnfinished(Unfinished)
+			unfin.SliceObject = model.ObjectIntoLink(unfin.SliceObject, dirs[0])
+			unfin.SliceObject.ParseLinks(dirs)
+			err = model.AddOrUpdateUnfinished(unfin)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -237,7 +231,7 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 
 	if format.IsVideo() {
 		u.IsVideo = true
-		u.Type = "video"
+		//u.Type = "video"
 		u.Name = format.NameAnalyze().ToString()
 		u.Sharpness = getVideoResolution(format)
 	}
@@ -248,9 +242,9 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 func DefaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
 	uncat := &model.Unfinished{
-		Model:       model.Model{},
-		Checksum:    "",
-		Type:        "other",
+		Model:    model.Model{},
+		Checksum: "",
+		//Type:        "other",
 		Name:        file,
 		Hash:        "",
 		IsVideo:     false,
@@ -265,122 +259,6 @@ func DefaultUnfinished(name string) *model.Unfinished {
 	}
 	uncat.Checksum = model.Checksum(name)
 	return uncat
-}
-
-// QuickProcess ...
-func QuickProcess(pathname string, needPin bool) (e error) {
-	info, e := os.Stat(pathname)
-	if e != nil {
-		return e
-	}
-	b := info.IsDir()
-	if b {
-		file, e := os.Open(pathname)
-		if e != nil {
-			return e
-		}
-		defer file.Close()
-		names, e := file.Readdirnames(-1)
-		if e != nil {
-			return e
-		}
-		for _, value := range names {
-			uncat := model.Unfinished{
-				Name:    value,
-				Type:    "other",
-				Hash:    "",
-				IsVideo: false,
-				Object:  nil,
-			}
-			file := filepath.Join(pathname, value)
-			fileinfo, e := os.Stat(file)
-			if e != nil {
-				log.Error(e)
-				continue
-			}
-			if fileinfo.IsDir() {
-				log.Error(value, " continue with dir")
-				continue
-			}
-
-			log.Infof("add [%s]:%s", uncat.Checksum, file)
-			object, e := rest.AddFile(file)
-			if e != nil {
-				log.Errorf("add file error:%+v", object)
-				continue
-			}
-			log.Info("added", uncat.Checksum)
-			uncat.Hash = object.Hash
-			//uncat.Object = append(uncat.Object, model.ObjectIntoLink(nil, object))
-			uncat.IsVideo = isVideo(value)
-			if uncat.IsVideo {
-				uncat.Type = "video"
-			}
-			e = model.AddOrUpdateUnfinished(&uncat)
-			if e != nil {
-				log.Errorf("insert Unfinished error:%+v", e)
-				continue
-			}
-			log.Info("inserted table", uncat)
-			if uncat.IsVideo {
-				uncatvideo := model.Unfinished{
-					Model:    model.Model{},
-					Checksum: uncat.Checksum,
-					Type:     "m3u8",
-					Name:     value,
-					Hash:     "",
-					IsVideo:  uncat.IsVideo,
-					Object:   nil,
-				}
-				file, e := SplitVideo(context.Background(), nil, file)
-				if e != nil {
-					log.Errorf("split file error:%+v", object)
-					continue
-				}
-				log.Info(file)
-				rets, e := rest.AddDir(file)
-				if e != nil {
-					log.Errorf("ipfs add file error:%+v", object)
-					continue
-				}
-				last := len(rets) - 1
-				var obj *model.VideoObject
-				for idx, v := range rets {
-					if idx == last {
-						obj = model.ObjectIntoLink(obj, v)
-						uncatvideo.Hash = obj.Link.Hash
-						continue
-					}
-					obj = model.ObjectIntoLinks(obj, v)
-				}
-				log.Infof("%+v", *obj)
-				//uncatvideo.Object = append(uncatvideo.Object, obj)
-				log.Info("inserted video table", uncatvideo)
-				if needPin {
-					pin(nil, uncatvideo.Hash, func(hash string) {
-						uncatvideo.Sync = true
-						e = model.AddOrUpdateUnfinished(&uncatvideo)
-						if e != nil {
-							log.Errorf("insert Unfinished error:%+v", e)
-						}
-					})
-					continue
-				}
-				e = model.AddOrUpdateUnfinished(&uncatvideo)
-				if e != nil {
-					log.Errorf("insert Unfinished error:%+v", e)
-					continue
-				}
-			}
-			log.Info("move file", file)
-			if err := moveSuccess(file); err != nil {
-				return err
-			}
-
-		}
-
-	}
-	return nil
 }
 
 func moveSuccess(file string) (e error) {

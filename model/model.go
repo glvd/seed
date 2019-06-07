@@ -1,13 +1,17 @@
 package model
 
 import (
+	"bufio"
+	"crypto/sha1"
 	"fmt"
 	"github.com/go-xorm/xorm"
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
 	"go.uber.org/zap"
+	"io"
 	"net/url"
+	"os"
 	"reflect"
 	"time"
 )
@@ -145,4 +149,28 @@ func (m *Model) BeforeInsert() {
 	if m.ID == "" {
 		m.ID = uuid.Must(uuid.NewRandom()).String()
 	}
+}
+
+// MustSession ...
+func MustSession(session *xorm.Session) *xorm.Session {
+	if session == nil {
+		return DB().NewSession()
+	}
+	return session
+}
+
+// Checksum ...
+func Checksum(filepath string) string {
+	hash := sha1.New()
+	file, e := os.OpenFile(filepath, os.O_RDONLY, os.ModePerm)
+	if e != nil {
+		return ""
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	_, e = io.Copy(hash, reader)
+	if e != nil {
+		return ""
+	}
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }

@@ -1,22 +1,24 @@
 package seed
 
 import "testing"
+import _ "github.com/mattn/go-sqlite3"
 
 // TestGetFiles ...
 func TestGetFiles(t *testing.T) {
+	Rest()
 	process := NewProcess("D:\\video")
-	process.Run(3)
+	process.Run()
 
 }
 
-// TestDefaultUncategorized ...
-func TestDefaultUncategorized(t *testing.T) {
+// TestDefaultUnfinished ...
+func TestDefaultUnfinished(t *testing.T) {
 	process := NewProcess("D:\\video")
 	files := process.getFiles("D:\\video")
 	for _, f := range files {
-		uncategorized := DefaultUncategorized(f)
+		Unfinished := DefaultUnfinished(f)
 
-		log.Infof("%+v", uncategorized)
+		log.Infof("%+v", Unfinished)
 	}
 
 }

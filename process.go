@@ -6,7 +6,6 @@ import (
 	"fmt"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -28,6 +27,7 @@ type Process struct {
 	MovePath  string `json:"move_path"`
 	JSON      bool   `json:"json"`
 	JSONPath  string `json:"json_path"`
+	Thread    int    `json:"thread"`
 	Before    ProcessCallbackFunc
 	After     ProcessCallbackFunc
 	ignores   map[string][]byte
@@ -51,13 +51,12 @@ func tmp(path string, name string) string {
 
 // NewProcess ...
 func NewProcess(ws string) *Process {
-
 	return &Process{
 		Workspace: ws,
 		Pin:       false,
 		Slice:     true,
 		Move:      true,
-		MovePath:  tmp(ws, "tmp"),
+		MovePath:  tmp(ws, "success"),
 		JSON:      false,
 		JSONPath:  "seed.json",
 		Before:    nil,
@@ -71,25 +70,13 @@ func prefix(s string) (ret string) {
 	return
 }
 
-func isVideo(filename string) bool {
-	vlist := []string{
-		"mkv", ".mp4", ".mpg", ".mpeg", ".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
-	}
-	for _, v := range vlist {
-		if path.Ext(filename) == v {
-			return true
-		}
-	}
-	return false
-}
-
 // CmdProcess ...
 func CmdProcess(app *cli.App) *cli.Command {
 	flags := append(app.Flags,
 		&cli.BoolFlag{
-			Name:        "quick",
-			Aliases:     []string{"q"},
-			Usage:       "process data to ipfs skip read json",
+			Name:        "update",
+			Aliases:     []string{"u"},
+			Usage:       "update json config into video only",
 			Value:       false,
 			Destination: nil,
 		})
@@ -114,19 +101,62 @@ func CmdProcess(app *cli.App) *cli.Command {
 }
 
 // Run ...
-func (p *Process) Run(thread int) (err error) {
+func (p *Process) Run() {
 	p.ignore()
 	if p.Before != nil {
-		if err = p.Before(p); err != nil {
-			return err
+		if err := p.Before(p); err != nil {
+			log.Error(err)
+			return
 		}
 	}
 	files := p.getFiles(p.Workspace)
+	log.Info(files)
 	for _, file := range files {
 		log.Info(file)
+		unfin := DefaultUnfinished(file)
+		object, err := rest.AddFile(file)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		unfin.Hash = object.Hash
+		unfin.Object.Link = model.ObjectToVideoLink(object)
+		//fix name and get format
+		format, err := parseUnfinishedFromStreamFormat(file, unfin)
+		if err != nil {
+			log.Error(err)
+			continue
+		}
+		log.Infof("%+v", format)
+		if unfin.IsVideo && p.Slice {
+			log.With("split", file).Info("process")
+			sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			log.Infof("%+v", sa)
+			dirs, err := rest.AddDir(sa.Output)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+
+			last := unfin.SliceObject.ParseLinks(dirs)
+			if last != nil {
+				unfin.SliceHash = last.Hash
+			}
+
+			err = model.AddOrUpdateUnfinished(unfin)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+		}
+
 	}
 
-	return nil
+	return
 }
 
 // PathMD5 ...
@@ -180,143 +210,45 @@ func (p *Process) getFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
-// DefaultUncategorized ...
-func DefaultUncategorized(name string) *model.Uncategorized {
-	_, file := filepath.Split(name)
-	uncat := &model.Uncategorized{
-		Name:    file,
-		Type:    "other",
-		Hash:    "",
-		IsVideo: false,
-		Object:  nil,
-	}
-	uncat.Checksum = model.Checksum(name)
-	format, e := cmd.FFProbeStreamFormat(name)
+func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {
+	format, e = cmd.FFProbeStreamFormat(file)
 	if e != nil {
-		return uncat
+		return nil, e
 	}
 
 	if format.IsVideo() {
-		file = format.NameAnalyze().ToString()
+		u.IsVideo = true
+		//u.Type = "video"
+		u.Name = format.NameAnalyze().ToString()
+		u.Sharpness = getVideoResolution(format)
 	}
-
-	return uncat
+	return format, nil
 }
 
-// QuickProcess ...
-func QuickProcess(pathname string, needPin bool) (e error) {
-	info, e := os.Stat(pathname)
-	if e != nil {
-		return e
+// DefaultUnfinished ...
+func DefaultUnfinished(name string) *model.Unfinished {
+	_, file := filepath.Split(name)
+	uncat := &model.Unfinished{
+		Model:       model.Model{},
+		Checksum:    "",
+		Type:        "deprecated",
+		Name:        file,
+		Hash:        "",
+		SliceHash:   "",
+		IsVideo:     false,
+		Sharpness:   "",
+		Sync:        false,
+		Sliced:      false,
+		Encrypt:     false,
+		Key:         "",
+		M3U8:        "media.m3u8",
+		Caption:     "",
+		SegmentFile: "media-%05d.ts",
+		Object:      new(model.VideoObject),
+		SliceObject: new(model.VideoObject),
 	}
-	b := info.IsDir()
-	if b {
-		file, e := os.Open(pathname)
-		if e != nil {
-			return e
-		}
-		defer file.Close()
-		names, e := file.Readdirnames(-1)
-		if e != nil {
-			return e
-		}
-		for _, value := range names {
-			uncat := model.Uncategorized{
-				Name:    value,
-				Type:    "other",
-				Hash:    "",
-				IsVideo: false,
-				Object:  nil,
-			}
-			file := filepath.Join(pathname, value)
-			fileinfo, e := os.Stat(file)
-			if e != nil {
-				log.Error(e)
-				continue
-			}
-			if fileinfo.IsDir() {
-				log.Error(value, " continue with dir")
-				continue
-			}
-
-			log.Infof("add [%s]:%s", uncat.Checksum, file)
-			object, e := rest.AddFile(file)
-			if e != nil {
-				log.Errorf("add file error:%+v", object)
-				continue
-			}
-			log.Info("added", uncat.Checksum)
-			uncat.Hash = object.Hash
-			uncat.Object = append(uncat.Object, model.ObjectToLink(nil, object))
-			uncat.IsVideo = isVideo(value)
-			if uncat.IsVideo {
-				uncat.Type = "video"
-			}
-			e = model.AddOrUpdateUncategorized(&uncat)
-			if e != nil {
-				log.Errorf("insert uncategorized error:%+v", e)
-				continue
-			}
-			log.Info("inserted table", uncat)
-			if uncat.IsVideo {
-				uncatvideo := model.Uncategorized{
-					Model:    model.Model{},
-					Checksum: uncat.Checksum,
-					Type:     "m3u8",
-					Name:     value,
-					Hash:     "",
-					IsVideo:  uncat.IsVideo,
-					Object:   nil,
-				}
-				file, e := SplitVideo(context.Background(), nil, file)
-				if e != nil {
-					log.Errorf("split file error:%+v", object)
-					continue
-				}
-				log.Info(file)
-				rets, e := rest.AddDir(file)
-				if e != nil {
-					log.Errorf("ipfs add file error:%+v", object)
-					continue
-				}
-				last := len(rets) - 1
-				var obj *model.VideoObject
-				for idx, v := range rets {
-					if idx == last {
-						obj = model.ObjectToLink(obj, v)
-						uncatvideo.Hash = obj.Link.Hash
-						continue
-					}
-					obj = model.ObjectToLinks(obj, v)
-				}
-				log.Infof("%+v", *obj)
-				uncatvideo.Object = append(uncatvideo.Object, obj)
-				log.Info("inserted video table", uncatvideo)
-				if needPin {
-					pin(nil, uncatvideo.Hash, func(hash string) {
-						uncatvideo.Sync = true
-						e = model.AddOrUpdateUncategorized(&uncatvideo)
-						if e != nil {
-							log.Errorf("insert uncategorized error:%+v", e)
-						}
-					})
-					continue
-				}
-				e = model.AddOrUpdateUncategorized(&uncatvideo)
-				if e != nil {
-					log.Errorf("insert uncategorized error:%+v", e)
-					continue
-				}
-			}
-			log.Info("move file", file)
-			if err := moveSuccess(file); err != nil {
-				return err
-			}
-
-		}
-
-	}
-	return nil
+	uncat.Checksum = model.Checksum(name)
+	return uncat
 }
 
 func moveSuccess(file string) (e error) {
@@ -350,7 +282,7 @@ func ProcessVideo(source *VideoSource) (e error) {
 
 	fn := add
 	if source.CheckFiles != nil {
-		log.Debug("add from uncategorized")
+		log.Debug("add from Unfinished")
 		fn = addChecksum
 	} else if source.Slice {
 		log.Debug("add with slice")
@@ -450,15 +382,15 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 }
 
 func addChecksum(video *model.Video, source *VideoSource) (e error) {
-	hash := Hash(source)
-	group := parseGroup(hash, source)
-	for _, value := range source.CheckFiles {
-		uncategorized, e := model.FindUncategorized(value, false)
-		if e != nil {
-			return e
-		}
-		group.Object = uncategorized.Object
-	}
+	//hash := Hash(source)
+	//group := parseGroup(hash, source)
+	//for _, value := range source.CheckFiles {
+	//	Unfinished, e := model.FindUnfinished(value, false)
+	//	if e != nil {
+	//		return e
+	//	}
+	//	group.Object = []*model.VideoObject{Unfinished.Object}
+	//}
 
 	//create if null
 	//if video.VideoGroupList == nil {
@@ -478,44 +410,45 @@ func addChecksum(video *model.Video, source *VideoSource) (e error) {
 }
 
 func add(video *model.Video, source *VideoSource) (e error) {
-	hash := Hash(source)
-	group := parseGroup(hash, source)
-	for _, value := range source.Files {
-		info, e := os.Stat(value)
-		if e != nil {
-			log.Error(e)
-			continue
-		}
-		dir := info.IsDir()
-
-		if dir {
-			rets, e := rest.AddDir(value)
-			if e != nil {
-				log.Error(e)
-				continue
-			}
-			last := len(rets) - 1
-			var obj *model.VideoObject
-			for idx, v := range rets {
-				if idx == last {
-					obj = model.ObjectToLink(obj, v)
-					//group.Object = append(group.Object)
-					continue
-				}
-				obj = model.ObjectToLinks(obj, v)
-			}
-			group.Object = append(group.Object, obj)
-
-			continue
-		}
-		ret, e := rest.AddFile(value)
-		if e != nil {
-			log.Error(e)
-			continue
-		}
-		//hash = ret.Hash
-		group.Object = append(group.Object, model.ObjectToLink(nil, ret))
-	}
+	//hash := Hash(source)
+	//group := parseGroup(hash, source)
+	//for _, value := range source.Files {
+	//	info, e := os.Stat(value)
+	//	if e != nil {
+	//		log.Error(e)
+	//		continue
+	//	}
+	//	dir := info.IsDir()
+	//
+	//	if dir {
+	//		rets, e := rest.AddDir(value)
+	//		if e != nil {
+	//			log.Error(e)
+	//			continue
+	//		}
+	//		last := len(rets) - 1
+	//		var obj *model.VideoObject
+	//		for idx, v := range rets {
+	//			if idx == last {
+	//				obj = model.ObjectIntoLink(obj, v)
+	//				//group.Object = append(group.Object)
+	//				continue
+	//			}
+	//			obj = model.ObjectIntoLinks(obj, v)
+	//		}
+	//		group.Object = append(group.Object, obj)
+	//
+	//		continue
+	//	}
+	//	ret, e := rest.AddFile(value)
+	//	if e != nil {
+	//		log.Error(e)
+	//		continue
+	//	}
+	//	//hash = ret.Hash
+	//	group.Object = append(group.Object, model.ObjectIntoLink(nil, ret))
+	//ret
+	//}
 
 	//create if null
 	//if video.VideoGroupList == nil {

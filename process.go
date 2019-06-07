@@ -133,7 +133,7 @@ func (p *Process) Run() {
 			continue
 		}
 		unfin.Hash = object.Hash
-		unfin.Object = model.ObjectIntoLink(unfin.Object, object)
+		unfin.Object.Link = model.ObjectToVideoLink(object)
 		//fix name and get format
 		format, err := parseUnfinishedFromStreamFormat(file, unfin)
 		if err != nil {
@@ -155,11 +155,11 @@ func (p *Process) Run() {
 				continue
 			}
 
-			if len(dirs) > 0 {
-				unfin.SliceHash = dirs[0].Hash
+			last := unfin.SliceObject.ParseLinks(dirs)
+			if last != nil {
+				unfin.SliceHash = last.Hash
 			}
-			unfin.SliceObject = model.ObjectIntoLink(unfin.SliceObject, dirs[0])
-			unfin.SliceObject.ParseLinks(dirs)
+
 			err = model.AddOrUpdateUnfinished(unfin)
 			if err != nil {
 				log.Error(err)
@@ -242,20 +242,23 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 func DefaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
 	uncat := &model.Unfinished{
-		Model:    model.Model{},
-		Checksum: "",
-		//Type:        "other",
+		Model:       model.Model{},
+		Checksum:    "",
+		Type:        "deprecated",
 		Name:        file,
 		Hash:        "",
+		SliceHash:   "",
 		IsVideo:     false,
+		Sharpness:   "",
 		Sync:        false,
 		Sliced:      false,
 		Encrypt:     false,
 		Key:         "",
 		M3U8:        "media.m3u8",
-		SegmentFile: "media-%05d.ts",
 		Caption:     "",
-		Object:      nil,
+		SegmentFile: "media-%05d.ts",
+		Object:      new(model.VideoObject),
+		SliceObject: new(model.VideoObject),
 	}
 	uncat.Checksum = model.Checksum(name)
 	return uncat
@@ -392,15 +395,15 @@ func addSlice(video *model.Video, source *VideoSource) (e error) {
 }
 
 func addChecksum(video *model.Video, source *VideoSource) (e error) {
-	hash := Hash(source)
-	group := parseGroup(hash, source)
-	for _, value := range source.CheckFiles {
-		Unfinished, e := model.FindUnfinished(value, false)
-		if e != nil {
-			return e
-		}
-		group.Object = []*model.VideoObject{Unfinished.Object}
-	}
+	//hash := Hash(source)
+	//group := parseGroup(hash, source)
+	//for _, value := range source.CheckFiles {
+	//	Unfinished, e := model.FindUnfinished(value, false)
+	//	if e != nil {
+	//		return e
+	//	}
+	//	group.Object = []*model.VideoObject{Unfinished.Object}
+	//}
 
 	//create if null
 	//if video.VideoGroupList == nil {
@@ -420,44 +423,45 @@ func addChecksum(video *model.Video, source *VideoSource) (e error) {
 }
 
 func add(video *model.Video, source *VideoSource) (e error) {
-	hash := Hash(source)
-	group := parseGroup(hash, source)
-	for _, value := range source.Files {
-		info, e := os.Stat(value)
-		if e != nil {
-			log.Error(e)
-			continue
-		}
-		dir := info.IsDir()
-
-		if dir {
-			rets, e := rest.AddDir(value)
-			if e != nil {
-				log.Error(e)
-				continue
-			}
-			last := len(rets) - 1
-			var obj *model.VideoObject
-			for idx, v := range rets {
-				if idx == last {
-					obj = model.ObjectIntoLink(obj, v)
-					//group.Object = append(group.Object)
-					continue
-				}
-				obj = model.ObjectIntoLinks(obj, v)
-			}
-			group.Object = append(group.Object, obj)
-
-			continue
-		}
-		ret, e := rest.AddFile(value)
-		if e != nil {
-			log.Error(e)
-			continue
-		}
-		//hash = ret.Hash
-		group.Object = append(group.Object, model.ObjectIntoLink(nil, ret))
-	}
+	//hash := Hash(source)
+	//group := parseGroup(hash, source)
+	//for _, value := range source.Files {
+	//	info, e := os.Stat(value)
+	//	if e != nil {
+	//		log.Error(e)
+	//		continue
+	//	}
+	//	dir := info.IsDir()
+	//
+	//	if dir {
+	//		rets, e := rest.AddDir(value)
+	//		if e != nil {
+	//			log.Error(e)
+	//			continue
+	//		}
+	//		last := len(rets) - 1
+	//		var obj *model.VideoObject
+	//		for idx, v := range rets {
+	//			if idx == last {
+	//				obj = model.ObjectIntoLink(obj, v)
+	//				//group.Object = append(group.Object)
+	//				continue
+	//			}
+	//			obj = model.ObjectIntoLinks(obj, v)
+	//		}
+	//		group.Object = append(group.Object, obj)
+	//
+	//		continue
+	//	}
+	//	ret, e := rest.AddFile(value)
+	//	if e != nil {
+	//		log.Error(e)
+	//		continue
+	//	}
+	//	//hash = ret.Hash
+	//	group.Object = append(group.Object, model.ObjectIntoLink(nil, ret))
+	//ret
+	//}
 
 	//create if null
 	//if video.VideoGroupList == nil {

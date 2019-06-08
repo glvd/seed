@@ -12,17 +12,19 @@ import (
 type PinCallback func(hash string)
 
 type Pin struct {
-	Seeder
+	seed *Seed
 }
 
-func NewPinSeeder(ops ...Options) Seeder {
+func NewPin(ops ...Options) Seeder {
 	pin := &Pin{}
 
 	return NewSeeder(PinOption(pin))
 }
 
 func (p *Pin) Run(context.Context) {
+	for key, value := range p.seed.Unfinished {
 
+	}
 }
 
 func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {

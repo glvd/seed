@@ -44,15 +44,17 @@ type Seeder interface {
 }
 
 type Seed struct {
-	Unfinished []*model.Unfinished
-	wg         *sync.WaitGroup
-	ctx        context.Context
-	cancel     context.CancelFunc
-	shell      *shell.Shell
-	threads    int
-	runner     []Runnable
-	ignores    map[string][]byte
-	err        error
+	Unfinished  []*model.Unfinished
+	wg          *sync.WaitGroup
+	ctx         context.Context
+	cancel      context.CancelFunc
+	shell       *shell.Shell
+	threads     int
+	runner      []Runnable
+	ignores     map[string][]byte
+	workspace   string
+	processPath string
+	err         error
 }
 
 func (seed *Seed) Stop() {
@@ -112,13 +114,14 @@ func ShellOption(s *shell.Shell) Options {
 
 func ProcessOption(process *Process) Options {
 	return func(seed *Seed) {
-		process.Seed = seed
+		process.seed = seed
 		seed.runner[StepperProcess] = process
 	}
 }
 
 func PinOption(pin *Pin) Options {
 	return func(seed *Seed) {
+		pin.seed = seed
 		seed.runner[StepperPin] = pin
 	}
 }

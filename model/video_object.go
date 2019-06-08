@@ -13,7 +13,7 @@ type VideoLink struct {
 // VideoObject ...
 type VideoObject struct {
 	Links []*VideoLink `json:"links,omitempty"`
-	Link  *VideoLink   `xorm:"extends"  json:",inline"`
+	Link  *VideoLink   `xorm:"extends"  json:",inline,omitempty"`
 }
 
 // ObjectToVideoLink ...
@@ -38,27 +38,3 @@ func (obj *VideoObject) ParseLinks(links []*shell.Object) *VideoLink {
 	}
 	return obj.Link
 }
-
-//
-//// ObjectIntoLinks ...
-//func ObjectIntoLinks(obj *VideoObject, ret *shell.Object) *VideoObject {
-//	if obj != nil {
-//		obj.Links = append(obj.Links, &VideoLink{
-//			Hash: ret.Hash,
-//			Name: ret.Name,
-//			Size: ret.Size,
-//			Type: 2,
-//		})
-//		return obj
-//	}
-//	return &VideoObject{
-//		Links: []*VideoLink{
-//			{
-//				Hash: ret.Hash,
-//				Name: ret.Name,
-//				Size: ret.Size,
-//				Type: 2,
-//			},
-//		},
-//	}
-//}

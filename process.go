@@ -35,6 +35,10 @@ type Process struct {
 	//JSONPath  string `json:"json_path"`
 }
 
+func (p *Process) Next() Stepper {
+	panic("implement me")
+}
+
 func initIgnore() map[string][]byte {
 	return make(map[string][]byte, 3)
 }
@@ -57,8 +61,8 @@ func NewProcessSeeder(ws string, ps ...Options) Seeder {
 		Workspace: ws,
 		ignores:   make(map[string][]byte, 3),
 	}
-	ps = append(ps, FirstRunOption(process))
-	return NewSeed(ps...)
+	ps = append(ps, ProcessOption(process))
+	return NewSeeder(ps...)
 }
 
 func prefix(s string) (ret string) {

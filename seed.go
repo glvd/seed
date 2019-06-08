@@ -22,11 +22,19 @@ type Threader interface {
 
 type Runnable interface {
 	Run(context.Context)
+	Next() Stepper
 }
 
 type Stepper int
 
-const StepperProcess = 10
+const (
+	StepperNone Stepper = iota
+	StepperProcess
+	StepperMove
+	StepperJson
+	StepperPin
+	StepperMax
+)
 
 type Seeder interface {
 	Start()
@@ -41,7 +49,7 @@ type seed struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	threads int
-	runner  map[int][]Runnable
+	runner  []Runnable
 	ignores map[string][]byte
 	err     error
 }
@@ -58,13 +66,26 @@ func (seed *seed) Err() error {
 }
 
 func (seed *seed) Start() {
+
 	seed.wg.Add(1)
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
+		next := StepperMax
 		if seed.Runnable != nil {
 			seed.Runnable.Run(seed.ctx)
+			next = seed.Runnable.Next()
 		}
+		for {
+			if next == StepperNone {
+				return
+			}
+			if runnable := seed.runner[next]; runnable != nil {
+				runnable.Run(seed.ctx)
+				next = runnable.Next()
+			}
+		}
+
 	}()
 }
 
@@ -75,7 +96,7 @@ func (seed *seed) Wait() {
 //ProcessCallbackFunc ...
 //type ProcessCallbackFunc func(process *Process) error
 
-func NewSeed(ops ...Options) Seeder {
+func NewSeeder(ops ...Options) Seeder {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &seed{
 		Runnable: nil,
@@ -83,7 +104,7 @@ func NewSeed(ops ...Options) Seeder {
 		ctx:      ctx,
 		cancel:   cancel,
 		threads:  0,
-		runner:   make(map[int][]Runnable),
+		runner:   make([]Runnable, StepperMax),
 		ignores:  make(map[string][]byte),
 		err:      nil,
 	}
@@ -93,15 +114,9 @@ func NewSeed(ops ...Options) Seeder {
 	return seed
 }
 
-func FirstRunOption(runnable Runnable) Options {
-	return func(seed *seed) {
-		seed.Runnable = runnable
-	}
-}
-
 func ProcessOption(process *Process) Options {
 	return func(seed *seed) {
-		seed.runner[StepperProcess] = []Runnable{process}
+		seed.runner[StepperProcess] = process
 	}
 }
 

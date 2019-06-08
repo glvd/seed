@@ -96,6 +96,7 @@ func NewSeeder(ops ...Options) Seeder {
 	for _, op := range ops {
 		op(seed)
 	}
+
 	if seed.shell == nil {
 		seed.shell = shell.NewShell("localhost:5001")
 	}
@@ -111,9 +112,11 @@ func ShellOption(s *shell.Shell) Options {
 
 func ProcessOption(process *Process) Options {
 	return func(seed *Seed) {
+		process.Seed = seed
 		seed.runner[StepperProcess] = process
 	}
 }
+
 func PinOption(pin *Pin) Options {
 	return func(seed *Seed) {
 		seed.runner[StepperPin] = pin

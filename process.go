@@ -22,6 +22,7 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
+	Seed      *Seed
 	Shell     *shell.Shell
 	Workspace string `json:"workspace"`
 	//process   map[string]ProcessCallbackFunc
@@ -33,14 +34,6 @@ type Process struct {
 	//MovePath  string `json:"move_path"`
 	//JSON      bool   `json:"json"`
 	//JSONPath  string `json:"json_path"`
-}
-
-func (p *Process) Next() Stepper {
-	panic("implement me")
-}
-
-func initIgnore() map[string][]byte {
-	return make(map[string][]byte, 3)
 }
 
 func tmp(path string, name string) string {
@@ -146,6 +139,7 @@ func (p *Process) Run(ctx context.Context) {
 				log.Error(err)
 				continue
 			}
+
 		}
 	}
 	return

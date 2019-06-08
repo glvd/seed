@@ -7,11 +7,12 @@ import (
 	"strings"
 	"sync"
 
+	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
 )
 
-type Options func(*seed)
+type Options func(*Seed)
 
 type Thread struct {
 	wg sync.WaitGroup
@@ -42,29 +43,29 @@ type Seeder interface {
 	Err() error
 }
 
-type seed struct {
-	//Runnable
-	wg      *sync.WaitGroup
-	ctx     context.Context
-	cancel  context.CancelFunc
-	threads int
-	runner  []Runnable
-	ignores map[string][]byte
-	err     error
+type Seed struct {
+	Unfinished []*model.Unfinished
+	wg         *sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
+	shell      *shell.Shell
+	threads    int
+	runner     []Runnable
+	ignores    map[string][]byte
+	err        error
 }
 
-func (seed *seed) Stop() {
+func (seed *Seed) Stop() {
 	if seed.cancel != nil {
 		seed.cancel()
 	}
 }
 
-func (seed *seed) Err() error {
+func (seed *Seed) Err() error {
 	return seed.err
 }
 
-func (seed *seed) Start() {
-
+func (seed *Seed) Start() {
 	seed.wg.Add(1)
 	go func() {
 		log.Info("first running")
@@ -78,43 +79,49 @@ func (seed *seed) Start() {
 	}()
 }
 
-func (seed *seed) Wait() {
+func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
-//ProcessCallbackFunc ...
-//type ProcessCallbackFunc func(process *Process) error
-
 func NewSeeder(ops ...Options) Seeder {
 	ctx, cancel := context.WithCancel(context.Background())
-	seed := &seed{
+	seed := &Seed{
 		wg:      &sync.WaitGroup{},
 		ctx:     ctx,
 		cancel:  cancel,
 		threads: 0,
 		runner:  make([]Runnable, StepperMax),
 		ignores: make(map[string][]byte),
-		err:     nil,
 	}
 	for _, op := range ops {
 		op(seed)
 	}
+	if seed.shell == nil {
+		seed.shell = shell.NewShell("localhost:5001")
+	}
+
 	return seed
 }
 
+func ShellOption(s *shell.Shell) Options {
+	return func(seed *Seed) {
+		seed.shell = s
+	}
+}
+
 func ProcessOption(process *Process) Options {
-	return func(seed *seed) {
+	return func(seed *Seed) {
 		seed.runner[StepperProcess] = process
 	}
 }
 func PinOption(pin *Pin) Options {
-	return func(seed *seed) {
+	return func(seed *Seed) {
 		seed.runner[StepperPin] = pin
 	}
 }
 
 func IgnoreOption(ignores ...string) Options {
-	return func(seed *seed) {
+	return func(seed *Seed) {
 		for _, i := range ignores {
 			seed.ignores[PathMD5(i)] = nil
 		}
@@ -122,7 +129,7 @@ func IgnoreOption(ignores ...string) Options {
 }
 
 func ThreadOption(t int) Options {
-	return func(seed *seed) {
+	return func(seed *Seed) {
 		seed.threads = t
 	}
 }

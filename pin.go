@@ -12,6 +12,13 @@ import (
 type PinCallback func(hash string)
 
 type Pin struct {
+	Seeder
+}
+
+func NewPinSeeder(ops ...Options) Seeder {
+	pin := &Pin{}
+
+	return NewSeeder(PinOption(pin))
 }
 
 func (p *Pin) Run(context.Context) {

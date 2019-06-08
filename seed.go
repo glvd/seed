@@ -66,7 +66,6 @@ func (seed *seed) Start() {
 			seed.Runnable.Run(seed.ctx)
 		}
 	}()
-
 }
 
 func (seed *seed) Wait() {

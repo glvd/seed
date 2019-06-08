@@ -9,7 +9,7 @@ type SourcePeerDetail struct {
 // SourcePeer ...
 type SourcePeer struct {
 	Model            `xorm:"extends"`
-	SourcePeerDetail SourcePeer `xorm:"extends"`
+	SourcePeerDetail `xorm:"extends"`
 }
 
 func init() {

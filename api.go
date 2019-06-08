@@ -45,7 +45,7 @@ var swarms = sync.Pool{}
 // PoolSwarmConnect ...
 func PoolSwarmConnect() {
 	SwarmAdd(&model.SourcePeer{
-		SourcePeerDetail: &model.SourcePeerDetail{
+		SourcePeerDetail: model.SourcePeerDetail{
 			Addr: "/ip4/47.101.169.94/tcp/4001",
 			Peer: "QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq",
 		},
@@ -116,7 +116,7 @@ func AddressSwarm(address string) (peer *model.SourcePeer) {
 		return &model.SourcePeer{}
 	}
 	return &model.SourcePeer{
-		SourcePeerDetail: &model.SourcePeerDetail{
+		SourcePeerDetail: model.SourcePeerDetail{
 			Addr: strings.Join(ss[:size-2], "/"),
 			Peer: ss[size-1],
 		},

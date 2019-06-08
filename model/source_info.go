@@ -11,8 +11,8 @@ type SourceInfoDetail struct {
 
 // SourceInfo ...
 type SourceInfo struct {
-	Model      `xorm:"extends"`
-	SourceInfo SourceInfoDetail `xorm:"extends"`
+	Model            `xorm:"extends"`
+	SourceInfoDetail `xorm:"extends"`
 }
 
 func init() {

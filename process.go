@@ -22,12 +22,11 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	Seed      *Seed
 	Shell     *shell.Shell
 	Workspace string `json:"workspace"`
-	//process   map[string]ProcessCallbackFunc
-	thread  int `json:"thread"`
-	ignores map[string][]byte
+	seed      *Seed
+	thread    int `json:"thread"`
+	ignores   map[string][]byte
 	//PinProc       bool   `json:"pin"`
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
@@ -98,8 +97,10 @@ func fixPath(file string) string {
 
 // Run ...
 func (p *Process) Run(ctx context.Context) {
+	p.init()
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
+	var unfin *model.Unfinished
 	for _, oldFile := range files {
 		file := fixPath(oldFile)
 		log.With("old", oldFile, "new", file).Info("print filename")
@@ -111,7 +112,7 @@ func (p *Process) Run(ctx context.Context) {
 			return
 		default:
 			log.With("file", file).Info("process run")
-			unfin := DefaultUnfinished(file)
+			unfin = DefaultUnfinished(file)
 			object, err := rest.AddFile(file)
 			if err != nil {
 				log.Error(err)
@@ -139,9 +140,10 @@ func (p *Process) Run(ctx context.Context) {
 				log.Error(err)
 				continue
 			}
-
 		}
+		p.seed.Unfinished = append(p.seed.Unfinished, unfin)
 	}
+	log.Infof("unfinished:%+v", p.seed.Unfinished)
 	return
 }
 
@@ -189,6 +191,10 @@ func (p *Process) getFiles(ws string) (files []string) {
 		return files
 	}
 	return append(files, ws)
+}
+
+func (p *Process) init() {
+	p.ignores = p.seed.ignores
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

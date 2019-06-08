@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"context"
 	"sync"
 
 	"github.com/yinhevr/seed/model"
@@ -9,6 +10,13 @@ import (
 
 // PinCallback ...
 type PinCallback func(hash string)
+
+type Pin struct {
+}
+
+func (p *Pin) Run(context.Context) {
+
+}
 
 func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
 	log.Info("pin:", hash)
@@ -24,7 +32,6 @@ func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
 	for _, cb := range cbs {
 		cb(hash)
 	}
-
 	log.Info("pinned:", hash)
 }
 
@@ -75,8 +82,8 @@ func QuickPin(checksum string, check bool) (e error) {
 	return nil
 }
 
-// Pin ...
-func Pin(ban string, poster, check bool) (e error) {
+// PinProc ...
+func PinProc(ban string, poster, check bool) (e error) {
 	wg := sync.WaitGroup{}
 	var videos []*model.Video
 	if ban == "" {

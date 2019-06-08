@@ -22,7 +22,6 @@ type Threader interface {
 
 type Runnable interface {
 	Run(context.Context)
-	Next() Stepper
 }
 
 type Stepper int
@@ -44,7 +43,7 @@ type Seeder interface {
 }
 
 type seed struct {
-	Runnable
+	//Runnable
 	wg      *sync.WaitGroup
 	ctx     context.Context
 	cancel  context.CancelFunc
@@ -71,21 +70,12 @@ func (seed *seed) Start() {
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
-		next := StepperMax
-		if seed.Runnable != nil {
-			seed.Runnable.Run(seed.ctx)
-			next = seed.Runnable.Next()
-		}
-		for {
-			if next == StepperNone {
-				return
-			}
-			if runnable := seed.runner[next]; runnable != nil {
-				runnable.Run(seed.ctx)
-				next = runnable.Next()
+		for i, r := range seed.runner {
+			log.With("index", i)
+			if r != nil {
+				r.Run(seed.ctx)
 			}
 		}
-
 	}()
 }
 
@@ -99,14 +89,13 @@ func (seed *seed) Wait() {
 func NewSeeder(ops ...Options) Seeder {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &seed{
-		Runnable: nil,
-		wg:       &sync.WaitGroup{},
-		ctx:      ctx,
-		cancel:   cancel,
-		threads:  0,
-		runner:   make([]Runnable, StepperMax),
-		ignores:  make(map[string][]byte),
-		err:      nil,
+		wg:      &sync.WaitGroup{},
+		ctx:     ctx,
+		cancel:  cancel,
+		threads: 0,
+		runner:  make([]Runnable, StepperMax),
+		ignores: make(map[string][]byte),
+		err:     nil,
 	}
 	for _, op := range ops {
 		op(seed)

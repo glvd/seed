@@ -69,7 +69,7 @@ func prefix(s string) (ret string) {
 func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
 	if err != nil {
-		return
+		return err
 	}
 	log.Infof("%+v", sa)
 	dirs, err := rest.AddDir(sa.Output)
@@ -81,14 +81,21 @@ func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file 
 	if last != nil {
 		unfin.SliceHash = last.Hash
 	}
-
-	return model.AddOrUpdateUnfinished(unfin)
+	return nil
 }
 
-func fixname(file string) string {
+func fixPath(file string) string {
 	n := strings.Replace(file, " ", "", -1)
-	e := os.Rename(file, n)
-	log.Error(e)
+	dir, _ := filepath.Split(n)
+	//newPath := tmp("proc", name)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		log.Error(err)
+	}
+	err = os.Rename(file, n)
+	if err != nil {
+		log.Error(err)
+	}
 	return n
 }
 
@@ -97,7 +104,7 @@ func (p *Process) Run(ctx context.Context) {
 	files := p.getFiles(p.Workspace)
 	log.Info(files)
 	for _, oldFile := range files {
-		file := fixname(oldFile)
+		file := fixPath(oldFile)
 		log.With("old", oldFile, "new", file).Info("print filename")
 		select {
 		case <-ctx.Done():
@@ -127,7 +134,13 @@ func (p *Process) Run(ctx context.Context) {
 				err := p.slice(unfin, format, file)
 				if err != nil {
 					log.With("split", file).Error(err)
+					continue
+
 				}
+			}
+			if err := model.AddOrUpdateUnfinished(unfin); err != nil {
+				log.Error(err)
+				continue
 			}
 		}
 	}
@@ -217,6 +230,7 @@ func DefaultUnfinished(name string) *model.Unfinished {
 		Object:      new(model.VideoObject),
 		SliceObject: new(model.VideoObject),
 	}
+	log.With("file", name).Info("calculate checksum")
 	uncat.Checksum = model.Checksum(name)
 	return uncat
 }
@@ -265,16 +279,6 @@ func ProcessVideo(source *VideoSource) (e error) {
 	info := GetSourceInfo()
 	log.Info(*info)
 
-	//if info.ID != "" {
-	//	video.AddSourceInfo(info)
-	//}
-	//
-	//for _, value := range GetPeers() {
-	//	video.AddPeers(&model.SourcePeerDetail{
-	//		Addr: value.Addr,
-	//		Peer: value.Peer,
-	//	})
-	//}
 	return model.AddOrUpdateVideo(video)
 }
 

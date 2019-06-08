@@ -8,6 +8,10 @@ type SourcePeerDetail struct {
 
 // SourcePeer ...
 type SourcePeer struct {
-	//Model             `xorm:"extends"`
+	Model             `xorm:"extends"`
 	*SourcePeerDetail `xorm:"extends"`
+}
+
+func init() {
+	RegisterTable(SourceInfo{})
 }

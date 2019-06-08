@@ -27,7 +27,7 @@ type Process struct {
 	//process   map[string]ProcessCallbackFunc
 	thread  int `json:"thread"`
 	ignores map[string][]byte
-	//Pin       bool   `json:"pin"`
+	//PinProc       bool   `json:"pin"`
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
 	//MovePath  string `json:"move_path"`

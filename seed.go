@@ -57,7 +57,6 @@ func (seed *seed) Stop() {
 	if seed.cancel != nil {
 		seed.cancel()
 	}
-
 }
 
 func (seed *seed) Err() error {
@@ -106,6 +105,11 @@ func NewSeeder(ops ...Options) Seeder {
 func ProcessOption(process *Process) Options {
 	return func(seed *seed) {
 		seed.runner[StepperProcess] = process
+	}
+}
+func PinOption(pin *Pin) Options {
+	return func(seed *seed) {
+		seed.runner[StepperPin] = pin
 	}
 }
 

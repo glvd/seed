@@ -17,7 +17,6 @@ type Pin struct {
 
 func NewPin(ops ...Options) Seeder {
 	pin := &Pin{}
-
 	return NewSeeder(PinOption(pin))
 }
 

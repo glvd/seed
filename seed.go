@@ -19,6 +19,9 @@ type Thread struct {
 }
 
 type Threader interface {
+	Runnable
+	BeforeRun()
+	AfterRun()
 }
 
 type Runnable interface {

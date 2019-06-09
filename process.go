@@ -22,12 +22,13 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	Shell     *shell.Shell
-	Workspace string `json:"workspace"`
-	seed      *Seed
-	thread    int `json:"thread"`
-	ignores   map[string][]byte
-	//PinProc       bool   `json:"pin"`
+	*Seed
+	workspace    string `json:"workspace"`
+	process_path string `json:"process_path"`
+	shell        *shell.Shell
+	thread       int `json:"thread"`
+	ignores      map[string][]byte
+	unfinished   []*model.Unfinished
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
 	//MovePath  string `json:"move_path"`
@@ -50,7 +51,7 @@ func tmp(path string, name string) string {
 // NewProcessSeeder ...
 func NewProcessSeeder(ws string, ps ...Options) Seeder {
 	process := &Process{
-		Workspace: ws,
+		workspace: ws,
 		ignores:   make(map[string][]byte, 3),
 	}
 	ps = append(ps, ProcessOption(process))
@@ -98,7 +99,7 @@ func fixPath(file string) string {
 // Run ...
 func (p *Process) Run(ctx context.Context) {
 	p.init()
-	files := p.getFiles(p.Workspace)
+	files := p.getFiles(p.workspace)
 	log.Info(files)
 	var unfin *model.Unfinished
 	for _, oldFile := range files {
@@ -141,9 +142,9 @@ func (p *Process) Run(ctx context.Context) {
 				continue
 			}
 		}
-		p.seed.Unfinished = append(p.seed.Unfinished, unfin)
+		p.unfinished = append(p.unfinished, unfin)
 	}
-	log.Infof("unfinished:%+v", p.seed.Unfinished)
+	log.Infof("unfinished:%+v", p.unfinished)
 	return
 }
 
@@ -194,7 +195,6 @@ func (p *Process) getFiles(ws string) (files []string) {
 }
 
 func (p *Process) init() {
-	p.ignores = p.seed.ignores
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

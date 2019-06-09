@@ -22,18 +22,27 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	*Seed
-	workspace    string `json:"workspace"`
-	process_path string `json:"process_path"`
-	shell        *shell.Shell
-	thread       int `json:"thread"`
-	ignores      map[string][]byte
-	unfinished   []*model.Unfinished
+	workspace  string `json:"workspace"`
+	path       string `json:"path"`
+	shell      *shell.Shell
+	thread     int `json:"thread"`
+	ignores    map[string][]byte
+	unfinished []*model.Unfinished
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
 	//MovePath  string `json:"move_path"`
 	//JSON      bool   `json:"json"`
 	//JSONPath  string `json:"json_path"`
+}
+
+func (p *Process) BeforeRun(seed *Seed) {
+	p.workspace = seed.workspace
+	p.shell = seed.shell
+	p.path = seed.processPath
+}
+
+func (p *Process) AfterRun(seed *Seed) {
+	seed.Unfinished = p.unfinished
 }
 
 func tmp(path string, name string) string {
@@ -99,7 +108,7 @@ func fixPath(file string) string {
 // Run ...
 func (p *Process) Run(ctx context.Context) {
 	p.init()
-	files := p.getFiles(p.workspace)
+	files := p.getFiles(p.path)
 	log.Info(files)
 	var unfin *model.Unfinished
 	for _, oldFile := range files {
@@ -134,7 +143,6 @@ func (p *Process) Run(ctx context.Context) {
 				if err != nil {
 					log.With("split", file).Error(err)
 					continue
-
 				}
 			}
 			if err := model.AddOrUpdateUnfinished(unfin); err != nil {

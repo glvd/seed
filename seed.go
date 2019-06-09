@@ -20,8 +20,8 @@ type Thread struct {
 
 type Threader interface {
 	Runnable
-	BeforeRun()
-	AfterRun()
+	BeforeRun(seed *Seed)
+	AfterRun(seed *Seed)
 }
 
 type Runnable interface {
@@ -52,11 +52,11 @@ type Seed struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	shell       *shell.Shell
+	processPath string
 	threads     int
-	runner      []Runnable
+	thread      []Threader
 	ignores     map[string][]byte
 	workspace   string
-	processPath string
 	err         error
 }
 
@@ -75,10 +75,12 @@ func (seed *Seed) Start() {
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
-		for i, r := range seed.runner {
+		for i, thread := range seed.thread {
 			log.With("index", i)
-			if r != nil {
-				r.Run(seed.ctx)
+			if thread != nil {
+				thread.BeforeRun(seed)
+				thread.Run(seed.ctx)
+				thread.AfterRun(seed)
 			}
 		}
 	}()
@@ -95,7 +97,7 @@ func NewSeeder(ops ...Options) Seeder {
 		ctx:     ctx,
 		cancel:  cancel,
 		threads: 0,
-		runner:  make([]Runnable, StepperMax),
+		thread:  make([]Threader, StepperMax),
 		ignores: make(map[string][]byte),
 	}
 	for _, op := range ops {
@@ -117,15 +119,14 @@ func ShellOption(s *shell.Shell) Options {
 
 func ProcessOption(process *Process) Options {
 	return func(seed *Seed) {
-		process.seed = seed
-		seed.runner[StepperProcess] = process
+
+		seed.thread[StepperProcess] = process
 	}
 }
 
 func PinOption(pin *Pin) Options {
 	return func(seed *Seed) {
-		pin.seed = seed
-		seed.runner[StepperPin] = pin
+		seed.thread[StepperPin] = pin
 	}
 }
 

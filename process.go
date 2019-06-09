@@ -15,14 +15,14 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func dummy(process *Process) (e error) {
+func dummy(process *process) (e error) {
 	log.Info("dummy called")
 	return
 }
 
-// Process ...
-type Process struct {
-	workspace  string `json:"workspace"`
+// process ...
+type process struct {
+	workspace  string `json:"Workspace"`
 	path       string `json:"path"`
 	shell      *shell.Shell
 	thread     int `json:"thread"`
@@ -35,13 +35,13 @@ type Process struct {
 	//JSONPath  string `json:"json_path"`
 }
 
-func (p *Process) BeforeRun(seed *Seed) {
-	p.workspace = seed.workspace
-	p.shell = seed.shell
-	p.path = seed.processPath
+func (p *process) BeforeRun(seed *Seed) {
+	p.workspace = seed.Workspace
+	p.shell = seed.Shell
+	//p.path = seed.ProcessPath
 }
 
-func (p *Process) AfterRun(seed *Seed) {
+func (p *process) AfterRun(seed *Seed) {
 	seed.Unfinished = p.unfinished
 }
 
@@ -58,13 +58,11 @@ func tmp(path string, name string) string {
 }
 
 // NewProcessSeeder ...
-func NewProcessSeeder(ws string, ps ...Options) Seeder {
-	process := &Process{
-		workspace: ws,
-		ignores:   make(map[string][]byte, 3),
+func Process(path string) Options {
+	process := &process{
+		path: path,
 	}
-	ps = append(ps, ProcessOption(process))
-	return NewSeeder(ps...)
+	return ProcessOption(process)
 }
 
 func prefix(s string) (ret string) {
@@ -72,7 +70,7 @@ func prefix(s string) (ret string) {
 	return
 }
 
-func (p *Process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+func (p *process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
 	if err != nil {
 		return err
@@ -106,7 +104,7 @@ func fixPath(file string) string {
 }
 
 // Run ...
-func (p *Process) Run(ctx context.Context) {
+func (p *process) Run(ctx context.Context) {
 	p.init()
 	files := p.getFiles(p.path)
 	log.Info(files)
@@ -163,7 +161,7 @@ func PathMD5(s ...string) string {
 }
 
 // CheckIgnore ...
-func (p *Process) CheckIgnore(name string) (b bool) {
+func (p *process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
@@ -171,7 +169,7 @@ func (p *Process) CheckIgnore(name string) (b bool) {
 	return
 }
 
-func (p *Process) getFiles(ws string) (files []string) {
+func (p *process) getFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
 		return nil
@@ -202,7 +200,7 @@ func (p *Process) getFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
-func (p *Process) init() {
+func (p *process) init() {
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

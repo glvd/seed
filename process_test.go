@@ -9,7 +9,14 @@ import (
 // TestGetFiles ...
 func TestGetFiles(t *testing.T) {
 	Rest()
-	process := NewProcessSeeder("D:\\video")
-	process.Start()
-	process.Wait()
+	//process := NewProcessSeeder("D:\\video")
+	//process.Start()
+	//process.Wait()
+	//
+	seed := NewSeed(Process("D:\\video"))
+	seed.Workspace = "d:\\video"
+	//seed.ProcessPath ="d:\\video"
+	seed.Start()
+	seed.Wait()
+
 }

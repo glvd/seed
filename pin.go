@@ -11,30 +11,31 @@ import (
 // PinCallback ...
 type PinCallback func(hash string)
 
-type Pin struct {
-	*Seed
+type pin struct {
+	unfinished []*model.Unfinished
 }
 
-func (p *Pin) BeforeRun(seed *Seed) {
-	panic("implement me")
+func (p *pin) BeforeRun(seed *Seed) {
+	p.unfinished = seed.Unfinished
 }
 
-func (p *Pin) AfterRun(seed *Seed) {
-	panic("implement me")
+func (p *pin) AfterRun(seed *Seed) {
+	return
 }
 
-func NewPin(ops ...Options) Seeder {
-	pin := &Pin{}
-	return NewSeeder(PinOption(pin))
+func Pin() Options {
+	pin := &pin{}
+	return PinOption(pin)
 }
 
-func (p *Pin) Run(context.Context) {
-	//for key, value := range p.seed.Unfinished {
-	//
-	//}
+func (p *pin) Run(context.Context) {
+	log.Infof("%+v", p.unfinished)
+	for _, v := range p.unfinished {
+		_ = v
+	}
 }
 
-func pin(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
+func pinHash(wg *sync.WaitGroup, hash string, cbs ...PinCallback) {
 	log.Info("pin:", hash)
 	e := rest.Pin(hash)
 	if e != nil {
@@ -56,7 +57,7 @@ func pinVideo(wg *sync.WaitGroup, poster bool, video *model.Video) {
 	log.Info("pin video:", video.Bangumi)
 	wg.Add(1)
 	//log.Info("pin poster:", video.Poster)
-	go pin(wg, video.PosterHash)
+	go pinHash(wg, video.PosterHash)
 	if poster {
 		return
 	}
@@ -86,7 +87,7 @@ func QuickPin(checksum string, check bool) (e error) {
 	}
 
 	for _, v := range unfins {
-		pin(nil, v.Hash, func(hash string) {
+		pinHash(nil, v.Hash, func(hash string) {
 			v.Sync = true
 			i, e := model.DB().Cols("sync").Update(v)
 			if e != nil {

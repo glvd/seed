@@ -22,7 +22,7 @@ func Rest() *shell.Shell {
 
 // InitShell ...
 func InitShell(s string) {
-	log.Info("ipfs shell:", s)
+	log.Info("ipfs Shell:", s)
 	rest = shell.NewShell(s)
 }
 

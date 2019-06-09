@@ -13,7 +13,7 @@ func TestGetFiles(t *testing.T) {
 	//process.Start()
 	//process.Wait()
 	//
-	seed := NewSeed(Process("D:\\video"))
+	seed := NewSeed(Process("D:\\video"), Pin())
 	seed.Workspace = "d:\\video"
 	//seed.ProcessPath ="d:\\video"
 	seed.Start()

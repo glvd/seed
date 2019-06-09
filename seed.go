@@ -47,17 +47,17 @@ type Seeder interface {
 }
 
 type Seed struct {
-	Unfinished  []*model.Unfinished
-	wg          *sync.WaitGroup
-	ctx         context.Context
-	cancel      context.CancelFunc
-	shell       *shell.Shell
-	processPath string
-	threads     int
-	thread      []Threader
-	ignores     map[string][]byte
-	workspace   string
-	err         error
+	Shell     *shell.Shell
+	Workspace string
+	//ProcessPath string
+	Unfinished []*model.Unfinished
+	wg         *sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
+	threads    int
+	thread     []Threader
+	ignores    map[string][]byte
+	err        error
 }
 
 func (seed *Seed) Stop() {
@@ -90,7 +90,7 @@ func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
-func NewSeeder(ops ...Options) Seeder {
+func NewSeed(ops ...Options) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &Seed{
 		wg:      &sync.WaitGroup{},
@@ -104,8 +104,8 @@ func NewSeeder(ops ...Options) Seeder {
 		op(seed)
 	}
 
-	if seed.shell == nil {
-		seed.shell = shell.NewShell("localhost:5001")
+	if seed.Shell == nil {
+		seed.Shell = shell.NewShell("localhost:5001")
 	}
 
 	return seed
@@ -113,18 +113,18 @@ func NewSeeder(ops ...Options) Seeder {
 
 func ShellOption(s *shell.Shell) Options {
 	return func(seed *Seed) {
-		seed.shell = s
+		seed.Shell = s
 	}
 }
 
-func ProcessOption(process *Process) Options {
+func ProcessOption(process *process) Options {
 	return func(seed *Seed) {
 
 		seed.thread[StepperProcess] = process
 	}
 }
 
-func PinOption(pin *Pin) Options {
+func PinOption(pin *pin) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperPin] = pin
 	}

@@ -72,7 +72,7 @@ func getVideoResolution(format *cmd.StreamFormat) string {
 
 }
 
-var resolution = []int{360, 480, 720, 960, 1080, 1920, 2160, 4800}
+var resolution = []int{360, 480, 720, 1080, 1920, 2160, 4800}
 
 func getResolutionIndex(n int64, sta, end int) int {
 	if end == -1 {

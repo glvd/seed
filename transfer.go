@@ -10,7 +10,6 @@ import (
 	"golang.org/x/xerrors"
 	"io"
 	"io/ioutil"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -62,14 +61,15 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 		return
 	}
 
-	e = ioutil.WriteFile("tmp.json", fixFile(b), os.ModePerm)
-	if e != nil {
-		return
-	}
-
+	//e = ioutil.WriteFile("tmp.json", fixFile(b), os.ModePerm)
+	//if e != nil {
+	//	return
+	//}
+	//all, e := ioutil.ReadAll(transfer.reader)
+	//if e != nil {
+	//	return
+	//}
 	fixed := fixFile(b)
-	log.Info(string(fixed))
-
 	transfer.reader = bytes.NewBuffer(fixed)
 }
 
@@ -91,9 +91,9 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(path string, from, to TransferFlag, status TransferStatus) Options {
+func Transfer(reader io.Reader, from, to TransferFlag, status TransferStatus) Options {
 	t := &transfer{
-		path:   path,
+		reader: reader,
 		from:   from,
 		to:     to,
 		status: status,

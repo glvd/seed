@@ -167,6 +167,8 @@ func video(source *VideoSource) (video *model.Video) {
 	video.Director = source.Director
 	//video.Language = source.Language
 	//video.Caption = source.Caption
+	video.Series = source.Series
+	video.Tags = source.Tags
 	video.Date = source.Date
 	video.SourceHash = source.SourceHash
 	video.Season = MustString(source.Season, "1")

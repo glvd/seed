@@ -32,7 +32,11 @@ type (
 		Sharpness    string   `json:"sharpness"`                  //清晰度
 		Sliced       bool     `json:"sliced"`                     //切片
 		Sync         bool     `xorm:"notnull default(0)"`         //是否已同步
-		Visit        uint64   `xorm:"notnull default(0)"`         //访问统计
+		Visit        uint64   `xorm:"notnull default(0)"`         //访问数
+		Series       string   `json:"series"`                     //系列
+		Tags         []string `xorm:"json" json:"tags"`           //标签
+
+		//访问统计
 
 		//HLS          HLS      `xorm:"json" json:"hls,omitempty"`  //切片信息
 		//VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`

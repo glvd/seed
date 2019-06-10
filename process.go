@@ -22,10 +22,10 @@ func dummy(process *process) (e error) {
 
 // process ...
 type process struct {
-	workspace  string `json:"Workspace"`
-	path       string `json:"path"`
+	workspace  string
+	path       string
 	shell      *shell.Shell
-	thread     int `json:"thread"`
+	thread     int
 	ignores    map[string][]byte
 	unfinished []*model.Unfinished
 	//Slice     bool   `json:"slice"`

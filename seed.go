@@ -55,9 +55,8 @@ type Seeder interface {
 
 // Seed ...
 type Seed struct {
-	Shell     *shell.Shell
-	Workspace string
-	//ProcessPath string
+	Shell      *shell.Shell
+	Workspace  string
 	Unfinished []*model.Unfinished
 	wg         *sync.WaitGroup
 	ctx        context.Context
@@ -162,7 +161,8 @@ func PinOption(pin *pin) Options {
 func IgnoreOption(ignores ...string) Options {
 	return func(seed *Seed) {
 		for _, i := range ignores {
-			seed.ignores[PathMD5(i)] = nil
+
+			seed.ignores[PathMD5(strings.ToLower(i))] = nil
 		}
 	}
 }
@@ -204,7 +204,7 @@ type VideoSource struct {
 	Poster       string    `json:"poster"`        //海报HASH
 	ExtendList   []*Extend `json:"extend_list"`   //扩展信息
 	Role         []string  `json:"role"`          //角色列表 stars
-	Director     []string  `json:"director"`      //导演
+	Director     string    `json:"director"`      //导演
 	Systematics  string    `json:"systematics"`   //分级
 	Season       string    `json:"season"`        //季
 	Episode      string    `json:"episode"`       //集数
@@ -286,10 +286,10 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	}
 
 	//always not null
-	director := []string{}
-	if source.Director != nil {
-		director = source.Director
-	}
+	//director := []string{}
+	//if source.Director != nil {
+	//	director = source.Director
+	//}
 
 	intro := source.Intro
 	if intro == "" {
@@ -304,7 +304,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	video.Intro = intro
 	video.Alias = alias
 	video.Role = role
-	video.Director = director
+	video.Director = source.Director
 	//video.Language = source.Language
 	//video.Caption = source.Caption
 	video.SourceHash = source.SourceHash

@@ -176,6 +176,7 @@ func video(source *VideoSource) (video *model.Video) {
 	video.TotalEpisode = MustString(source.TotalEpisode, "1")
 	video.Format = MustString(source.Format, "2D")
 	video.Publisher = source.Publisher
+	video.Length = source.Length
 	return
 }
 

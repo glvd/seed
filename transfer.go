@@ -137,12 +137,6 @@ func video(source *VideoSource) (video *model.Video) {
 		roleS = role[0]
 	}
 
-	//always not null
-	//director := []string{}
-	//if source.Director != nil {
-	//	director = source.Director
-	//}
-
 	intro := source.Intro
 	if intro == "" {
 		intro = aliasS + " " + roleS

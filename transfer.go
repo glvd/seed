@@ -1,10 +1,17 @@
 package seed
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"github.com/go-xorm/xorm"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
+	"io"
+	"io/ioutil"
+	"os"
+	"regexp"
 )
 
 // TransferFlag ...
@@ -30,11 +37,11 @@ type TransferStatus string
 
 // TransferFlagNone ...
 const (
-	TransferStatusNone   TransferFlag = "none"
-	TransferFlagVerify   TransferFlag = "verify"
-	TransferStatusAdd    TransferFlag = "add"
-	TransferStatusUpdate TransferFlag = "update"
-	TransferStatusDelete TransferFlag = "delete"
+	TransferStatusNone   TransferStatus = "none"
+	TransferFlagVerify   TransferStatus = "verify"
+	TransferStatusAdd    TransferStatus = "add"
+	TransferStatusUpdate TransferStatus = "update"
+	TransferStatusDelete TransferStatus = "delete"
 )
 
 // transfer ...
@@ -42,15 +49,35 @@ type transfer struct {
 	from   TransferFlag
 	to     TransferFlag
 	status TransferStatus
+	path   string
+	buf    *bytes.Buffer
 }
 
 // BeforeRun ...
-func (transfer transfer) BeforeRun(seed *Seed) {
+func (transfer *transfer) BeforeRun(seed *Seed) {
+	b, e := ioutil.ReadFile(transfer.path)
+	if e != nil {
+		return
+	}
 
+	e = ioutil.WriteFile("tmp.json", fixFile(b), os.ModePerm)
+	if e != nil {
+		return
+	}
+
+	fixed := fixFile(b)
+	log.Info(string(fixed))
+
+	transfer.buf = bytes.NewBuffer(fixed)
+}
+
+func fixFile(s []byte) []byte {
+	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
+	return reg.ReplaceAll(s, []byte(" "))
 }
 
 // AfterRun ...
-func (transfer transfer) AfterRun(seed *Seed) {
+func (transfer *transfer) AfterRun(seed *Seed) {
 
 }
 
@@ -62,8 +89,9 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(from, to TransferFlag, status TransferStatus) Options {
+func Transfer(path string, from, to TransferFlag, status TransferStatus) Options {
 	t := &transfer{
+		path:   path,
 		from:   from,
 		to:     to,
 		status: status,
@@ -73,12 +101,36 @@ func Transfer(from, to TransferFlag, status TransferStatus) Options {
 
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
+	log.Info("transfer running")
+	select {
+	case <-ctx.Done():
+	default:
+		var vs []*VideoSource
+		var reader io.Reader
+		//reader, e := os.Open(transfer.path)
+		//if e != nil {
+		//	return
+		//}
+		if transfer.buf != nil {
+			reader = transfer.buf
+		}
+		e := LoadFrom(&vs, reader)
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for _, s := range vs {
+			log.Infof("%+v", s)
+		}
+	}
 
 }
 
 // LoadFrom ...
-func LoadFrom() {
+func LoadFrom(vs *[]*VideoSource, reader io.Reader) (e error) {
+	dec := json.NewDecoder(bufio.NewReader(reader))
 
+	return dec.Decode(vs)
 }
 
 // TransferTo ...

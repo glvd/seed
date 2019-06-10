@@ -39,7 +39,7 @@ type process struct {
 func (p *process) BeforeRun(seed *Seed) {
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
-	//p.path = seed.ProcessPath
+	p.ignores = seed.ignores
 }
 
 // AfterRun ...
@@ -73,7 +73,7 @@ func prefix(s string) (ret string) {
 }
 
 func (p *process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
-	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption("tmp"))
+	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,6 @@ func fixPath(file string) string {
 
 // Run ...
 func (p *process) Run(ctx context.Context) {
-	p.init()
 	files := p.getFiles(p.path)
 	log.Info(files)
 	var unfin *model.Unfinished
@@ -167,7 +166,8 @@ func (p *process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
-	_, b = p.ignores[PathMD5(name)]
+	log.Infof("check", name)
+	_, b = p.ignores[PathMD5(strings.ToLower(name))]
 	return
 }
 
@@ -200,9 +200,6 @@ func (p *process) getFiles(ws string) (files []string) {
 		return files
 	}
 	return append(files, ws)
-}
-
-func (p *process) init() {
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

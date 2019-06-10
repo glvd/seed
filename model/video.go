@@ -14,7 +14,7 @@ type Video struct {
 	M3U8Hash     string   `json:"m3u8_hash"`                  //切片地址
 	PosterHash   string   `json:"poster_hash"`                //海报地址
 	Role         []string `xorm:"json" json:"role"`           //主演
-	Director     []string `xorm:"json" json:"director"`       //导演
+	Director     string   `json:"director"`                   //导演
 	Season       string   `json:"season,omitempty"`           //季
 	TotalEpisode string   `json:"total_episode,omitempty"`    //总集数
 	Episode      string   `json:"episode,omitempty"`          //集数

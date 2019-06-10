@@ -73,17 +73,12 @@ func Transfer(from, to TransferFlag, status TransferStatus) Options {
 
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
-	var videos = new([]*model.Video)
 
-	if e = model.DB().Find(videos); e != nil {
-		return
-	}
+}
 
-	if e = WriteJSON("video.json", videos); e != nil {
-		return
-	}
+// LoadFrom ...
+func LoadFrom() {
 
-	return nil
 }
 
 // TransferTo ...

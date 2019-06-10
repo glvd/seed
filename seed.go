@@ -238,16 +238,6 @@ func LoadVideo() []*model.Video {
 	return videos
 }
 
-// ListVideoGet ...
-func ListVideoGet(source *VideoSource) *model.Video {
-	for _, v := range VideoList {
-		if v.Bangumi == source.Bangumi {
-			return v
-		}
-	}
-	return NewVideo(source)
-}
-
 // VideoListAdd ...
 func VideoListAdd(source *VideoSource, video *model.Video) {
 	for i, v := range VideoList {
@@ -257,91 +247,6 @@ func VideoListAdd(source *VideoSource, video *model.Video) {
 		}
 	}
 	VideoList = append(VideoList, video)
-}
-
-// SaveVideos ...
-func SaveVideos() (e error) {
-	e = WriteJSON("video.json", VideoList)
-	if e != nil {
-		return e
-	}
-	return nil
-}
-
-func parseVideoBase(video *model.Video, source *VideoSource) {
-	if video == nil {
-		return
-	}
-	//always not null
-	alias := []string{}
-	aliasS := ""
-	if source.Alias != nil || len(source.Alias) > 0 {
-		alias = source.Alias
-		aliasS = alias[0]
-	}
-	//always not null
-	role := []string{}
-	roleS := ""
-	if source.Role != nil || len(source.Role) > 0 {
-		role = source.Role
-		roleS = role[0]
-	}
-
-	//always not null
-	//director := []string{}
-	//if source.Director != nil {
-	//	director = source.Director
-	//}
-
-	intro := source.Intro
-	if intro == "" {
-		intro = aliasS + " " + roleS
-	}
-	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
-	video.Bangumi = source.Bangumi
-	//video.Type = source.Type
-	//video.Format = source.Format
-	//video.VR = source.VR
-	video.Thumb = source.Thumb
-	video.Intro = intro
-	video.Alias = alias
-	video.Role = role
-	video.Director = source.Director
-	//video.Language = source.Language
-	//video.Caption = source.Caption
-	video.SourceHash = source.SourceHash
-	video.Season = source.Season
-	video.Episode = source.Episode
-	video.TotalEpisode = source.TotalEpisode
-	video.Publish = source.Publish
-
-}
-
-// NewVideo ...
-func NewVideo(source *VideoSource) *model.Video {
-	alias := []string{}
-	if source.Alias != nil {
-		alias = source.Alias
-	}
-	return &model.Video{
-		Bangumi: strings.ToUpper(source.Bangumi),
-		//Type:         source.Type,
-		//Format:       source.Format,
-		//VR:           source.VR,
-		Thumb: source.Thumb,
-		Intro: source.Intro,
-		Alias: alias,
-		//Language:     source.Language,
-		//Caption:      source.Caption,
-		Role:         source.Role,
-		Director:     source.Director,
-		Season:       source.Season,
-		Episode:      source.Episode,
-		TotalEpisode: source.TotalEpisode,
-		Publish:      source.Publish,
-		//VideoGroupList: nil,
-		//SourceInfoList: nil,
-	}
 }
 
 // Hash ...

@@ -35,6 +35,7 @@ type (
 		Visit        uint64   `xorm:"notnull default(0)"`         //访问数
 		Series       string   `json:"series"`                     //系列
 		Tags         []string `xorm:"json" json:"tags"`           //标签
+		Length       string   `json:"length"`                     //时长
 
 		//访问统计
 

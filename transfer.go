@@ -6,12 +6,45 @@ import (
 	"golang.org/x/xerrors"
 )
 
+// TransferFlag ...
+type TransferFlag string
+
+// TransferFlagNone ...
+const TransferFlagNone TransferFlag = "none"
+
+// TransferFlagUpdate ...
+const TransferFlagUpdate TransferFlag = "update"
+
+// TransferFlagMysql ...
+const TransferFlagMysql TransferFlag = "mysql"
+
+// TransferFlagJSON ...
+const TransferFlagJSON TransferFlag = "json"
+
+// TransferFlagSQLite ...
+const TransferFlagSQLite TransferFlag = "sqlite"
+
+// TransferStatus ...
+type TransferStatus string
+
+// TransferFlagNone ...
+const (
+	TransferStatusNone   TransferFlag = "none"
+	TransferFlagVerify   TransferFlag = "verify"
+	TransferStatusAdd    TransferFlag = "add"
+	TransferStatusUpdate TransferFlag = "update"
+	TransferStatusDelete TransferFlag = "delete"
+)
+
 // transfer ...
 type transfer struct {
+	from   TransferFlag
+	to     TransferFlag
+	status TransferStatus
 }
 
 // Transfer ...
-func Transfer() Options {
+func Transfer(from, to string) Options {
 	return func(seed *Seed) {
 
 	}

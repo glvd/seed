@@ -21,7 +21,7 @@ type TransferFlag string
 const TransferFlagNone TransferFlag = "none"
 
 // TransferFlagUpdate ...
-const TransferFlagUpdate TransferFlag = "update"
+const TransferFlagUpdate TransferFlag = "updateAppHash"
 
 // TransferFlagMysql ...
 const TransferFlagMysql TransferFlag = "mysql"
@@ -40,7 +40,7 @@ const (
 	TransferStatusNone   TransferStatus = "none"
 	TransferFlagVerify   TransferStatus = "verify"
 	TransferStatusAdd    TransferStatus = "add"
-	TransferStatusUpdate TransferStatus = "update"
+	TransferStatusUpdate TransferStatus = "updateAppHash"
 	TransferStatusDelete TransferStatus = "delete"
 )
 
@@ -51,6 +51,7 @@ type transfer struct {
 	status TransferStatus
 	path   string
 	buf    *bytes.Buffer
+	video  []*model.Video
 }
 
 // BeforeRun ...
@@ -120,10 +121,14 @@ func (transfer *transfer) Run(ctx context.Context) {
 			return
 		}
 		for _, s := range vs {
-			log.Infof("%+v", s)
+			transfer.video = append(transfer.video, video(s))
 		}
 	}
 
+}
+
+func video(source *VideoSource) *model.Video {
+	return &model.Video{}
 }
 
 // LoadFrom ...

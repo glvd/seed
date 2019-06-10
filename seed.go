@@ -58,6 +58,7 @@ type Seed struct {
 	Shell      *shell.Shell
 	Workspace  string
 	Unfinished []*model.Unfinished
+	Video      []*model.Video
 	wg         *sync.WaitGroup
 	ctx        context.Context
 	cancel     context.CancelFunc
@@ -295,7 +296,7 @@ func parseVideoBase(video *model.Video, source *VideoSource) {
 	if intro == "" {
 		intro = aliasS + " " + roleS
 	}
-
+	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
 	video.Bangumi = source.Bangumi
 	//video.Type = source.Type
 	//video.Format = source.Format

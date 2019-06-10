@@ -91,9 +91,9 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(reader io.Reader, from, to TransferFlag, status TransferStatus) Options {
+func Transfer(path string, from, to TransferFlag, status TransferStatus) Options {
 	t := &transfer{
-		reader: reader,
+		path:   path,
 		from:   from,
 		to:     to,
 		status: status,

@@ -158,7 +158,7 @@ func (_BangumiData *BangumiDataRaw) Call(opts *bind.CallOpts, result interface{}
 	return _BangumiData.Contract.BangumiDataCaller.contract.Call(opts, result, method, params...)
 }
 
-// Transfer initiates a plain transaction to move funds to the contract, calling
+// transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
 func (_BangumiData *BangumiDataRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _BangumiData.Contract.BangumiDataTransactor.contract.Transfer(opts)
@@ -177,7 +177,7 @@ func (_BangumiData *BangumiDataCallerRaw) Call(opts *bind.CallOpts, result inter
 	return _BangumiData.Contract.contract.Call(opts, result, method, params...)
 }
 
-// Transfer initiates a plain transaction to move funds to the contract, calling
+// transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
 func (_BangumiData *BangumiDataTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _BangumiData.Contract.contract.Transfer(opts)

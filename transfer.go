@@ -6,11 +6,19 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type Transfer struct {
+// transfer ...
+type transfer struct {
 }
 
 // Transfer ...
-func (transfer *Transfer) Run() (e error) {
+func Transfer() Options {
+	return func(seed *Seed) {
+
+	}
+}
+
+// Run ...
+func (transfer *transfer) Run() (e error) {
 	var videos = new([]*model.Video)
 
 	if e = model.DB().Find(videos); e != nil {

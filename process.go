@@ -35,12 +35,14 @@ type process struct {
 	//JSONPath  string `json:"json_path"`
 }
 
+// BeforeRun ...
 func (p *process) BeforeRun(seed *Seed) {
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
 	//p.path = seed.ProcessPath
 }
 
+// AfterRun ...
 func (p *process) AfterRun(seed *Seed) {
 	seed.Unfinished = p.unfinished
 }
@@ -57,7 +59,7 @@ func tmp(path string, name string) string {
 	return filepath.Join(mp, name)
 }
 
-// NewProcessSeeder ...
+// Process ...
 func Process(path string) Options {
 	process := &process{
 		path: path,

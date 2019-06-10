@@ -8,26 +8,36 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// PinCallback ...
-type PinCallback func(hash string)
+// PinFlag ...
+type PinFlag string
+
+// PinFlagNone ...
+const (
+	PinFlagNone PinFlag = "none"
+)
 
 type pin struct {
 	unfinished []*model.Unfinished
+	flag       PinFlag
 }
 
+// BeforeRun ...
 func (p *pin) BeforeRun(seed *Seed) {
 	p.unfinished = seed.Unfinished
 }
 
+// AfterRun ...
 func (p *pin) AfterRun(seed *Seed) {
 	return
 }
 
+// Pin ...
 func Pin() Options {
 	pin := &pin{}
 	return PinOption(pin)
 }
 
+// Run ...
 func (p *pin) Run(context.Context) {
 	log.Infof("%+v", p.unfinished)
 	for _, v := range p.unfinished {

@@ -51,13 +51,13 @@ const PinStateLocal PinState = "local"
 const PinStateRemote PinState = "remote"
 
 // Pin ...
-func Pin(flag PinFlag, shell ...*shell.Shell) Options {
+func Pin(flag PinFlag) Options {
 	pin := &pin{
 		flag: flag,
 	}
-	if shell != nil {
-		pin.shell = shell[0]
-	}
+	//if shell != nil {
+	//	pin.shell = shell[0]
+	//}
 
 	return PinOption(pin)
 }

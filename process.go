@@ -210,8 +210,6 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 
 	if format.IsVideo() {
 		u.IsVideo = true
-		//u.Type = "video"
-		u.Name = format.NameAnalyze().ToString()
 		u.Sharpness = getVideoResolution(format)
 	}
 	return format, nil

@@ -78,10 +78,14 @@ func (p *pin) Run(ctx context.Context) {
 			case PinFlagSlice:
 				pinHash(nil, v.SliceHash)
 			case PinFlagAll:
-				wg.Add(1)
-				go pinHash(wg, v.Hash)
-				wg.Add(1)
-				go pinHash(wg, v.SliceHash)
+				if v.Hash != "" {
+					wg.Add(1)
+					go pinHash(wg, v.Hash)
+				}
+				if v.SliceHash != "" {
+					wg.Add(1)
+					go pinHash(wg, v.SliceHash)
+				}
 				wg.Wait()
 			default:
 				//nothing to do
@@ -92,13 +96,15 @@ func (p *pin) Run(ctx context.Context) {
 
 func pinHash(wg *sync.WaitGroup, hash string) {
 	log.Info("pin:", hash)
+	defer func() {
+		if wg != nil {
+			wg.Done()
+		}
+	}()
 	e := rest.Pin(hash)
 	if e != nil {
 		log.Error("pin error:", hash, e)
 		return
-	}
-	if wg != nil {
-		wg.Done()
 	}
 
 	log.Info("pinned:", hash)

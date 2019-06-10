@@ -210,7 +210,7 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 
 	if format.IsVideo() {
 		u.IsVideo = true
-		u.Sharpness = getVideoResolution(format)
+		u.Sharpness = format.Resolution()
 	}
 	return format, nil
 }

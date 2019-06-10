@@ -9,6 +9,19 @@ type update struct {
 	video []*model.Video
 }
 
+// Update ...
+func Update() Options {
+	update := &update{}
+	return UpdateOption(update)
+}
+
+// UpdateOption ...
+func UpdateOption(update *update) Options {
+	return func(seed *Seed) {
+		seed.thread[StepperUpdate] = update
+	}
+}
+
 // Run ...
 func (u *update) Run(context.Context) {
 	if u.video == nil {

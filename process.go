@@ -453,7 +453,7 @@ func parseGroup(index string, source *VideoSource) *model.VideoGroup {
 	return &model.VideoGroup{
 		Index: index,
 		//Sharpness:    source.Sharpness,
-		//Output:       source.Output,
+		//Format:       source.Format,
 		//Season:       source.Season,
 		//TotalEpisode: source.TotalEpisode,
 		//Episode:      source.Episode,

@@ -167,11 +167,13 @@ func video(source *VideoSource) (video *model.Video) {
 	video.Director = source.Director
 	//video.Language = source.Language
 	//video.Caption = source.Caption
+	video.Date = source.Date
 	video.SourceHash = source.SourceHash
-	video.Season = source.Season
-	video.Episode = source.Episode
-	video.TotalEpisode = source.TotalEpisode
-	video.Publish = source.Publish
+	video.Season = MustString(source.Season, "1")
+	video.Episode = MustString(source.Episode, "1")
+	video.TotalEpisode = MustString(source.TotalEpisode, "1")
+	video.Format = MustString(source.Format, "2D")
+	video.Publisher = source.Publisher
 	return
 }
 

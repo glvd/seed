@@ -187,7 +187,7 @@ type VideoSource struct {
 	Bangumi      string    `json:"bangumi"`       //番号 no
 	SourceHash   string    `json:"source_hash"`   //原片hash
 	Type         string    `json:"type"`          //类型：film，FanDrama
-	Output       string    `json:"output"`        //输出：3D，2D
+	Format       string    `json:"format"`        //输出：3D，2D
 	VR           string    `json:"vr"`            //VR格式：左右，上下，平面
 	Thumb        string    `json:"thumb"`         //缩略图
 	Intro        string    `json:"intro"`         //简介 title

@@ -51,7 +51,7 @@ type transfer struct {
 	to     TransferFlag
 	status TransferStatus
 	path   string
-	buf    *bytes.Buffer
+	reader io.Reader
 	video  []*model.Video
 }
 
@@ -70,7 +70,7 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	fixed := fixFile(b)
 	log.Info(string(fixed))
 
-	transfer.buf = bytes.NewBuffer(fixed)
+	transfer.reader = bytes.NewBuffer(fixed)
 }
 
 func fixFile(s []byte) []byte {
@@ -108,15 +108,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 	case <-ctx.Done():
 	default:
 		var vs []*VideoSource
-		var reader io.Reader
-		//reader, e := os.Open(transfer.path)
-		//if e != nil {
-		//	return
-		//}
-		if transfer.buf != nil {
-			reader = transfer.buf
-		}
-		e := LoadFrom(&vs, reader)
+		e := LoadFrom(&vs, transfer.reader)
 		if e != nil {
 			log.Error(e)
 			return

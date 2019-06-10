@@ -40,7 +40,7 @@ const (
 	StepperNone Stepper = iota
 	StepperProcess
 	StepperMove
-	StepperJSON
+	StepperTransfer
 	StepperPin
 	StepperMax
 )

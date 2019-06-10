@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"context"
 	"github.com/go-xorm/xorm"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
@@ -43,15 +44,35 @@ type transfer struct {
 	status TransferStatus
 }
 
-// Transfer ...
-func Transfer(from, to string) Options {
-	return func(seed *Seed) {
+// BeforeRun ...
+func (transfer transfer) BeforeRun(seed *Seed) {
 
+}
+
+// AfterRun ...
+func (transfer transfer) AfterRun(seed *Seed) {
+
+}
+
+// TransferOption ...
+func TransferOption(t *transfer) Options {
+	return func(seed *Seed) {
+		seed.thread[StepperTransfer] = t
 	}
 }
 
+// Transfer ...
+func Transfer(from, to TransferFlag, status TransferStatus) Options {
+	t := &transfer{
+		from:   from,
+		to:     to,
+		status: status,
+	}
+	return TransferOption(t)
+}
+
 // Run ...
-func (transfer *transfer) Run() (e error) {
+func (transfer *transfer) Run(ctx context.Context) {
 	var videos = new([]*model.Video)
 
 	if e = model.DB().Find(videos); e != nil {

@@ -302,10 +302,10 @@ func infoInput(eth *ETH, video *model.Video) (e error) {
 
 // UpdateApp ...
 func UpdateApp(version string, hash string) (e error) {
-	return update(version, hash)
+	return updateAppHash(version, hash)
 }
 
-func update(version string, hash string) (e error) {
+func updateAppHash(version string, hash string) (e error) {
 	return eth.ProcContract(func(v interface{}) (b bool, e error) {
 		data, b := v.(*Dhash)
 		if !b {

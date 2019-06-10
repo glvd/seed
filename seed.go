@@ -12,33 +12,40 @@ import (
 	"github.com/yinhevr/seed/model"
 )
 
+// Options ...
 type Options func(*Seed)
 
+// Thread ...
 type Thread struct {
 	wg sync.WaitGroup
 }
 
+// Threader ...
 type Threader interface {
 	Runnable
 	BeforeRun(seed *Seed)
 	AfterRun(seed *Seed)
 }
 
+// Runnable ...
 type Runnable interface {
 	Run(context.Context)
 }
 
+// Stepper ...
 type Stepper int
 
+// StepperNone ...
 const (
 	StepperNone Stepper = iota
 	StepperProcess
 	StepperMove
-	StepperJson
+	StepperJSON
 	StepperPin
 	StepperMax
 )
 
+// Seeder ...
 type Seeder interface {
 	Start()
 	Wait()
@@ -46,6 +53,7 @@ type Seeder interface {
 	Err() error
 }
 
+// Seed ...
 type Seed struct {
 	Shell     *shell.Shell
 	Workspace string
@@ -60,16 +68,19 @@ type Seed struct {
 	err        error
 }
 
+// Stop ...
 func (seed *Seed) Stop() {
 	if seed.cancel != nil {
 		seed.cancel()
 	}
 }
 
+// Err ...
 func (seed *Seed) Err() error {
 	return seed.err
 }
 
+// Start ...
 func (seed *Seed) Start() {
 	seed.wg.Add(1)
 	go func() {
@@ -86,10 +97,12 @@ func (seed *Seed) Start() {
 	}()
 }
 
+// Wait ...
 func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
+// NewSeed ...
 func NewSeed(ops ...Options) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &Seed{
@@ -111,12 +124,14 @@ func NewSeed(ops ...Options) *Seed {
 	return seed
 }
 
+// ShellOption ...
 func ShellOption(s *shell.Shell) Options {
 	return func(seed *Seed) {
 		seed.Shell = s
 	}
 }
 
+// ProcessOption ...
 func ProcessOption(process *process) Options {
 	return func(seed *Seed) {
 
@@ -124,12 +139,14 @@ func ProcessOption(process *process) Options {
 	}
 }
 
+// PinOption ...
 func PinOption(pin *pin) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperPin] = pin
 	}
 }
 
+// IgnoreOption ...
 func IgnoreOption(ignores ...string) Options {
 	return func(seed *Seed) {
 		for _, i := range ignores {
@@ -138,6 +155,7 @@ func IgnoreOption(ignores ...string) Options {
 	}
 }
 
+// ThreadOption ...
 func ThreadOption(t int) Options {
 	return func(seed *Seed) {
 		seed.threads = t

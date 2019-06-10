@@ -158,7 +158,7 @@ func (_Dhash *DhashRaw) Call(opts *bind.CallOpts, result interface{}, method str
 	return _Dhash.Contract.DhashCaller.contract.Call(opts, result, method, params...)
 }
 
-// Transfer initiates a plain transaction to move funds to the contract, calling
+// transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
 func (_Dhash *DhashRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _Dhash.Contract.DhashTransactor.contract.Transfer(opts)
@@ -177,7 +177,7 @@ func (_Dhash *DhashCallerRaw) Call(opts *bind.CallOpts, result interface{}, meth
 	return _Dhash.Contract.contract.Call(opts, result, method, params...)
 }
 
-// Transfer initiates a plain transaction to move funds to the contract, calling
+// transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
 func (_Dhash *DhashTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
 	return _Dhash.Contract.contract.Transfer(opts)

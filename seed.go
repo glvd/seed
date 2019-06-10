@@ -113,15 +113,28 @@ func NewSeed(ops ...Options) *Seed {
 		thread:  make([]Threader, StepperMax),
 		ignores: make(map[string][]byte),
 	}
-	for _, op := range ops {
-		op(seed)
-	}
+
+	seed.Register(ops...)
 
 	if seed.Shell == nil {
 		seed.Shell = shell.NewShell("localhost:5001")
 	}
 
 	return seed
+}
+
+// Register ...
+func (seed *Seed) Register(ops ...Options) {
+	for _, op := range ops {
+		op(seed)
+	}
+}
+
+// UnfinishedOption ...
+func UnfinishedOption(unfin ...*model.Unfinished) Options {
+	return func(seed *Seed) {
+		seed.Unfinished = unfin
+	}
 }
 
 // ShellOption ...
@@ -134,7 +147,6 @@ func ShellOption(s *shell.Shell) Options {
 // ProcessOption ...
 func ProcessOption(process *process) Options {
 	return func(seed *Seed) {
-
 		seed.thread[StepperProcess] = process
 	}
 }

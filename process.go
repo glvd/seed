@@ -266,7 +266,6 @@ func ProcessVideo(source *VideoSource) (e error) {
 	if err != nil {
 		return err
 	}
-	parseVideoBase(video, source)
 
 	log.Infof("%+v", video)
 

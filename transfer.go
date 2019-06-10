@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 )
 
 // TransferFlag ...
@@ -79,7 +80,7 @@ func fixFile(s []byte) []byte {
 
 // AfterRun ...
 func (transfer *transfer) AfterRun(seed *Seed) {
-
+	seed.Video = transfer.video
 }
 
 // TransferOption ...
@@ -127,8 +128,51 @@ func (transfer *transfer) Run(ctx context.Context) {
 
 }
 
-func video(source *VideoSource) *model.Video {
-	return &model.Video{}
+func video(source *VideoSource) (video *model.Video) {
+	video = new(model.Video)
+	//always not null
+	alias := []string{}
+	aliasS := ""
+	if source.Alias != nil && len(source.Alias) > 0 {
+		alias = source.Alias
+		aliasS = alias[0]
+	}
+	//always not null
+	role := []string{}
+	roleS := ""
+	if source.Role != nil && len(source.Role) > 0 {
+		role = source.Role
+		roleS = role[0]
+	}
+
+	//always not null
+	//director := []string{}
+	//if source.Director != nil {
+	//	director = source.Director
+	//}
+
+	intro := source.Intro
+	if intro == "" {
+		intro = aliasS + " " + roleS
+	}
+	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
+	video.Bangumi = strings.ToUpper(source.Bangumi)
+	//video.Type = source.Type
+	//video.Format = source.Format
+	//video.VR = source.VR
+	video.Thumb = source.Thumb
+	video.Intro = intro
+	video.Alias = alias
+	video.Role = role
+	video.Director = source.Director
+	//video.Language = source.Language
+	//video.Caption = source.Caption
+	video.SourceHash = source.SourceHash
+	video.Season = source.Season
+	video.Episode = source.Episode
+	video.TotalEpisode = source.TotalEpisode
+	video.Publish = source.Publish
+	return
 }
 
 // LoadFrom ...

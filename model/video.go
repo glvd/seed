@@ -10,8 +10,8 @@ type Video struct {
 	Alias        []string `xorm:"json" json:"alias"`          //别名，片名
 	SourceHash   string   `json:"source_hash"`                //原片地址
 	Key          string   `json:"key"`                        //秘钥
-	M3U8         string   `json:"m3u8"`                       //M3U8名
-	M3U8Hash     string   `json:"m3u8_hash"`                  //切片地址
+	M3U8         string   `xorm:"m3u8" json:"m3u8"`           //M3U8名
+	M3U8Hash     string   `xorm:"m3u8_hash" json:"m3u8_hash"` //切片地址
 	PosterHash   string   `json:"poster_hash"`                //海报地址
 	Role         []string `xorm:"json" json:"role"`           //主演
 	Director     string   `json:"director"`                   //导演

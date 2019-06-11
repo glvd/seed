@@ -5,11 +5,26 @@ import (
 	"golang.org/x/xerrors"
 )
 
+// Type ...
+type Type string
+
+// TypeOther ...
+const TypeOther Type = "other"
+
+// TypeVideo ...
+const TypeVideo Type = "video"
+
+// TypePoster ...
+const TypePoster Type = "poster"
+
+// TypeThumb ...
+const TypeThumb Type = "thumb"
+
 // Unfinished 未分类
 type Unfinished struct {
 	Model       `xorm:"extends"`
 	Checksum    string       `xorm:"default() checksum"`
-	Type        string       `xorm:"default() type"`
+	Type        Type         `xorm:"default() type"`
 	Name        string       `xorm:"default() name"`
 	Hash        string       `xorm:"default() hash"` //哈希地址
 	SliceHash   string       `xorm:"default()" json:"slice_hash"`

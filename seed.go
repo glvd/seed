@@ -138,6 +138,9 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 			if seed.Unfinished == nil {
 				seed.Unfinished = make(map[string]*model.Unfinished)
 			}
+			if u == nil {
+				continue
+			}
 			if u.Hash != "" {
 				seed.Unfinished[u.Hash] = u
 			}

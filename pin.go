@@ -30,6 +30,9 @@ type pin struct {
 // BeforeRun ...
 func (p *pin) BeforeRun(seed *Seed) {
 	p.unfinished = seed.Unfinished
+	if p.unfinished == nil {
+		p.unfinished = make(map[string]*model.Unfinished)
+	}
 	if p.shell == nil {
 		p.shell = seed.Shell
 	}

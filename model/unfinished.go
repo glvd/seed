@@ -23,11 +23,12 @@ const TypeThumb Type = "thumb"
 // Unfinished 未分类
 type Unfinished struct {
 	Model       `xorm:"extends"`
-	Checksum    string       `xorm:"default() checksum"`
-	Type        Type         `xorm:"default() type"`
-	Name        string       `xorm:"default() name"`
-	Hash        string       `xorm:"default() hash"` //哈希地址
-	SliceHash   string       `xorm:"default()" json:"slice_hash"`
+	Checksum    string       `xorm:"default() checksum"`            //sum值
+	Type        Type         `xorm:"default() type"`                //类型
+	Relate      string       `xorm:"default()" json:"relate"`       //关联信息
+	Name        string       `xorm:"default() name"`                //名称
+	Hash        string       `xorm:"default() hash"`                //哈希地址
+	SliceHash   string       `xorm:"default()" json:"slice_hash"`   //切片HASH
 	IsVideo     bool         `xorm:"default(0)"`                    //视频文件
 	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
 	Sync        bool         `xorm:"default(0)"`                    //是否同步

@@ -6,10 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-xorm/xorm"
+	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"io"
 	"io/ioutil"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -46,12 +48,14 @@ const (
 
 // transfer ...
 type transfer struct {
-	from   TransferFlag
-	to     TransferFlag
-	status TransferStatus
-	path   string
-	reader io.Reader
-	video  []*model.Video
+	shell      *shell.Shell
+	unfinished map[string]*model.Unfinished
+	from       TransferFlag
+	to         TransferFlag
+	status     TransferStatus
+	path       string
+	reader     io.Reader
+	video      []*model.Video
 }
 
 // BeforeRun ...
@@ -60,17 +64,14 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	if e != nil {
 		return
 	}
-
-	//e = ioutil.WriteFile("tmp.json", fixFile(b), os.ModePerm)
-	//if e != nil {
-	//	return
-	//}
-	//all, e := ioutil.ReadAll(transfer.reader)
-	//if e != nil {
-	//	return
-	//}
+	transfer.shell = seed.Shell
 	fixed := fixFile(b)
 	transfer.reader = bytes.NewBuffer(fixed)
+
+	if seed.Unfinished == nil {
+		transfer.unfinished = make(map[string]*model.Unfinished)
+	}
+
 }
 
 func fixFile(s []byte) []byte {
@@ -101,6 +102,39 @@ func Transfer(path string, from, to TransferFlag, status TransferStatus) Options
 	return TransferOption(t)
 }
 
+func addThumbHash(tr *transfer, source *VideoSource) (string, error) {
+	if source.Thumb != "" {
+		abs, e := filepath.Abs(source.Thumb)
+		if e != nil {
+			return "", e
+		}
+		object, e := tr.shell.AddFile(abs)
+		if e != nil {
+			return "", e
+		}
+		return object.Hash, nil
+	}
+	return "", xerrors.New("no thumb")
+}
+
+func addPosterHash(tr *transfer, source *VideoSource) (string, error) {
+	if source.PosterPath != "" {
+		abs, e := filepath.Abs(source.PosterPath)
+		if e != nil {
+			return "", e
+		}
+		object, e := tr.shell.AddFile(abs)
+		if e != nil {
+			return "", e
+		}
+		return object.Hash, nil
+	}
+	if source.Poster != "" {
+		return source.Poster, nil
+	}
+	return "", xerrors.New("no poster")
+}
+
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
 	log.Info("transfer running")
@@ -114,7 +148,18 @@ func (transfer *transfer) Run(ctx context.Context) {
 			return
 		}
 		for _, s := range vs {
-			transfer.video = append(transfer.video, video(s))
+			v := video(s)
+			thumb, e := addThumbHash(transfer, s)
+			if e != nil {
+				log.Error(e)
+			}
+			v.Thumb = thumb
+			poster, e := addPosterHash(transfer, s)
+			if e != nil {
+				log.Error(e)
+			}
+			v.PosterHash = poster
+			transfer.video = append(transfer.video, v)
 		}
 	}
 
@@ -146,7 +191,7 @@ func video(source *VideoSource) (video *model.Video) {
 	//video.Type = source.Type
 	//video.Format = source.Format
 	//video.VR = source.VR
-	video.Thumb = source.Thumb
+	//video.Thumb = source.Thumb
 	video.Intro = intro
 	video.Alias = alias
 	video.Role = role

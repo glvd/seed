@@ -27,7 +27,7 @@ type process struct {
 	shell      *shell.Shell
 	thread     int
 	ignores    map[string][]byte
-	unfinished []*model.Unfinished
+	unfinished map[string]*model.Unfinished
 	//Slice     bool   `json:"slice"`
 	//Move      bool   `json:"move"`
 	//MovePath  string `json:"move_path"`
@@ -37,6 +37,9 @@ type process struct {
 
 // BeforeRun ...
 func (p *process) BeforeRun(seed *Seed) {
+	if seed.Unfinished == nil {
+		p.unfinished = make(map[string]*model.Unfinished)
+	}
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
 	p.ignores = seed.ignores
@@ -44,18 +47,7 @@ func (p *process) BeforeRun(seed *Seed) {
 
 // AfterRun ...
 func (p *process) AfterRun(seed *Seed) {
-	for _, unfin := range p.unfinished {
-		if seed.Unfinished == nil {
-			seed.Unfinished = make(map[string]*model.Unfinished)
-		}
-		if unfin.Hash != "" {
-			seed.Unfinished[unfin.Hash] = unfin
-		}
-		if unfin.SliceHash != "" {
-			seed.Unfinished[unfin.SliceHash] = unfin
-		}
-	}
-
+	seed.Unfinished = p.unfinished
 }
 
 func tmp(path string, name string) string {
@@ -160,7 +152,7 @@ func (p *process) Run(ctx context.Context) {
 				continue
 			}
 		}
-		p.unfinished = append(p.unfinished, unfin)
+		p.unfinished[unfin.Hash] = unfin
 	}
 	log.Infof("unfinished:%+v", p.unfinished)
 	return
@@ -278,7 +270,7 @@ func ProcessVideo(source *VideoSource) (e error) {
 
 	log.Infof("%+v", video)
 
-	video.PosterHash = addPosterHash(source)
+	//video.PosterHash = addPosterHash(source)
 	log.Info(*source)
 
 	fn := add
@@ -297,18 +289,6 @@ func ProcessVideo(source *VideoSource) (e error) {
 	log.Info(*info)
 
 	return model.AddOrUpdateVideo(video)
-}
-
-func addPosterHash(source *VideoSource) string {
-	if source.PosterPath != "" {
-		object, e := rest.AddFile(source.PosterPath)
-		if e != nil {
-			log.Error("add poster error:", e)
-			return ""
-		}
-		return object.Hash
-	}
-	return source.Poster
 }
 
 // GetSourceInfo ...

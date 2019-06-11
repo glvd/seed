@@ -163,6 +163,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 			}
 			for _, s := range vs {
 				v := video(s)
+				s.Thumb = filepath.Join(transfer.workspace, s.Thumb)
 				unfinThumb := DefaultUnfinished(s.Thumb)
 				unfinThumb.Type = model.TypeThumb
 				unfinThumb.Relate = s.Bangumi
@@ -174,8 +175,8 @@ func (transfer *transfer) Run(ctx context.Context) {
 					v.Thumb = thumb
 					transfer.unfinished[v.Thumb] = unfinThumb
 				}
-
-				unfinPoster := DefaultUnfinished(s.Poster)
+				s.PosterPath = filepath.Join(transfer.workspace, s.PosterPath)
+				unfinPoster := DefaultUnfinished(s.PosterPath)
 				unfinPoster.Type = model.TypePoster
 				unfinPoster.Relate = s.Bangumi
 				poster, e := addPosterHash(transfer, s)

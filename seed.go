@@ -58,7 +58,7 @@ type Seeder interface {
 type Seed struct {
 	Shell      *shell.Shell
 	Workspace  string
-	Unfinished []*model.Unfinished
+	Unfinished map[string]*model.Unfinished
 	Video      []*model.Video
 	wg         *sync.WaitGroup
 	ctx        context.Context

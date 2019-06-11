@@ -169,6 +169,11 @@ func (transfer *transfer) Run(ctx context.Context) {
 				log.Error(e)
 			}
 			v.PosterHash = poster
+
+			if v.Thumb != "" {
+				transfer.unfinished[v.Thumb] = unfinThumb
+			}
+
 			transfer.video = append(transfer.video, v)
 		}
 	}

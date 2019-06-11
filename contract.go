@@ -193,18 +193,17 @@ func UpdateHotList(list string) (e error) {
 }
 
 // GetHostList ...
-func GetHostList() string {
-	list := ""
+func GetHostList() (list string) {
+
 	err := eth.ProcContract(func(v interface{}) (b bool, e error) {
 		data, b := v.(*Dhash)
 		if !b {
 			return false, nil
 		}
-		transaction, e := data.GetHotList(&bind.CallOpts{Pending: true})
+		list, e = data.GetHotList(&bind.CallOpts{Pending: true})
 		if e != nil {
 			return true, e
 		}
-		list = transaction
 		return true, nil
 	})
 	if err != nil {

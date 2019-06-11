@@ -95,8 +95,13 @@ func DeepFind(s string, video *Video) (b bool, e error) {
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
 	log.Infof("%+v", *video)
-	if video.ID != "" {
-		log.Debug("update")
+	var tmp Video
+	b, e := DB().Where("bangumi = ?", video.Bangumi).Get(&tmp)
+	if e != nil {
+		return e
+	}
+	if b {
+		video.Version = tmp.Version
 		if _, err := DB().ID(video.ID).Update(video); err != nil {
 			return err
 		}

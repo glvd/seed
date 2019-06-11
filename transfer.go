@@ -50,6 +50,7 @@ const (
 type transfer struct {
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
+	workspace  string
 	from       TransferFlag
 	to         TransferFlag
 	status     TransferStatus
@@ -67,7 +68,7 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	transfer.shell = seed.Shell
 	fixed := fixFile(b)
 	transfer.reader = bytes.NewBuffer(fixed)
-
+	transfer.workspace = seed.Workspace
 	transfer.unfinished = seed.Unfinished
 	if transfer.unfinished == nil {
 		transfer.unfinished = make(map[string]*model.Unfinished)
@@ -150,7 +151,6 @@ func (transfer *transfer) Run(ctx context.Context) {
 			return
 		}
 		for _, s := range vs {
-
 			v := video(s)
 			unfinThumb := DefaultUnfinished(s.Thumb)
 			unfinThumb.Type = model.TypeThumb
@@ -159,7 +159,10 @@ func (transfer *transfer) Run(ctx context.Context) {
 			if e != nil {
 				log.Error(e)
 			}
-			v.Thumb = thumb
+			if thumb != "" {
+				v.Thumb = thumb
+				transfer.unfinished[v.Thumb] = unfinThumb
+			}
 
 			unfinPoster := DefaultUnfinished(s.Poster)
 			unfinPoster.Type = model.TypePoster
@@ -168,12 +171,11 @@ func (transfer *transfer) Run(ctx context.Context) {
 			if e != nil {
 				log.Error(e)
 			}
-			v.PosterHash = poster
 
-			if v.Thumb != "" {
-				transfer.unfinished[v.Thumb] = unfinThumb
+			if poster != "" {
+				v.PosterHash = poster
+				transfer.unfinished[v.PosterHash] = unfinPoster
 			}
-
 			transfer.video = append(transfer.video, v)
 		}
 	}
@@ -203,16 +205,10 @@ func video(source *VideoSource) (video *model.Video) {
 	}
 	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
 	video.Bangumi = strings.ToUpper(source.Bangumi)
-	//video.Type = source.Type
-	//video.Format = source.Format
-	//video.VR = source.VR
-	//video.Thumb = source.Thumb
 	video.Intro = intro
 	video.Alias = alias
 	video.Role = role
 	video.Director = source.Director
-	//video.Language = source.Language
-	//video.Caption = source.Caption
 	video.Series = source.Series
 	video.Tags = source.Tags
 	video.Date = source.Date
@@ -252,7 +248,7 @@ func TransferTo(eng *xorm.Engine, limit int) (e error) {
 		}
 		insert, e := eng.Insert(videos)
 		log.Info(insert, e)
-
 	}
+
 	return nil
 }

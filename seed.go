@@ -132,9 +132,20 @@ func (seed *Seed) Register(ops ...Options) {
 }
 
 // UnfinishedOption ...
-func UnfinishedOption(unfin ...*model.Unfinished) Options {
+func UnfinishedOption(unfins ...*model.Unfinished) Options {
 	return func(seed *Seed) {
-		seed.Unfinished = unfin
+		for _, u := range unfins {
+			if seed.Unfinished == nil {
+				seed.Unfinished = make(map[string]*model.Unfinished)
+			}
+			if u.Hash != "" {
+				seed.Unfinished[u.Hash] = u
+			}
+			if u.SliceHash != "" {
+				seed.Unfinished[u.SliceHash] = u
+			}
+		}
+
 	}
 }
 

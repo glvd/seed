@@ -21,7 +21,7 @@ const (
 )
 
 type pin struct {
-	unfinished []*model.Unfinished
+	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
 	state      PinState
 	flag       PinFlag
@@ -66,29 +66,24 @@ func Pin(flag PinFlag) Options {
 func (p *pin) Run(ctx context.Context) {
 	log.Infof("%+v", p.unfinished)
 	wg := &sync.WaitGroup{}
-	for _, v := range p.unfinished {
+	for hash, unfin := range p.unfinished {
+		log.Infof("%+v", unfin)
 		select {
 		case <-ctx.Done():
 			return
 		default:
+			wg.Add(1)
 			switch p.flag {
 			case PinFlagSource:
-				pinHash(nil, v.Hash)
+				go pinHash(wg, hash)
 			case PinFlagSlice:
-				pinHash(nil, v.SliceHash)
+				go pinHash(wg, hash)
 			case PinFlagAll:
-				if v.Hash != "" {
-					wg.Add(1)
-					go pinHash(wg, v.Hash)
-				}
-				if v.SliceHash != "" {
-					wg.Add(1)
-					go pinHash(wg, v.SliceHash)
-				}
-				wg.Wait()
-			default:
+				go pinHash(wg, hash)
+				//default:
 				//nothing to do
 			}
+			wg.Wait()
 		}
 	}
 }

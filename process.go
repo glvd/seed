@@ -177,7 +177,7 @@ func (p *process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
-	log.Infof("check", name)
+	log.Info("check ", name)
 	_, b = p.ignores[PathMD5(strings.ToLower(name))]
 	return
 }
@@ -232,7 +232,7 @@ func DefaultUnfinished(name string) *model.Unfinished {
 	uncat := &model.Unfinished{
 		Model:       model.Model{},
 		Checksum:    "",
-		Type:        "deprecated",
+		Type:        "other",
 		Name:        file,
 		Hash:        "",
 		SliceHash:   "",

@@ -150,12 +150,20 @@ func (transfer *transfer) Run(ctx context.Context) {
 			return
 		}
 		for _, s := range vs {
+
 			v := video(s)
+			unfinThumb := DefaultUnfinished(s.Thumb)
+			unfinThumb.Type = model.TypeThumb
+			unfinThumb.Relate = s.Bangumi
 			thumb, e := addThumbHash(transfer, s)
 			if e != nil {
 				log.Error(e)
 			}
 			v.Thumb = thumb
+
+			unfinPoster := DefaultUnfinished(s.Poster)
+			unfinPoster.Type = model.TypePoster
+			unfinPoster.Relate = s.Bangumi
 			poster, e := addPosterHash(transfer, s)
 			if e != nil {
 				log.Error(e)

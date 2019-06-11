@@ -44,7 +44,18 @@ func (p *process) BeforeRun(seed *Seed) {
 
 // AfterRun ...
 func (p *process) AfterRun(seed *Seed) {
-	seed.Unfinished = p.unfinished
+	for _, unfin := range p.unfinished {
+		if seed.Unfinished == nil {
+			seed.Unfinished = make(map[string]*model.Unfinished)
+		}
+		if unfin.Hash != "" {
+			seed.Unfinished[unfin.Hash] = unfin
+		}
+		if unfin.SliceHash != "" {
+			seed.Unfinished[unfin.SliceHash] = unfin
+		}
+	}
+
 }
 
 func tmp(path string, name string) string {

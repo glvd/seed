@@ -68,7 +68,8 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	fixed := fixFile(b)
 	transfer.reader = bytes.NewBuffer(fixed)
 
-	if seed.Unfinished == nil {
+	transfer.unfinished = seed.Unfinished
+	if transfer.unfinished == nil {
 		transfer.unfinished = make(map[string]*model.Unfinished)
 	}
 
@@ -82,6 +83,7 @@ func fixFile(s []byte) []byte {
 // AfterRun ...
 func (transfer *transfer) AfterRun(seed *Seed) {
 	seed.Video = transfer.video
+	seed.Unfinished = transfer.unfinished
 }
 
 // TransferOption ...

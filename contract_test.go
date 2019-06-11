@@ -1,7 +1,6 @@
 package seed
 
 import (
-	"encoding/json"
 	"testing"
 )
 
@@ -13,12 +12,15 @@ func TestGetHostList(t *testing.T) {
 	}
 	list := GetHostList()
 	t.Log(list)
+}
 
-	var slist []string
-
-	err = json.Unmarshal([]byte(list), &slist)
+// TestUpdateHotList ...
+func TestUpdateHotList(t *testing.T) {
+	err := InitGlobalETH("", "")
 	if err != nil {
 		return
 	}
-	t.Log(slist)
+	list := UpdateHotList("")
+	t.Log(list)
+
 }

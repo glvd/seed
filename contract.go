@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"math/big"
@@ -167,14 +168,18 @@ func GetLastVersionHash() (ver, hash string, e error) {
 }
 
 // UpdateHotList ...
-func UpdateHotList(list string) (e error) {
+func UpdateHotList(list ...string) (e error) {
 	err := eth.ProcContract(func(v interface{}) (b bool, e error) {
 		data, b := v.(*Dhash)
 		if !b {
 			return false, nil
 		}
 		opt := bind.NewKeyedTransactor(eth.PrivateKey())
-		transaction, e := data.UpdateHotList(opt, list)
+		bytes, e := jsoniter.Marshal(list)
+		if e != nil {
+			return false, e
+		}
+		transaction, e := data.UpdateHotList(opt, string(bytes))
 		if e != nil {
 			return true, e
 		}
@@ -193,21 +198,25 @@ func UpdateHotList(list string) (e error) {
 }
 
 // GetHostList ...
-func GetHostList() (list string) {
+func GetHostList() (list []string) {
 
 	err := eth.ProcContract(func(v interface{}) (b bool, e error) {
 		data, b := v.(*Dhash)
 		if !b {
 			return false, nil
 		}
-		list, e = data.GetHotList(&bind.CallOpts{Pending: true})
+		ll, e := data.GetHotList(&bind.CallOpts{Pending: true})
 		if e != nil {
 			return true, e
+		}
+		e = jsoniter.Unmarshal([]byte(ll), &list)
+		if e != nil {
+			return false, e
 		}
 		return true, nil
 	})
 	if err != nil {
-		return ""
+		return nil
 	}
 	return list
 }

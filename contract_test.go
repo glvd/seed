@@ -20,7 +20,7 @@ func TestUpdateHotList(t *testing.T) {
 	if err != nil {
 		return
 	}
-	list := UpdateHotList("")
+	list := UpdateHotList()
 	t.Log(list)
 
 }

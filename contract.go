@@ -166,6 +166,32 @@ func GetLastVersionHash() (ver, hash string, e error) {
 	return
 }
 
+// UpdateHotList ...
+func UpdateHotList(list string) (e error) {
+	err := eth.ProcContract(func(v interface{}) (b bool, e error) {
+		data, b := v.(*Dhash)
+		if !b {
+			return false, nil
+		}
+		opt := bind.NewKeyedTransactor(eth.PrivateKey())
+		transaction, e := data.UpdateHotList(opt, list)
+		if e != nil {
+			return true, e
+		}
+		ctx := context.Background()
+		receipt, err := bind.WaitMined(ctx, eth.conn, transaction)
+		if err != nil {
+			return true, err
+		}
+		log.Debugf("receipt is :%x\n", string(receipt.TxHash[:]))
+		return true, nil
+	})
+	if err != nil {
+		return err
+	}
+	return
+}
+
 // CheckExist ...
 func CheckExist(ban string) (e error) {
 	return eth.ProcContract(func(v interface{}) (b bool, e error) {

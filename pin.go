@@ -58,9 +58,6 @@ func Pin(flag PinFlag) Options {
 	pin := &pin{
 		flag: flag,
 	}
-	//if shell != nil {
-	//	pin.shell = shell[0]
-	//}
 
 	return PinOption(pin)
 }
@@ -83,8 +80,6 @@ func (p *pin) Run(ctx context.Context) {
 				go pinHash(wg, hash)
 			case PinFlagAll:
 				go pinHash(wg, hash)
-				//default:
-				//nothing to do
 			}
 			wg.Wait()
 		}

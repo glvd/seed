@@ -61,15 +61,18 @@ type transfer struct {
 
 // BeforeRun ...
 func (transfer *transfer) BeforeRun(seed *Seed) {
-	b, e := ioutil.ReadFile(transfer.path)
-	if e != nil {
-		return
-	}
 	transfer.shell = seed.Shell
-	fixed := fixFile(b)
-	transfer.reader = bytes.NewBuffer(fixed)
 	transfer.workspace = seed.Workspace
 	transfer.unfinished = seed.Unfinished
+	if transfer.from == TransferFlagJSON {
+		b, e := ioutil.ReadFile(transfer.path)
+		if e != nil {
+			return
+		}
+		fixed := fixFile(b)
+		transfer.reader = bytes.NewBuffer(fixed)
+	}
+
 	if transfer.unfinished == nil {
 		transfer.unfinished = make(map[string]*model.Unfinished)
 	}
@@ -144,40 +147,46 @@ func (transfer *transfer) Run(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 	default:
-		var vs []*VideoSource
-		e := LoadFrom(&vs, transfer.reader)
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		for _, s := range vs {
-			v := video(s)
-			unfinThumb := DefaultUnfinished(s.Thumb)
-			unfinThumb.Type = model.TypeThumb
-			unfinThumb.Relate = s.Bangumi
-			thumb, e := addThumbHash(transfer, s)
+		switch transfer.to {
+		case TransferFlagSQLite:
+			fallthrough
+		case TransferFlagMysql:
+			var vs []*VideoSource
+			e := LoadFrom(&vs, transfer.reader)
 			if e != nil {
 				log.Error(e)
+				return
 			}
-			if thumb != "" {
-				v.Thumb = thumb
-				transfer.unfinished[v.Thumb] = unfinThumb
-			}
+			for _, s := range vs {
+				v := video(s)
+				unfinThumb := DefaultUnfinished(s.Thumb)
+				unfinThumb.Type = model.TypeThumb
+				unfinThumb.Relate = s.Bangumi
+				thumb, e := addThumbHash(transfer, s)
+				if e != nil {
+					log.Error(e)
+				}
+				if thumb != "" {
+					v.Thumb = thumb
+					transfer.unfinished[v.Thumb] = unfinThumb
+				}
 
-			unfinPoster := DefaultUnfinished(s.Poster)
-			unfinPoster.Type = model.TypePoster
-			unfinPoster.Relate = s.Bangumi
-			poster, e := addPosterHash(transfer, s)
-			if e != nil {
-				log.Error(e)
-			}
+				unfinPoster := DefaultUnfinished(s.Poster)
+				unfinPoster.Type = model.TypePoster
+				unfinPoster.Relate = s.Bangumi
+				poster, e := addPosterHash(transfer, s)
+				if e != nil {
+					log.Error(e)
+				}
 
-			if poster != "" {
-				v.PosterHash = poster
-				transfer.unfinished[v.PosterHash] = unfinPoster
+				if poster != "" {
+					v.PosterHash = poster
+					transfer.unfinished[v.PosterHash] = unfinPoster
+				}
+				transfer.video = append(transfer.video, v)
 			}
-			transfer.video = append(transfer.video, v)
 		}
+
 	}
 
 }

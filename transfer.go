@@ -64,15 +64,6 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	transfer.shell = seed.Shell
 	transfer.workspace = seed.Workspace
 	transfer.unfinished = seed.Unfinished
-	if transfer.from == TransferFlagJSON {
-		b, e := ioutil.ReadFile(transfer.path)
-		if e != nil {
-			return
-		}
-		fixed := fixFile(b)
-		transfer.reader = bytes.NewBuffer(fixed)
-	}
-
 	if transfer.unfinished == nil {
 		transfer.unfinished = make(map[string]*model.Unfinished)
 	}
@@ -147,6 +138,19 @@ func (transfer *transfer) Run(ctx context.Context) {
 	select {
 	case <-ctx.Done():
 	default:
+		switch transfer.from {
+		case TransferFlagJSON:
+			b, e := ioutil.ReadFile(transfer.path)
+			if e != nil {
+				return
+			}
+			fixed := fixFile(b)
+			transfer.reader = bytes.NewBuffer(fixed)
+		case TransferFlagMysql:
+		case TransferFlagSQLite:
+			//model.AllUnfinished(nil)
+		}
+
 		switch transfer.to {
 		case TransferFlagSQLite:
 			fallthrough

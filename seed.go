@@ -145,7 +145,6 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 				seed.Unfinished[u.SliceHash] = u
 			}
 		}
-
 	}
 }
 

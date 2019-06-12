@@ -21,6 +21,7 @@ const (
 )
 
 type pin struct {
+	wg         *sync.WaitGroup
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
 	state      PinState
@@ -57,6 +58,7 @@ const PinStateRemote PinState = "remote"
 func Pin(flag PinFlag) Options {
 	pin := &pin{
 		flag: flag,
+		wg:   &sync.WaitGroup{},
 	}
 
 	return PinOption(pin)
@@ -65,35 +67,34 @@ func Pin(flag PinFlag) Options {
 // Run ...
 func (p *pin) Run(ctx context.Context) {
 	log.Infof("%+v", p.unfinished)
-	wg := &sync.WaitGroup{}
 	for hash, unfin := range p.unfinished {
 		log.Infof("%+v", unfin)
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			wg.Add(1)
+			p.wg.Add(1)
 			switch p.flag {
 			case PinFlagSource:
-				go pinHash(wg, hash)
+				go p.pinHash(hash)
 			case PinFlagSlice:
-				go pinHash(wg, hash)
+				go p.pinHash(hash)
 			case PinFlagAll:
-				go pinHash(wg, hash)
+				go p.pinHash(hash)
 			}
-			wg.Wait()
+			p.wg.Wait()
 		}
 	}
 }
 
-func pinHash(wg *sync.WaitGroup, hash string) {
+func (p *pin) pinHash(hash string) {
 	log.Info("pin:", hash)
 	defer func() {
-		if wg != nil {
-			wg.Done()
+		if p.wg != nil {
+			p.wg.Done()
 		}
 	}()
-	e := rest.Pin(hash)
+	e := p.shell.Pin(hash)
 	if e != nil {
 		log.Error("pin error:", hash, e)
 		return

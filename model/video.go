@@ -102,6 +102,7 @@ func AddOrUpdateVideo(video *Video) (e error) {
 	}
 	if b {
 		video.Version = tmp.Version
+		video.ID = tmp.ID
 		if _, err := DB().ID(video.ID).Update(video); err != nil {
 			return err
 		}

@@ -96,7 +96,6 @@ func (p *process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file 
 func fixPath(file string) string {
 	n := strings.Replace(file, " ", "", -1)
 	dir, _ := filepath.Split(n)
-	//newPath := tmp("proc", name)
 	err := os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		log.Error(err)
@@ -146,14 +145,9 @@ func (p *process) Run(ctx context.Context) {
 					log.With("split", file).Error(err)
 					continue
 				}
-				//p.unfinished[unfin.SliceHash] = unfin
 				p.unfinished[unfin.SliceHash] = unfin
 			}
 
-			//if err := model.AddOrUpdateUnfinished(unfin); err != nil {
-			//	log.Error(err)
-			//	continue
-			//}
 		}
 		p.unfinished[unfin.Hash] = unfin
 	}

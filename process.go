@@ -147,13 +147,14 @@ func (p *process) Run(ctx context.Context) {
 					log.With("split", file).Error(err)
 					continue
 				}
+				//p.unfinished[unfin.SliceHash] = unfin
 				p.unfinished[unfin.SliceHash] = unfin
 			}
 
-			if err := model.AddOrUpdateUnfinished(unfin); err != nil {
-				log.Error(err)
-				continue
-			}
+			//if err := model.AddOrUpdateUnfinished(unfin); err != nil {
+			//	log.Error(err)
+			//	continue
+			//}
 		}
 		p.unfinished[unfin.Hash] = unfin
 	}

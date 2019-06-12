@@ -88,6 +88,7 @@ func (p *process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file 
 
 	last := unfin.SliceObject.ParseLinks(dirs)
 	if last != nil {
+		unfin.Sliced = true
 		unfin.SliceHash = last.Hash
 	}
 	return nil

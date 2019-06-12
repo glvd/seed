@@ -126,9 +126,6 @@ func addPosterHash(tr *transfer, source *VideoSource) (string, error) {
 		}
 		return object.Hash, nil
 	}
-	//if source.Poster != "" {
-	//	return source.Poster, nil
-	//}
 	return "", xerrors.New("no poster")
 }
 
@@ -172,6 +169,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 					log.Error(e)
 				}
 				if thumb != "" {
+					unfinThumb.Hash = thumb
 					v.Thumb = thumb
 					transfer.unfinished[v.Thumb] = unfinThumb
 				}
@@ -186,6 +184,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 
 				if poster != "" {
 					v.PosterHash = poster
+					unfinPoster.Hash = poster
 					transfer.unfinished[v.PosterHash] = unfinPoster
 				}
 

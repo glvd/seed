@@ -6,7 +6,8 @@ import (
 )
 
 type update struct {
-	video []*model.Video
+	video      []*model.Video
+	unfinished map[string]*model.Unfinished
 }
 
 // Update ...
@@ -29,6 +30,13 @@ func (u *update) Run(context.Context) {
 		return
 	}
 
+	for _, unfin := range u.unfinished {
+		if err := model.AddOrUpdateUnfinished(unfin); err != nil {
+			log.Error(err)
+			continue
+		}
+	}
+
 	for _, video := range u.video {
 		e := model.AddOrUpdateVideo(video)
 		if e != nil {
@@ -42,6 +50,7 @@ func (u *update) Run(context.Context) {
 // BeforeRun ...
 func (u *update) BeforeRun(seed *Seed) {
 	u.video = seed.Video
+	u.unfinished = seed.Unfinished
 }
 
 // AfterRun ...

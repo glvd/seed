@@ -35,6 +35,10 @@ func (u *update) Run(context.Context) {
 			log.Error(err)
 			continue
 		}
+		if unfin.Relate != "" {
+
+		}
+
 	}
 
 	for _, video := range u.video {

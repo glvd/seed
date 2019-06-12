@@ -30,7 +30,6 @@ type (
 		Index        string   `json:"index"`                      //索引
 		Date         string   `json:"date"`                       //发行日期
 		Sharpness    string   `json:"sharpness"`                  //清晰度
-		Sliced       bool     `json:"sliced"`                     //切片
 		Sync         bool     `xorm:"notnull default(0)"`         //是否已同步
 		Visit        uint64   `xorm:"notnull default(0)"`         //访问数
 		Series       string   `json:"series"`                     //系列
@@ -103,6 +102,10 @@ func AddOrUpdateVideo(video *Video) (e error) {
 	if b {
 		video.Version = tmp.Version
 		video.ID = tmp.ID
+		if tmp.M3U8Hash != "" || tmp.SourceHash != "" {
+
+		}
+
 		if _, err := DB().ID(video.ID).Update(video); err != nil {
 			return err
 		}

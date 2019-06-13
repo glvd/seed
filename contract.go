@@ -20,6 +20,7 @@ const defaultGatewayAddress = "https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj"
 
 // Contract ...
 type Contract struct {
+	eth *ETH
 }
 
 var eth *ETH

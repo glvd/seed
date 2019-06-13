@@ -18,6 +18,10 @@ import (
 // GatwayAddress ...
 const defaultGatewayAddress = "https://ropsten.infura.io/QVsqBu3yopMu2svcHqRj"
 
+// Contract ...
+type Contract struct {
+}
+
 var eth *ETH
 
 func bangumi() ProcessorFunc {

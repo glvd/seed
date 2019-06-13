@@ -9,12 +9,7 @@ import (
 
 // TestGetFiles ...
 func TestGetFiles(t *testing.T) {
-	Rest()
-	//process := NewProcessSeeder("D:\\video")
-	//process.Start()
-	//process.Wait()
-	//
-	//
+
 	unfin, _ := model.FindUnfinished(nil, "d0384c15ca0862e3d558e9d610219a4bc9433f74")
 
 	seed := NewSeed(IgnoreOption("d:\\video\\tmp"), Process("D:\\video"), UnfinishedOption(unfin), Pin(PinFlagAll))

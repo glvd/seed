@@ -5,15 +5,16 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/go-xorm/xorm"
-	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
-	"golang.org/x/xerrors"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/go-xorm/xorm"
+	shell "github.com/godcong/go-ipfs-restapi"
+	"github.com/yinhevr/seed/model"
+	"golang.org/x/xerrors"
 )
 
 // TransferFlag ...
@@ -31,6 +32,9 @@ const TransferFlagMysql TransferFlag = "mysql"
 // TransferFlagJSON ...
 const TransferFlagJSON TransferFlag = "json"
 
+// TransferFlagBSON ...
+const TransferFlagBSON TransferFlag = "bson"
+
 // TransferFlagSQLite ...
 const TransferFlagSQLite TransferFlag = "sqlite"
 
@@ -42,7 +46,7 @@ const (
 	TransferStatusNone   TransferStatus = "none"
 	TransferFlagVerify   TransferStatus = "verify"
 	TransferStatusAdd    TransferStatus = "add"
-	TransferStatusUpdate TransferStatus = "updateAppHash"
+	TransferStatusUpdate TransferStatus = "update"
 	TransferStatusDelete TransferStatus = "delete"
 )
 
@@ -132,32 +136,49 @@ func addPosterHash(tr *transfer, source *VideoSource) (string, error) {
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
 	log.Info("transfer running")
+	var vs []*VideoSource
 	select {
 	case <-ctx.Done():
+
 	default:
 		switch transfer.from {
-		case TransferFlagJSON:
+		case TransferFlagBSON:
 			b, e := ioutil.ReadFile(transfer.path)
 			if e != nil {
 				return
 			}
 			fixed := fixFile(b)
 			transfer.reader = bytes.NewBuffer(fixed)
+
+			e = LoadFrom(&vs, transfer.reader)
+			if e != nil {
+				log.Error(e)
+				return
+			}
+		case TransferFlagJSON:
+			b, e := ioutil.ReadFile(transfer.path)
+			if e != nil {
+				return
+			}
+			transfer.reader = bytes.NewBuffer(b)
+			e = LoadFrom(&vs, transfer.reader)
+			if e != nil {
+				log.Error(e)
+				return
+			}
 		case TransferFlagMysql:
 		case TransferFlagSQLite:
 			//model.AllUnfinished(nil)
+		}
+		if vs == nil {
+			log.Info("no video to process")
+			return
 		}
 
 		switch transfer.to {
 		case TransferFlagSQLite:
 			fallthrough
 		case TransferFlagMysql:
-			var vs []*VideoSource
-			e := LoadFrom(&vs, transfer.reader)
-			if e != nil {
-				log.Error(e)
-				return
-			}
 			for _, s := range vs {
 				v := video(s)
 				s.Thumb = filepath.Join(transfer.workspace, s.Thumb)
@@ -195,9 +216,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				transfer.video = append(transfer.video, v)
 			}
 		}
-
 	}
-
 }
 
 func video(source *VideoSource) (video *model.Video) {

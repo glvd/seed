@@ -178,7 +178,6 @@ func PinOption(pin *pin) Options {
 func IgnoreOption(ignores ...string) Options {
 	return func(seed *Seed) {
 		for _, i := range ignores {
-
 			seed.ignores[PathMD5(strings.ToLower(i))] = nil
 		}
 	}
@@ -238,30 +237,6 @@ type VideoSource struct {
 	Caption      string    `json:"caption"`       //字幕
 	MagnetLinks  []string  `json:"magnet_links"`  //磁链
 	Uncensored   bool      `json:"uncensored"`    //有码,无码
-}
-
-// VideoList ...
-var VideoList = LoadVideo()
-
-// LoadVideo ...
-func LoadVideo() []*model.Video {
-	var videos []*model.Video
-	e := ReadJSON("video.json", &videos)
-	if e != nil {
-		return nil
-	}
-	return videos
-}
-
-// VideoListAdd ...
-func VideoListAdd(source *VideoSource, video *model.Video) {
-	for i, v := range VideoList {
-		if v.Bangumi == source.Bangumi {
-			VideoList[i] = video
-			return
-		}
-	}
-	VideoList = append(VideoList, video)
 }
 
 // Hash ...

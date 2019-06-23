@@ -3,17 +3,19 @@ package model
 import (
 	"bufio"
 	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
-	"github.com/go-xorm/xorm"
-	"github.com/godcong/go-trait"
-	"github.com/google/uuid"
-	"github.com/pelletier/go-toml"
-	"go.uber.org/zap"
 	"io"
 	"net/url"
 	"os"
 	"reflect"
 	"time"
+
+	"github.com/go-xorm/xorm"
+	"github.com/godcong/go-trait"
+	"github.com/google/uuid"
+	"github.com/pelletier/go-toml"
+	"go.uber.org/zap"
 )
 
 var db *xorm.Engine
@@ -162,7 +164,7 @@ func MustSession(session *xorm.Session) *xorm.Session {
 // Checksum ...
 func Checksum(filepath string) string {
 	hash := sha1.New()
-	file, e := os.OpenFile(filepath, os.O_RDONLY, os.ModePerm)
+	file, e := os.Open(filepath)
 	if e != nil {
 		return ""
 	}
@@ -172,5 +174,6 @@ func Checksum(filepath string) string {
 	if e != nil {
 		return ""
 	}
-	return fmt.Sprintf("%x", hash.Sum(nil))
+
+	return hex.EncodeToString(hash.Sum(nil))
 }

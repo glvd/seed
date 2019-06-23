@@ -13,5 +13,5 @@ type SourcePeer struct {
 }
 
 func init() {
-	RegisterTable(SourceInfo{})
+	RegisterTable(SourcePeer{})
 }

@@ -16,7 +16,7 @@ const (
 	PinFlagNone PinFlag = "none"
 	//PinFlagPoster PinFlag = "poster"
 	PinFlagSource PinFlag = "source"
-	PinFlagSlice  PinFlag = "slice"
+	PinFlagSlice  PinFlag = "sliceAdd"
 	PinFlagAll    PinFlag = "all"
 )
 

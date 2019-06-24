@@ -69,6 +69,7 @@ type Seed struct {
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc
+	moves       map[string]string
 	skipConvert bool
 	threads     int
 	thread      []Threader
@@ -301,7 +302,7 @@ type VideoSource struct {
 	Files        []string  `json:"files"`         //存放路径
 	HashFiles    []string  `json:"hash_files"`    //已上传Hash
 	CheckFiles   []string  `json:"check_files"`   //Unfinished checksum
-	Slice        bool      `json:"slice"`         //是否HLS切片
+	Slice        bool      `json:"sliceAdd"`      //是否HLS切片
 	Encrypt      bool      `json:"encrypt"`       //加密
 	Key          string    `json:"key"`           //秘钥
 	M3U8         string    `json:"m3u8"`          //M3U8名

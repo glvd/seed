@@ -26,6 +26,7 @@ type process struct {
 	shell       *shell.Shell
 	ignores     map[string][]byte
 	unfinished  map[string]*model.Unfinished
+	moves       map[string]string
 	skipConvert bool
 }
 
@@ -40,6 +41,7 @@ func (p *process) BeforeRun(seed *Seed) {
 // AfterRun ...
 func (p *process) AfterRun(seed *Seed) {
 	seed.Unfinished = p.unfinished
+	seed.moves = p.moves
 }
 
 func tmp(path string, name string) string {
@@ -67,7 +69,7 @@ func prefix(s string) (ret string) {
 	return
 }
 
-func (p *process) slice(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
 	if err != nil {
 		return err
@@ -133,7 +135,7 @@ func (p *process) Run(ctx context.Context) {
 			unfin.Hash = object.Hash
 			unfin.Object.Link = model.ObjectToVideoLink(object)
 			if unfin.IsVideo {
-				err := p.slice(unfin, format, file)
+				err := p.sliceAdd(unfin, format, file)
 				if err != nil {
 					log.With("split", file).Error(err)
 					continue
@@ -142,6 +144,7 @@ func (p *process) Run(ctx context.Context) {
 			}
 
 		}
+		p.moves[unfin.Hash] = file
 		p.unfinished[unfin.Hash] = unfin
 	}
 	log.Infof("unfinished:%+v", p.unfinished)

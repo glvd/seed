@@ -185,6 +185,20 @@ func SkipConvertOption(b bool) Options {
 	}
 }
 
+// DatabaseFromPathOption ...
+func DatabaseFromPathOption(path string) Options {
+	return func(seed *Seed) {
+		db := model.LoadToml(path)
+		var e error
+		seed.maindb, e = model.InitDB(db.Type, db.Source())
+		if e != nil {
+			panic(e)
+		}
+		seed.maindb.ShowSQL(db.ShowSQL)
+		seed.maindb.ShowExecTime(db.ShowExecTime)
+	}
+}
+
 // DatabaseOption ...
 func DatabaseOption(dbtype, dataSourceName string) Options {
 	return func(seed *Seed) {

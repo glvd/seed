@@ -59,7 +59,7 @@ func Process(path string) Options {
 	process := &process{
 		path: path,
 	}
-	return ProcessOption(process)
+	return processOption(process)
 }
 
 func prefix(s string) (ret string) {

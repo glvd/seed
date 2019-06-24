@@ -250,8 +250,8 @@ func ShellOption(s *shell.Shell) Options {
 	}
 }
 
-// ProcessOption ...
-func ProcessOption(process *process) Options {
+// processOption ...
+func processOption(process *process) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperProcess] = process
 	}

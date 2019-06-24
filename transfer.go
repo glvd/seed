@@ -2,18 +2,14 @@ package seed
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
-	"io"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
-
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
+	"io"
+	"path/filepath"
 )
 
 // TransferStatus ...
@@ -76,13 +72,13 @@ func Transfer(path string, from, to InfoFlag, status TransferStatus) Options {
 	return TransferOption(t)
 }
 
-func addThumbHash(tr *transfer, source *VideoSource) (string, error) {
+func addThumbHash(shell *shell.Shell, source *VideoSource) (string, error) {
 	if source.Thumb != "" {
 		abs, e := filepath.Abs(source.Thumb)
 		if e != nil {
 			return "", e
 		}
-		object, e := tr.shell.AddFile(abs)
+		object, e := shell.AddFile(abs)
 		if e != nil {
 			return "", e
 		}
@@ -91,13 +87,13 @@ func addThumbHash(tr *transfer, source *VideoSource) (string, error) {
 	return "", xerrors.New("no thumb")
 }
 
-func addPosterHash(tr *transfer, source *VideoSource) (string, error) {
+func addPosterHash(shell *shell.Shell, source *VideoSource) (string, error) {
 	if source.PosterPath != "" {
 		abs, e := filepath.Abs(source.PosterPath)
 		if e != nil {
 			return "", e
 		}
-		object, e := tr.shell.AddFile(abs)
+		object, e := shell.AddFile(abs)
 		if e != nil {
 			return "", e
 		}
@@ -109,127 +105,7 @@ func addPosterHash(tr *transfer, source *VideoSource) (string, error) {
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
 	log.Info("transfer running")
-	var vs []*VideoSource
-	select {
-	case <-ctx.Done():
 
-	default:
-		switch transfer.from {
-		case TransferFlagBSON:
-			b, e := ioutil.ReadFile(transfer.path)
-			if e != nil {
-				return
-			}
-			fixed := fixBson(b)
-			transfer.reader = bytes.NewBuffer(fixed)
-
-			e = LoadFrom(&vs, transfer.reader)
-			if e != nil {
-				log.Error(e)
-				return
-			}
-		case TransferFlagJSON:
-			b, e := ioutil.ReadFile(transfer.path)
-			if e != nil {
-				return
-			}
-			transfer.reader = bytes.NewBuffer(b)
-			e = LoadFrom(&vs, transfer.reader)
-			if e != nil {
-				log.Error(e)
-				return
-			}
-		case TransferFlagMysql:
-		case TransferFlagSQLite:
-			//model.AllUnfinished(nil)
-		}
-		if vs == nil {
-			log.Info("no video to process")
-			return
-		}
-
-		switch transfer.to {
-		case TransferFlagSQLite:
-			fallthrough
-		case TransferFlagMysql:
-			for _, s := range vs {
-				v := video(s)
-				s.Thumb = filepath.Join(transfer.workspace, s.Thumb)
-				unfinThumb := DefaultUnfinished(s.Thumb)
-				unfinThumb.Type = model.TypeThumb
-				unfinThumb.Relate = s.Bangumi
-				thumb, e := addThumbHash(transfer, s)
-				if e != nil {
-					log.Error(e)
-				}
-				if thumb != "" {
-					unfinThumb.Hash = thumb
-					v.Thumb = thumb
-					transfer.unfinished[v.Thumb] = unfinThumb
-				}
-				s.PosterPath = filepath.Join(transfer.workspace, s.PosterPath)
-				unfinPoster := DefaultUnfinished(s.PosterPath)
-				unfinPoster.Type = model.TypePoster
-				unfinPoster.Relate = s.Bangumi
-				poster, e := addPosterHash(transfer, s)
-				if e != nil {
-					log.Error(e)
-				}
-
-				if poster != "" {
-					v.PosterHash = poster
-					unfinPoster.Hash = poster
-					transfer.unfinished[v.PosterHash] = unfinPoster
-				}
-
-				if s.Poster != "" {
-					v.PosterHash = s.Poster
-				}
-
-				transfer.video = append(transfer.video, v)
-			}
-		}
-	}
-}
-
-func video(source *VideoSource) (video *model.Video) {
-	video = new(model.Video)
-	//always not null
-	alias := []string{}
-	aliasS := ""
-	if source.Alias != nil && len(source.Alias) > 0 {
-		alias = source.Alias
-		aliasS = alias[0]
-	}
-	//always not null
-	role := []string{}
-	roleS := ""
-	if source.Role != nil && len(source.Role) > 0 {
-		role = source.Role
-		roleS = role[0]
-	}
-
-	intro := source.Intro
-	if intro == "" {
-		intro = aliasS + " " + roleS
-	}
-	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
-	video.Bangumi = strings.ToUpper(source.Bangumi)
-	video.Intro = intro
-	video.Alias = alias
-	video.Role = role
-	video.Director = source.Director
-	video.Series = source.Series
-	video.Tags = source.Tags
-	video.Date = source.Date
-	video.SourceHash = source.SourceHash
-	video.Season = MustString(source.Season, "1")
-	video.Episode = MustString(source.Episode, "1")
-	video.TotalEpisode = MustString(source.TotalEpisode, "1")
-	video.Format = MustString(source.Format, "2D")
-	video.Publisher = source.Publisher
-	video.Length = source.Length
-	return
 }
 
 // LoadFrom ...

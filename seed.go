@@ -72,6 +72,8 @@ type Seed struct {
 	threads     int
 	thread      []Threader
 	ignores     map[string][]byte
+	infoFlag    InfoFlag
+	path        string
 	err         error
 }
 
@@ -207,6 +209,14 @@ func DatabaseOption(dbtype, dataSourceName string) Options {
 		if e != nil {
 			panic(e)
 		}
+	}
+}
+
+// FilePathOption ...
+func FilePathOption(flg InfoFlag, path string) Options {
+	return func(seed *Seed) {
+		seed.infoFlag = flg
+		seed.path = path
 	}
 }
 

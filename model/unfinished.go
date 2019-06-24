@@ -31,12 +31,12 @@ type Unfinished struct {
 	SliceHash   string       `xorm:"default()" json:"slice_hash"`   //切片HASH
 	IsVideo     bool         `xorm:"default(0)"`                    //视频文件
 	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
-	Sync        bool         `xorm:"default(0)"`                    //是否同步
 	Sliced      bool         `json:"sliced"`                        //切片
 	Encrypt     bool         `json:"encrypt"`                       //加密
 	Key         string       `xorm:"default()"json:"key"`           //秘钥
 	M3U8        string       `xorm:"m3u8 default()" json:"m3u8"`    //M3U8名
 	Caption     string       `xorm:"default()" json:"caption"`      //字幕
+	Sync        bool         `xorm:"notnull default(0)"`            //是否已同步
 	SegmentFile string       `xorm:"default()" json:"segment_file"` //ts切片名
 	Object      *VideoObject `xorm:"json" json:"object,omitempty"`  //视频信息
 	SliceObject *VideoObject `xorm:"json" json:"slice_object,omitempty"`

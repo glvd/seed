@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/go-xorm/xorm"
@@ -16,27 +15,6 @@ import (
 	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 )
-
-// TransferFlag ...
-type TransferFlag string
-
-// TransferFlagNone ...
-const TransferFlagNone TransferFlag = "none"
-
-// TransferFlagUpdate ...
-const TransferFlagUpdate TransferFlag = "updateAppHash"
-
-// TransferFlagMysql ...
-const TransferFlagMysql TransferFlag = "mysql"
-
-// TransferFlagJSON ...
-const TransferFlagJSON TransferFlag = "json"
-
-// TransferFlagBSON ...
-const TransferFlagBSON TransferFlag = "bson"
-
-// TransferFlagSQLite ...
-const TransferFlagSQLite TransferFlag = "sqlite"
 
 // TransferStatus ...
 type TransferStatus string
@@ -55,8 +33,8 @@ type transfer struct {
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
 	workspace  string
-	from       TransferFlag
-	to         TransferFlag
+	from       InfoFlag
+	to         InfoFlag
 	status     TransferStatus
 	path       string
 	reader     io.Reader
@@ -74,11 +52,6 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 
 }
 
-func fixFile(s []byte) []byte {
-	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
-	return reg.ReplaceAll(s, []byte(" "))
-}
-
 // AfterRun ...
 func (transfer *transfer) AfterRun(seed *Seed) {
 	seed.Video = transfer.video
@@ -93,7 +66,7 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(path string, from, to TransferFlag, status TransferStatus) Options {
+func Transfer(path string, from, to InfoFlag, status TransferStatus) Options {
 	t := &transfer{
 		path:   path,
 		from:   from,
@@ -147,7 +120,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 			if e != nil {
 				return
 			}
-			fixed := fixFile(b)
+			fixed := fixBson(b)
 			transfer.reader = bytes.NewBuffer(fixed)
 
 			e = LoadFrom(&vs, transfer.reader)

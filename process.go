@@ -27,11 +27,6 @@ type process struct {
 	ignores     map[string][]byte
 	unfinished  map[string]*model.Unfinished
 	skipConvert bool
-	//Slice     bool   `json:"slice"`
-	//Move      bool   `json:"move"`
-	//MovePath  string `json:"move_path"`
-	//JSON      bool   `json:"json"`
-	//JSONPath  string `json:"json_path"`
 }
 
 // BeforeRun ...

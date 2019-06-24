@@ -56,17 +56,18 @@ type Seeder interface {
 
 // Seed ...
 type Seed struct {
-	Shell      *shell.Shell
-	Workspace  string
-	Unfinished map[string]*model.Unfinished
-	Video      []*model.Video
-	wg         *sync.WaitGroup
-	ctx        context.Context
-	cancel     context.CancelFunc
-	threads    int
-	thread     []Threader
-	ignores    map[string][]byte
-	err        error
+	Shell       *shell.Shell
+	Workspace   string
+	Unfinished  map[string]*model.Unfinished
+	Video       []*model.Video
+	wg          *sync.WaitGroup
+	ctx         context.Context
+	cancel      context.CancelFunc
+	skipConvert bool
+	threads     int
+	thread      []Threader
+	ignores     map[string][]byte
+	err         error
 }
 
 // Stop ...
@@ -107,12 +108,13 @@ func (seed *Seed) Wait() {
 func NewSeed(ops ...Options) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &Seed{
-		wg:      &sync.WaitGroup{},
-		ctx:     ctx,
-		cancel:  cancel,
-		threads: 0,
-		thread:  make([]Threader, StepperMax),
-		ignores: make(map[string][]byte),
+		Unfinished: make(map[string]*model.Unfinished),
+		wg:         &sync.WaitGroup{},
+		ctx:        ctx,
+		cancel:     cancel,
+		threads:    0,
+		thread:     make([]Threader, StepperMax),
+		ignores:    make(map[string][]byte),
 	}
 
 	seed.Register(ops...)
@@ -128,6 +130,13 @@ func NewSeed(ops ...Options) *Seed {
 func (seed *Seed) Register(ops ...Options) {
 	for _, op := range ops {
 		op(seed)
+	}
+}
+
+// SkipConvertOption ...
+func SkipConvertOption(b bool) Options {
+	return func(seed *Seed) {
+		seed.skipConvert = b
 	}
 }
 

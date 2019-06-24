@@ -79,6 +79,7 @@ func (info *information) Run(ctx context.Context) {
 		case InfoFlagSQLite:
 			//model.AllUnfinished(nil)
 		}
+
 		if vs == nil {
 			log.Info("no video to process")
 			return

@@ -74,14 +74,7 @@ func (p *pin) Run(ctx context.Context) {
 			return
 		default:
 			p.wg.Add(1)
-			switch p.flag {
-			case PinFlagSource:
-				go p.pinHash(hash)
-			case PinFlagSlice:
-				go p.pinHash(hash)
-			case PinFlagAll:
-				go p.pinHash(hash)
-			}
+			go p.pinHash(hash)
 			p.wg.Wait()
 		}
 	}

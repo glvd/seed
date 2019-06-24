@@ -147,7 +147,7 @@ func (seed *Seed) AfterInit(ops ...AfterInitOptions) {
 }
 
 // SyncDatabase ...
-func SyncDatabase(b bool) AfterInitOptions {
+func SyncDatabase() AfterInitOptions {
 	return func(seed *Seed) {
 		if seed.maindb == nil {
 			panic("nil database")
@@ -160,29 +160,29 @@ func SyncDatabase(b bool) AfterInitOptions {
 }
 
 // ShowSQLOption ...
-func ShowSQLOption(b bool) AfterInitOptions {
+func ShowSQLOption() AfterInitOptions {
 	return func(seed *Seed) {
 		if seed.maindb == nil {
 			panic("nil database")
 		}
-		seed.maindb.ShowSQL(b)
+		seed.maindb.ShowSQL(true)
 	}
 }
 
 // ShowExecTimeOption ...
-func ShowExecTimeOption(b bool) AfterInitOptions {
+func ShowExecTimeOption() AfterInitOptions {
 	return func(seed *Seed) {
 		if seed.maindb == nil {
 			panic("nil database")
 		}
-		seed.maindb.ShowExecTime(b)
+		seed.maindb.ShowExecTime(true)
 	}
 }
 
 // SkipConvertOption ...
-func SkipConvertOption(b bool) Options {
+func SkipConvertOption() Options {
 	return func(seed *Seed) {
-		seed.skipConvert = b
+		seed.skipConvert = true
 	}
 }
 
@@ -197,6 +197,7 @@ func DatabaseFromPathOption(path string) Options {
 		}
 		seed.maindb.ShowSQL(db.ShowSQL)
 		seed.maindb.ShowExecTime(db.ShowExecTime)
+		model.InitMainDB(seed.maindb)
 	}
 }
 
@@ -208,6 +209,7 @@ func DatabaseOption(dbtype, dataSourceName string) Options {
 		if e != nil {
 			panic(e)
 		}
+		model.InitMainDB(seed.maindb)
 	}
 }
 

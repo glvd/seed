@@ -128,6 +128,11 @@ func InitSQLite3() (e error) {
 	return nil
 }
 
+// InitMainDB ...
+func InitMainDB(eng *xorm.Engine) {
+	db = eng
+}
+
 // InitDB ...
 func InitDB(db, source string) (eng *xorm.Engine, e error) {
 	eng, e = xorm.NewEngine(db, source)

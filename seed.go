@@ -65,7 +65,7 @@ type Seed struct {
 	maindb      *xorm.Engine
 	Workspace   string
 	Unfinished  map[string]*model.Unfinished
-	Videos      []*model.Video
+	Videos      map[string]*model.Video
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc
@@ -115,6 +115,7 @@ func NewSeed(ops ...Options) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &Seed{
 		Unfinished: make(map[string]*model.Unfinished),
+		Videos:     make(map[string]*model.Video),
 		wg:         &sync.WaitGroup{},
 		ctx:        ctx,
 		cancel:     cancel,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"github.com/go-xorm/xorm"
 	"strings"
 	"sync"
 
@@ -14,6 +15,9 @@ import (
 
 // Options ...
 type Options func(*Seed)
+
+// AfterInitOptions ...
+type AfterInitOptions func(*Seed)
 
 // Thread ...
 type Thread struct {
@@ -57,6 +61,7 @@ type Seeder interface {
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell
+	maindb      *xorm.Engine
 	Workspace   string
 	Unfinished  map[string]*model.Unfinished
 	Video       []*model.Video
@@ -133,10 +138,61 @@ func (seed *Seed) Register(ops ...Options) {
 	}
 }
 
+// AfterInit ...
+func (seed *Seed) AfterInit(ops ...AfterInitOptions) {
+	for _, op := range ops {
+		op(seed)
+	}
+}
+
+// SyncDatabase ...
+func SyncDatabase(b bool) AfterInitOptions {
+	return func(seed *Seed) {
+		if seed.maindb == nil {
+			panic("nil database")
+		}
+		e := model.Sync(seed.maindb)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+// ShowSQLOption ...
+func ShowSQLOption(b bool) AfterInitOptions {
+	return func(seed *Seed) {
+		if seed.maindb == nil {
+			panic("nil database")
+		}
+		seed.maindb.ShowSQL(b)
+	}
+}
+
+// ShowExecTimeOption ...
+func ShowExecTimeOption(b bool) AfterInitOptions {
+	return func(seed *Seed) {
+		if seed.maindb == nil {
+			panic("nil database")
+		}
+		seed.maindb.ShowExecTime(b)
+	}
+}
+
 // SkipConvertOption ...
 func SkipConvertOption(b bool) Options {
 	return func(seed *Seed) {
 		seed.skipConvert = b
+	}
+}
+
+// DatabaseOption ...
+func DatabaseOption(dbtype, dataSourceName string) Options {
+	return func(seed *Seed) {
+		var e error
+		seed.maindb, e = model.InitDB(dbtype, dataSourceName)
+		if e != nil {
+			panic(e)
+		}
 	}
 }
 

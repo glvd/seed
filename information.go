@@ -34,9 +34,9 @@ const InfoFlagSQLite InfoFlag = "sqlite"
 
 // information ...
 type information struct {
-	db   *xorm.Engine
-	from InfoFlag
-	path string
+	maindb *xorm.Engine
+	from   InfoFlag
+	path   string
 }
 
 func fixBson(s []byte) []byte {
@@ -77,7 +77,7 @@ func (info *information) Run(ctx context.Context) {
 			}
 		case InfoFlagMysql:
 		case InfoFlagSQLite:
-			//model.AllUnfinished(nil)
+
 		}
 
 		if vs == nil {

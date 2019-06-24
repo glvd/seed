@@ -32,9 +32,10 @@ type Database struct {
 	Username string `toml:"username"`
 	Password string `toml:"password"`
 	Schema   string `toml:"schema"`
-	Location string `toml:"location"`
 	Charset  string `toml:"charset"`
 	Prefix   string `toml:"prefix"`
+	Loc      string `toml:"loc"`
+	location string
 }
 
 // DefaultDB ...
@@ -48,16 +49,29 @@ func DefaultDB() *Database {
 		Username: "root",
 		Password: "111111",
 		Schema:   "yinhe",
-		Location: url.QueryEscape("Asia/Shanghai"),
+		Loc:      url.QueryEscape("Asia/Shanghai"),
 		Charset:  "utf8mb4",
 		Prefix:   "",
 	}
 }
 
+// SetLocation ...
+func (d *Database) SetLocation(loc string) {
+	d.location = url.QueryEscape(loc)
+}
+
+// Location ...
+func (d *Database) Location() string {
+	if d.location != "" {
+		return d.location
+	}
+	return url.QueryEscape(d.Loc)
+}
+
 // Source ...
 func (d *Database) Source() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?loc=%s&charset=%s&parseTime=true",
-		d.Username, d.Password, d.Addr, d.Port, d.Schema, d.Location, d.Charset)
+		d.Username, d.Password, d.Addr, d.Port, d.Schema, url.QueryEscape(d.location), d.Charset)
 }
 
 // RegisterTable ...
@@ -66,18 +80,30 @@ func RegisterTable(v interface{}) {
 	syncTable[tof] = v
 }
 
+// Sync ...
+func Sync(db *xorm.Engine) (e error) {
+	for idx, val := range syncTable {
+		log.Info("syncing ", idx)
+		e = db.Sync2(val)
+		if e != nil {
+			return
+		}
+	}
+	return nil
+}
+
 // DB ...
 func DB() *xorm.Engine {
 	if db == nil {
-		if err := InitDB(); err != nil {
+		if err := InitSQLite3(); err != nil {
 			panic(err)
 		}
 	}
 	return db
 }
 
-// InitDB ...
-func InitDB() (e error) {
+// InitSQLite3 ...
+func InitSQLite3() (e error) {
 	eng, e := xorm.NewEngine("sqlite3", "seed.db")
 	if e != nil {
 		return e
@@ -101,25 +127,21 @@ func InitDB() (e error) {
 	return nil
 }
 
-// InitSync ...
-func InitSync(db, pathname string) (eng *xorm.Engine, e error) {
-	source := LoadToml(pathname).Source()
-	if db == "sqlite3" {
-		source = pathname
-	}
+// InitDB ...
+func InitDB(db, source string) (eng *xorm.Engine, e error) {
 	eng, e = xorm.NewEngine(db, source)
 	if e != nil {
 		return
 	}
-	eng.ShowSQL(true)
-	eng.ShowExecTime(true)
-	for idx, val := range syncTable {
-		log.Info("syncing ", idx)
-		e = eng.Sync2(val)
-		if e != nil {
-			return
-		}
-	}
+	//eng.ShowSQL(true)
+	//eng.ShowExecTime(true)
+	//for idx, val := range syncTable {
+	//	log.Info("syncing ", idx)
+	//	e = eng.Sync2(val)
+	//	if e != nil {
+	//		return
+	//	}
+	//}
 	return eng, nil
 }
 

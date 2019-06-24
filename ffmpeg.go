@@ -61,7 +61,7 @@ const sliceM3u8FFmpegTemplate = "-y -i %s -strict -2 -c:a aac -c:v libx264 -bsf:
 func getVideoResolution(format *cmd.StreamFormat) string {
 	idx := 0
 	for _, s := range format.Streams {
-		if s.CodecType == "video" {
+		if s.CodecType == "videos" {
 			if s.Height != nil {
 				idx = getResolutionIndex(*s.Height, 0, -1)
 				break
@@ -106,7 +106,7 @@ func SplitVideo(ctx context.Context, uncat *model.Unfinished, file string) (fp s
 	}
 
 	for _, s := range format.Streams {
-		if s.CodecType == "video" {
+		if s.CodecType == "videos" {
 			if s.Width != nil && s.Height != nil {
 				getVideoResolution(format)
 			}

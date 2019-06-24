@@ -6,16 +6,30 @@ import (
 	"sync"
 )
 
+// UpdateStatus ...
+type UpdateStatus string
+
+// UpdateStatusNone ...
+const (
+	UpdateStatusNone   UpdateStatus = "none"
+	UpdateStatusVerify UpdateStatus = "verify"
+	UpdateStatusAdd    UpdateStatus = "add"
+	UpdateStatusUpdate UpdateStatus = "update"
+	UpdateStatusDelete UpdateStatus = "delete"
+)
+
 type update struct {
 	wg         *sync.WaitGroup
-	video      []*model.Video
+	videos     map[string]*model.Video
 	unfinished map[string]*model.Unfinished
+	status     UpdateStatus
 }
 
 // Update ...
-func Update() Options {
+func Update(status UpdateStatus) Options {
 	update := &update{
-		wg: &sync.WaitGroup{},
+		status: status,
+		wg:     &sync.WaitGroup{},
 	}
 	return UpdateOption(update)
 }
@@ -29,8 +43,8 @@ func UpdateOption(update *update) Options {
 
 // Run ...
 func (u *update) Run(context.Context) {
-	if u.video == nil {
-		log.Error("nil video")
+	if u.videos == nil {
+		log.Error("nil videos")
 		return
 	}
 	u.wg.Add(1)
@@ -47,7 +61,7 @@ func (u *update) Run(context.Context) {
 	u.wg.Add(1)
 	go func() {
 		defer u.wg.Done()
-		for _, video := range u.video {
+		for _, video := range u.videos {
 			e := model.AddOrUpdateVideo(video)
 			if e != nil {
 				log.Error(e)
@@ -60,7 +74,7 @@ func (u *update) Run(context.Context) {
 
 // BeforeRun ...
 func (u *update) BeforeRun(seed *Seed) {
-	u.video = seed.Videos
+	u.videos = seed.Videos
 	u.unfinished = seed.Unfinished
 }
 

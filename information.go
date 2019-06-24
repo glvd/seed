@@ -3,7 +3,6 @@ package seed
 import (
 	"bytes"
 	"context"
-	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"io/ioutil"
@@ -40,7 +39,6 @@ const InfoFlagSQLite InfoFlag = "sqlite"
 type information struct {
 	workspace  string
 	shell      *shell.Shell
-	maindb     *xorm.Engine
 	unfinished map[string]*model.Unfinished
 	from       InfoFlag
 	status     UpdateStatus
@@ -63,7 +61,6 @@ func (info *information) BeforeRun(seed *Seed) {
 	info.videos = seed.Videos
 	info.unfinished = seed.Unfinished
 	info.shell = seed.Shell
-	info.maindb = seed.maindb
 }
 
 // AfterRun ...

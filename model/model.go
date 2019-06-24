@@ -24,18 +24,19 @@ var log = trait.NewZapSugar(zap.String("package", "model"))
 
 // Database ...
 type Database struct {
-	ShowSQL  bool   `toml:"show_sql"`
-	UseCache bool   `json:"use_cache"`
-	Type     string `toml:"type"`
-	Addr     string `toml:"addr"`
-	Port     string `toml:"port"`
-	Username string `toml:"username"`
-	Password string `toml:"password"`
-	Schema   string `toml:"schema"`
-	Charset  string `toml:"charset"`
-	Prefix   string `toml:"prefix"`
-	Loc      string `toml:"loc"`
-	location string
+	ShowSQL      bool   `toml:"show_sql"`
+	ShowExecTime bool   `toml:"show_exec_time"`
+	UseCache     bool   `json:"use_cache"`
+	Type         string `toml:"type"`
+	Addr         string `toml:"addr"`
+	Port         string `toml:"port"`
+	Username     string `toml:"username"`
+	Password     string `toml:"password"`
+	Schema       string `toml:"schema"`
+	Charset      string `toml:"charset"`
+	Prefix       string `toml:"prefix"`
+	Loc          string `toml:"loc"`
+	location     string
 }
 
 // DefaultDB ...
@@ -133,15 +134,6 @@ func InitDB(db, source string) (eng *xorm.Engine, e error) {
 	if e != nil {
 		return
 	}
-	//eng.ShowSQL(true)
-	//eng.ShowExecTime(true)
-	//for idx, val := range syncTable {
-	//	log.Info("syncing ", idx)
-	//	e = eng.Sync2(val)
-	//	if e != nil {
-	//		return
-	//	}
-	//}
 	return eng, nil
 }
 

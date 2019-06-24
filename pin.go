@@ -75,6 +75,7 @@ func (p *pin) Run(ctx context.Context) {
 			p.wg.Add(1)
 			go p.pinHash(hash)
 			p.wg.Wait()
+			p.unfinished[hash].Sync = true
 		}
 	}
 }

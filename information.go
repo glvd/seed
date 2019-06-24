@@ -36,18 +36,6 @@ const InfoFlagBSON InfoFlag = "bson"
 // InfoFlagSQLite ...
 const InfoFlagSQLite InfoFlag = "sqlite"
 
-// InfoStatus ...
-type InfoStatus string
-
-// TransferFlagNone ...
-const (
-	InfoStatusNone   InfoStatus = "none"
-	InfoStatusVerify InfoStatus = "verify"
-	InfoStatusAdd    InfoStatus = "add"
-	InfoStatusUpdate InfoStatus = "update"
-	InfoStatusDelete InfoStatus = "delete"
-)
-
 // information ...
 type information struct {
 	workspace  string
@@ -55,17 +43,16 @@ type information struct {
 	maindb     *xorm.Engine
 	unfinished map[string]*model.Unfinished
 	from       InfoFlag
-	status     InfoStatus
+	status     UpdateStatus
 	path       string
 	videos     map[string]*model.Video
 }
 
 // Information ...
-func Information(path string, from InfoFlag, status InfoStatus) Options {
+func Information(path string, from InfoFlag) Options {
 	info := &information{
-		path:   path,
-		from:   from,
-		status: status,
+		path: path,
+		from: from,
 	}
 	return informationOption(info)
 }
@@ -167,7 +154,7 @@ func (info *information) Run(ctx context.Context) {
 	}
 
 	if vs == nil {
-		log.Info("no video to process")
+		log.Info("no videos to process")
 		return
 	}
 
@@ -208,9 +195,7 @@ func (info *information) Run(ctx context.Context) {
 			if s.Poster != "" {
 				v.PosterHash = s.Poster
 			}
-
 			info.videos[v.Bangumi] = v
-
 		}
 	}
 

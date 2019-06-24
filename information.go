@@ -36,6 +36,18 @@ const InfoFlagBSON InfoFlag = "bson"
 // InfoFlagSQLite ...
 const InfoFlagSQLite InfoFlag = "sqlite"
 
+// InfoStatus ...
+type InfoStatus string
+
+// TransferFlagNone ...
+const (
+	InfoStatusNone   InfoStatus = "none"
+	InfoStatusVerify InfoStatus = "verify"
+	InfoStatusAdd    InfoStatus = "add"
+	InfoStatusUpdate InfoStatus = "update"
+	InfoStatusDelete InfoStatus = "delete"
+)
+
 // information ...
 type information struct {
 	workspace  string
@@ -43,8 +55,19 @@ type information struct {
 	maindb     *xorm.Engine
 	unfinished map[string]*model.Unfinished
 	from       InfoFlag
+	status     InfoStatus
 	path       string
 	videos     []*model.Video
+}
+
+// Information ...
+func Information(path string, from InfoFlag, status InfoStatus) Options {
+	info := &information{
+		path:   path,
+		from:   from,
+		status: status,
+	}
+	return informationOption(info)
 }
 
 // BeforeRun ...
@@ -52,8 +75,6 @@ func (info *information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace
 	info.shell = seed.Shell
 	info.maindb = seed.maindb
-	info.path = seed.path
-	info.from = seed.infoFlag
 }
 
 // AfterRun ...

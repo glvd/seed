@@ -57,7 +57,7 @@ type information struct {
 	from       InfoFlag
 	status     InfoStatus
 	path       string
-	videos     []*model.Video
+	videos     map[string]*model.Video
 }
 
 // Information ...

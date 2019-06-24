@@ -32,9 +32,6 @@ type process struct {
 // BeforeRun ...
 func (p *process) BeforeRun(seed *Seed) {
 	p.unfinished = seed.Unfinished
-	if p.unfinished == nil {
-		p.unfinished = make(map[string]*model.Unfinished)
-	}
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
 	p.ignores = seed.ignores

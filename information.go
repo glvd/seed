@@ -73,6 +73,7 @@ func Information(path string, from InfoFlag, status InfoStatus) Options {
 // BeforeRun ...
 func (info *information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace
+	info.videos = seed.Videos
 	info.unfinished = seed.Unfinished
 	info.shell = seed.Shell
 	info.maindb = seed.maindb
@@ -208,7 +209,7 @@ func (info *information) Run(ctx context.Context) {
 				v.PosterHash = s.Poster
 			}
 
-			info.videos = append(info.videos, v)
+			info.videos[v.Bangumi] = v
 
 		}
 	}

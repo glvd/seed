@@ -65,7 +65,7 @@ type Seed struct {
 	maindb      *xorm.Engine
 	Workspace   string
 	Unfinished  map[string]*model.Unfinished
-	Video       []*model.Video
+	Videos      []*model.Video
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc

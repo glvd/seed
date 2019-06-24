@@ -1,6 +1,6 @@
 package model
 
-// Video ...
+// Videos ...
 type Video struct {
 	Model        `xorm:"extends"`
 	FindNo       string   `json:"find_no"`                    //查找号

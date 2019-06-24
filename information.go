@@ -73,13 +73,14 @@ func Information(path string, from InfoFlag, status InfoStatus) Options {
 // BeforeRun ...
 func (info *information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace
+	info.unfinished = seed.Unfinished
 	info.shell = seed.Shell
 	info.maindb = seed.maindb
 }
 
 // AfterRun ...
 func (info *information) AfterRun(seed *Seed) {
-
+	seed.Videos = info.videos
 }
 
 func fixBson(s []byte) []byte {

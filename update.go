@@ -60,7 +60,7 @@ func (u *update) Run(context.Context) {
 
 // BeforeRun ...
 func (u *update) BeforeRun(seed *Seed) {
-	u.video = seed.Video
+	u.video = seed.Videos
 	u.unfinished = seed.Unfinished
 }
 

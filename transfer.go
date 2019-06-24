@@ -50,7 +50,7 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 
 // AfterRun ...
 func (transfer *transfer) AfterRun(seed *Seed) {
-	seed.Video = transfer.video
+	seed.Videos = transfer.video
 	seed.Unfinished = transfer.unfinished
 }
 

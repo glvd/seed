@@ -42,6 +42,7 @@ type Stepper int
 // StepperNone ...
 const (
 	StepperNone Stepper = iota
+	StepperInformation
 	StepperProcess
 	StepperMove
 	StepperTransfer
@@ -72,8 +73,6 @@ type Seed struct {
 	threads     int
 	thread      []Threader
 	ignores     map[string][]byte
-	infoFlag    InfoFlag
-	path        string
 	err         error
 }
 
@@ -212,11 +211,10 @@ func DatabaseOption(dbtype, dataSourceName string) Options {
 	}
 }
 
-// FilePathOption ...
-func FilePathOption(flg InfoFlag, path string) Options {
+// informationOption ...
+func informationOption(info *information) Options {
 	return func(seed *Seed) {
-		seed.infoFlag = flg
-		seed.path = path
+		seed.thread[StepperInformation] = info
 	}
 }
 

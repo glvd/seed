@@ -28,13 +28,13 @@ const (
 type transfer struct {
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
+	videos     map[string]*model.Video
 	workspace  string
 	from       InfoFlag
 	to         InfoFlag
 	status     TransferStatus
 	path       string
 	reader     io.Reader
-	video      []*model.Video
 }
 
 // BeforeRun ...
@@ -42,15 +42,13 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 	transfer.shell = seed.Shell
 	transfer.workspace = seed.Workspace
 	transfer.unfinished = seed.Unfinished
-	if transfer.unfinished == nil {
-		transfer.unfinished = make(map[string]*model.Unfinished)
-	}
+	transfer.videos = seed.Videos
 
 }
 
 // AfterRun ...
 func (transfer *transfer) AfterRun(seed *Seed) {
-	seed.Videos = transfer.video
+	seed.Videos = transfer.videos
 	seed.Unfinished = transfer.unfinished
 }
 

@@ -55,10 +55,9 @@ const PinStateLocal PinState = "local"
 const PinStateRemote PinState = "remote"
 
 // Pin ...
-func Pin(flag PinFlag) Options {
+func Pin() Options {
 	pin := &pin{
-		flag: flag,
-		wg:   &sync.WaitGroup{},
+		wg: &sync.WaitGroup{},
 	}
 
 	return PinOption(pin)

@@ -124,22 +124,26 @@ func defaultUnfinished(name string) *model.Unfinished {
 		Type:        "other",
 		Name:        file,
 		Hash:        "",
-		SliceHash:   "",
 		IsVideo:     false,
 		Sharpness:   "",
 		Sync:        false,
-		Sliced:      false,
 		Encrypt:     false,
 		Key:         "",
 		M3U8:        "media.m3u8",
 		Caption:     "",
 		SegmentFile: "media-%05d.ts",
 		Object:      new(model.VideoObject),
-		SliceObject: new(model.VideoObject),
 	}
 	log.With("file", name).Info("calculate checksum")
 	uncat.Checksum = model.Checksum(name)
 	return uncat
+}
+
+func cloneUnfinished(unf *model.Unfinished) (n *model.Unfinished) {
+	n = new(model.Unfinished)
+	*n = *unf
+	n.Object = new(model.VideoObject)
+	return
 }
 
 // Run ...
@@ -177,25 +181,24 @@ func (info *information) Run(ctx context.Context) {
 			fallthrough
 		case InfoFlagSQLite:
 			if info.list == nil {
-				videos, e := model.AllVideos()
+				videos, e := model.AllVideos(nil, 0)
 				if e != nil {
 					log.Error(e)
 					return
 				}
-				for _, video := range videos {
+				for _, video := range *videos {
 					info.videos[video.Bangumi] = video
 				}
 				return
 			}
 
 			for _, name := range info.list {
-				video := model.Video{}
-				b, e := model.FindVideo(name, &video)
-				if e != nil || !b {
-					log.With("status", b).Error(e)
+				video, e := model.FindVideo(nil, name)
+				if e != nil {
+					log.Error(e)
 					continue
 				}
-				info.videos[video.Bangumi] = &video
+				info.videos[video.Bangumi] = video
 			}
 			//all work was done
 			return

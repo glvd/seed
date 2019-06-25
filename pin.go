@@ -73,7 +73,13 @@ func (p *pin) Run(ctx context.Context) {
 	log.Info("pin running")
 	switch p.status {
 	case PinStatusAll:
-		model.AllUnfinished()
+		unfins, e := model.AllUnfinished(nil, 0)
+		if e != nil {
+			return
+		}
+		for _, unf := range *unfins {
+			go p.pinHash(unf.Hash)
+		}
 	}
 
 	for hash := range p.unfinished {

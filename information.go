@@ -176,6 +176,9 @@ func (info *information) Run(ctx context.Context) {
 		case InfoFlagMysql:
 			fallthrough
 		case InfoFlagSQLite:
+			if info.list == nil {
+				videos := model.AllVideos()
+			}
 			for _, name := range info.list {
 				video := model.Video{}
 				b, e := model.FindVideo(name, &video)

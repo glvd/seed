@@ -1,8 +1,6 @@
 package model
 
-import (
-	"strings"
-)
+import "strings"
 
 // Video ...
 type Video struct {
@@ -61,27 +59,23 @@ func Top(video *Video) (b bool, e error) {
 }
 
 // AllVideos ...
-func AllVideos(check bool) (v []*Video, e error) {
+func AllVideos() (v []*Video, e error) {
 	var videos = new([]*Video)
-	if check {
-		if e = DB().Where("sync = ?", !check).Find(videos); e != nil {
-			return
-		}
-	} else {
-		if e = DB().Find(videos); e != nil {
-			return
-		}
+	if e = DB().Find(videos); e != nil {
+		return
 	}
-	v = *videos
-	return
+	return *videos, nil
 }
 
 // DeepFind ...
 func DeepFind(s string, video *Video) (b bool, e error) {
-	b, e = DB().Where("bangumi = ?", s).Get(video)
+	s1 := strings.ReplaceAll(s, "-", "")
+	s1 = strings.ReplaceAll(s1, "_", "")
+	s1 = strings.ToUpper(s1)
+	b, e = DB().Where("find_no = ?", s1).Get(video)
 	if e != nil || !b {
-		like := "%" + s + "%"
-		return DB().Where("bangumi like ? ", like).
+		like := "%" + strings.ToUpper(s) + "%"
+		return DB().Where("find_no like ? ", like).
 			Or("alias like ?", like).
 			Or("role like ?", like).
 			Get(video)

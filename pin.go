@@ -16,7 +16,7 @@ const (
 	PinFlagNone PinFlag = "none"
 	//PinFlagPoster PinFlag = "poster"
 	PinFlagSource PinFlag = "source"
-	PinFlagSlice  PinFlag = "sliceAdd"
+	PinFlagSlice  PinFlag = "slice"
 	PinFlagAll    PinFlag = "all"
 )
 
@@ -24,8 +24,9 @@ type pin struct {
 	wg         *sync.WaitGroup
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
-	state      PinState
+	state      PinStatus
 	flag       PinFlag
+	status     PinStatus
 }
 
 // BeforeRun ...
@@ -45,19 +46,23 @@ func (p *pin) AfterRun(seed *Seed) {
 	return
 }
 
-// PinState ...
-type PinState string
+// PinStatus ...
+type PinStatus string
 
-// PinStateLocal ...
-const PinStateLocal PinState = "local"
+// PinStatusAll ...
+const PinStatusAll PinStatus = "all"
 
-// PinStateRemote ...
-const PinStateRemote PinState = "remote"
+// PinStatusBefore ...
+const PinStatusBefore PinStatus = "before"
+
+// PinStatusAssign ...
+const PinStatusAssign PinStatus = "assign"
 
 // Pin ...
-func Pin() Options {
+func Pin(status PinStatus) Options {
 	pin := &pin{
-		wg: &sync.WaitGroup{},
+		status: status,
+		wg:     &sync.WaitGroup{},
 	}
 
 	return pinOption(pin)
@@ -65,9 +70,13 @@ func Pin() Options {
 
 // Run ...
 func (p *pin) Run(ctx context.Context) {
-	log.Infof("%+v", p.unfinished)
-	for hash, unfin := range p.unfinished {
-		log.Infof("%+v", unfin)
+	log.Info("pin running")
+	switch p.status {
+	case PinStatusAll:
+		model.AllUnfinished()
+	}
+
+	for hash := range p.unfinished {
 		select {
 		case <-ctx.Done():
 			return

@@ -58,7 +58,7 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 		return err
 	}
 	log.Infof("%+v", sa)
-	dirs, err := rest.AddDir(sa.Output)
+	dirs, err := p.shell.AddDir(sa.Output)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 }
 
 func (p *process) fileAdd(unfin *model.Unfinished, file string) (err error) {
-	object, err := rest.AddFile(file)
+	object, err := p.shell.AddFile(file)
 	if err != nil {
 		log.Error(err)
 		return

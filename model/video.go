@@ -1,6 +1,9 @@
 package model
 
-import "strings"
+import (
+	"github.com/go-xorm/xorm"
+	"strings"
+)
 
 // Video ...
 type Video struct {
@@ -59,9 +62,13 @@ func Top(video *Video) (b bool, e error) {
 }
 
 // AllVideos ...
-func AllVideos() (v []*Video, e error) {
+func AllVideos(session *xorm.Session, limit int, start ...int) (v []*Video, e error) {
 	var videos = new([]*Video)
-	if e = DB().Find(videos); e != nil {
+	session = MustSession(session)
+	if limit > 0 {
+		session = session.Limit(limit, start...)
+	}
+	if e = session.Find(videos); e != nil {
 		return
 	}
 	return *videos, nil

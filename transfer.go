@@ -70,6 +70,9 @@ func Transfer(path string, to InfoFlag, status TransferStatus) Options {
 }
 
 func addThumbHash(shell *shell.Shell, source *VideoSource) (string, error) {
+	unfinThumb := defaultUnfinished(source.Thumb)
+	unfinThumb.Type = model.TypeThumb
+	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		abs, e := filepath.Abs(source.Thumb)
 		if e != nil {
@@ -80,18 +83,34 @@ func addThumbHash(shell *shell.Shell, source *VideoSource) (string, error) {
 		if e != nil {
 			return "", e
 		}
+
+		unfinThumb.Hash = object.Hash
+		e = model.AddOrUpdateUnfinished(unfinThumb)
+		if e != nil {
+			return "", e
+		}
 		return object.Hash, nil
 	}
+
 	return "", xerrors.New("no thumb")
 }
 
 func addPosterHash(shell *shell.Shell, source *VideoSource) (string, error) {
+	unfinPoster := defaultUnfinished(source.PosterPath)
+	unfinPoster.Type = model.TypePoster
+	unfinPoster.Relate = source.Bangumi
+
 	if source.PosterPath != "" {
 		abs, e := filepath.Abs(source.PosterPath)
 		if e != nil {
 			return "", e
 		}
 		object, e := shell.AddFile(abs)
+		if e != nil {
+			return "", e
+		}
+		unfinPoster.Hash = object.Hash
+		e = model.AddOrUpdateUnfinished(unfinPoster)
 		if e != nil {
 			return "", e
 		}

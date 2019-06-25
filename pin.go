@@ -53,8 +53,8 @@ type PinStatus string
 // PinStatusAll ...
 const PinStatusAll PinStatus = "all"
 
-// PinStatusBefore ...
-const PinStatusBefore PinStatus = "before"
+// PinStatusUnfinished ...
+const PinStatusUnfinished PinStatus = "unfinished"
 
 // PinStatusAssignHash ...
 const PinStatusAssignHash PinStatus = "assignHash"
@@ -94,7 +94,7 @@ func (p *pin) Run(ctx context.Context) {
 				p.unfinished[unf.Hash] = unf
 			}
 		}
-	case PinStatusBefore:
+	case PinStatusUnfinished:
 		for hash := range p.unfinished {
 			select {
 			case <-ctx.Done():

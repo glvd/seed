@@ -68,7 +68,7 @@ func doContent(video *model.Video, content UpdateContent) (e error) {
 		}
 		var unfin *model.Unfinished
 		for ; i > 0; i-- {
-			unfin = (*unfins)[i]
+			unfin = (*unfins)[i-1]
 			switch unfin.Type {
 			case model.TypeSlice:
 				video.M3U8Hash = unfin.Hash
@@ -98,6 +98,7 @@ func doContent(video *model.Video, content UpdateContent) (e error) {
 
 // Run ...
 func (u *update) Run(context.Context) {
+	log.Info("update running")
 	var e error
 	switch u.method {
 	case UpdateMethodAll:

@@ -31,11 +31,11 @@ func Update(status UpdateStatus) Options {
 		status: status,
 		wg:     &sync.WaitGroup{},
 	}
-	return UpdateOption(update)
+	return updateOption(update)
 }
 
-// UpdateOption ...
-func UpdateOption(update *update) Options {
+// updateOption ...
+func updateOption(update *update) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperUpdate] = update
 	}

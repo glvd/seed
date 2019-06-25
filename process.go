@@ -98,14 +98,16 @@ func (p *process) Run(ctx context.Context) {
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
 			unfin.Relate = onlyName(file)
+			if isPicture(file) {
+				unfin.Type = model.TypePoster
+			}
 			err := p.fileAdd(unfin, file)
 			if err != nil {
 				log.With("add file", file).Error(err)
 				continue
 			}
 			p.unfinished[unfin.Hash] = unfin
-			if isPicture(file) {
-				unfin.Type = model.TypePoster
+			if unfin.Type == model.TypePoster {
 				continue
 			}
 			//fix name and get format
@@ -115,7 +117,6 @@ func (p *process) Run(ctx context.Context) {
 				continue
 			}
 			log.Infof("%+v", format)
-
 			if unfin.Type == model.TypeVideo || p.skip(format) {
 				unfinSlice := cloneUnfinished(unfin)
 				err := p.sliceAdd(unfinSlice, format, file)

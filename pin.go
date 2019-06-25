@@ -60,7 +60,7 @@ func Pin() Options {
 		wg: &sync.WaitGroup{},
 	}
 
-	return PinOption(pin)
+	return pinOption(pin)
 }
 
 // Run ...

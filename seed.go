@@ -258,8 +258,8 @@ func processOption(process *process) Options {
 	}
 }
 
-// PinOption ...
-func PinOption(pin *pin) Options {
+// pinOption ...
+func pinOption(pin *pin) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperPin] = pin
 	}

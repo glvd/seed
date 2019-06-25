@@ -27,6 +27,7 @@ type pin struct {
 	state      PinStatus
 	flag       PinFlag
 	status     PinStatus
+	list       []string
 }
 
 // BeforeRun ...
@@ -55,13 +56,17 @@ const PinStatusAll PinStatus = "all"
 // PinStatusBefore ...
 const PinStatusBefore PinStatus = "before"
 
-// PinStatusAssign ...
-const PinStatusAssign PinStatus = "assign"
+// PinStatusAssignHash ...
+const PinStatusAssignHash PinStatus = "assignHash"
+
+// PinStatusAssignBan ...
+const PinStatusAssignBan PinStatus = "assignBan"
 
 // Pin ...
-func Pin(status PinStatus) Options {
+func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
 		status: status,
+		list:   list,
 		wg:     &sync.WaitGroup{},
 	}
 
@@ -78,21 +83,42 @@ func (p *pin) Run(ctx context.Context) {
 			return
 		}
 		for _, unf := range *unfins {
-			go p.pinHash(unf.Hash)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				p.wg.Add(1)
+				go p.pinHash(unf.Hash)
+				p.wg.Wait()
+				unf.Sync = true
+				p.unfinished[unf.Hash] = unf
+			}
+		}
+	case PinStatusBefore:
+		for hash := range p.unfinished {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				p.wg.Add(1)
+				go p.pinHash(hash)
+				p.wg.Wait()
+				p.unfinished[hash].Sync = true
+			}
+		}
+	case PinStatusAssignHash:
+		for _, hash := range p.list {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				p.wg.Add(1)
+				go p.pinHash(hash)
+				p.wg.Wait()
+			}
 		}
 	}
 
-	for hash := range p.unfinished {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			p.wg.Add(1)
-			go p.pinHash(hash)
-			p.wg.Wait()
-			p.unfinished[hash].Sync = true
-		}
-	}
 }
 
 func (p *pin) pinHash(hash string) {

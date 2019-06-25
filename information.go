@@ -43,14 +43,16 @@ type information struct {
 	from       InfoFlag
 	status     UpdateStatus
 	path       string
+	list       []string
 	videos     map[string]*model.Video
 }
 
 // Information ...
-func Information(path string, from InfoFlag) Options {
+func Information(path string, from InfoFlag, list ...string) Options {
 	info := &information{
 		path: path,
 		from: from,
+		list: list,
 	}
 	return informationOption(info)
 }
@@ -145,8 +147,19 @@ func (info *information) Run(ctx context.Context) {
 				return
 			}
 		case InfoFlagMysql:
+			fallthrough
 		case InfoFlagSQLite:
-
+			for _, name := range info.list {
+				video := model.Video{}
+				b, e := model.FindVideo(name, &video)
+				if e != nil || !b {
+					log.With("status", b).Error(e)
+					continue
+				}
+				info.videos[video.Bangumi] = &video
+			}
+			//all work was done
+			return
 		}
 	}
 

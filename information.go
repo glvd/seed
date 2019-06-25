@@ -115,6 +115,33 @@ func video(source *VideoSource) (video *model.Video) {
 	return
 }
 
+// defaultUnfinished ...
+func defaultUnfinished(name string) *model.Unfinished {
+	_, file := filepath.Split(name)
+	uncat := &model.Unfinished{
+		Model:       model.Model{},
+		Checksum:    "",
+		Type:        "other",
+		Name:        file,
+		Hash:        "",
+		SliceHash:   "",
+		IsVideo:     false,
+		Sharpness:   "",
+		Sync:        false,
+		Sliced:      false,
+		Encrypt:     false,
+		Key:         "",
+		M3U8:        "media.m3u8",
+		Caption:     "",
+		SegmentFile: "media-%05d.ts",
+		Object:      new(model.VideoObject),
+		SliceObject: new(model.VideoObject),
+	}
+	log.With("file", name).Info("calculate checksum")
+	uncat.Checksum = model.Checksum(name)
+	return uncat
+}
+
 // Run ...
 func (info *information) Run(ctx context.Context) {
 	log.Info("information running")
@@ -176,12 +203,12 @@ func (info *information) Run(ctx context.Context) {
 			return
 		default:
 			v := video(s)
-			s.Thumb = filepath.Join(info.workspace, s.Thumb)
-			unfinThumb := DefaultUnfinished(s.Thumb)
-			unfinThumb.Type = model.TypeThumb
-			unfinThumb.Relate = s.Bangumi
 			info.videos[v.Bangumi] = v
 			if !skipIPFS {
+				s.Thumb = filepath.Join(info.workspace, s.Thumb)
+				unfinThumb := defaultUnfinished(s.Thumb)
+				unfinThumb.Type = model.TypeThumb
+				unfinThumb.Relate = s.Bangumi
 				thumb, e := addThumbHash(info.shell, s)
 				if e != nil {
 					log.Error(e)
@@ -190,11 +217,11 @@ func (info *information) Run(ctx context.Context) {
 				}
 				if thumb != "" {
 					unfinThumb.Hash = thumb
-					v.Thumb = thumb
-					info.unfinished[v.Thumb] = unfinThumb
+					v.ThumbHash = thumb
+					info.unfinished[v.ThumbHash] = unfinThumb
 				}
 				s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-				unfinPoster := DefaultUnfinished(s.PosterPath)
+				unfinPoster := defaultUnfinished(s.PosterPath)
 				unfinPoster.Type = model.TypePoster
 				unfinPoster.Relate = s.Bangumi
 				poster, e := addPosterHash(info.shell, s)

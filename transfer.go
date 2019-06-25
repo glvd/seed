@@ -60,10 +60,9 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(path string, from, to InfoFlag, status TransferStatus) Options {
+func Transfer(path string, to InfoFlag, status TransferStatus) Options {
 	t := &transfer{
 		path:   path,
-		from:   from,
 		to:     to,
 		status: status,
 	}

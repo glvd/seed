@@ -71,7 +71,7 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 	return model.AddOrUpdateUnfinished(unfin)
 }
 
-func (p *process) videoAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+func (p *process) fileAdd(unfin *model.Unfinished, file string) (err error) {
 	object, err := rest.AddFile(file)
 	if err != nil {
 		log.Error(err)
@@ -98,21 +98,25 @@ func (p *process) Run(ctx context.Context) {
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
 			unfin.Relate = onlyName(file)
+			err := p.fileAdd(unfin, file)
+			if err != nil {
+				log.With("add file", file).Error(err)
+				continue
+			}
+			p.unfinished[unfin.Hash] = unfin
+			if isPicture(file) {
+				unfin.Type = model.TypePoster
+				continue
+			}
 			//fix name and get format
 			format, err := parseUnfinishedFromStreamFormat(file, unfin)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
-
 			log.Infof("%+v", format)
-			err = p.videoAdd(unfin, format, file)
-			if err != nil {
-				log.With("add video", file).Error(err)
-				continue
-			}
-			p.unfinished[unfin.Hash] = unfin
-			if unfin.IsVideo || p.skip(format) {
+
+			if unfin.Type == model.TypeVideo || p.skip(format) {
 				unfinSlice := cloneUnfinished(unfin)
 				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
@@ -125,6 +129,11 @@ func (p *process) Run(ctx context.Context) {
 		p.moves[unfin.Checksum] = file
 	}
 	return
+}
+func isPicture(name string) bool {
+	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
+	ext := filepath.Ext(name)
+	return strings.Index(picture, ext) != -1
 }
 
 // PathMD5 ...
@@ -196,7 +205,7 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 	}
 
 	if format.IsVideo() {
-		u.IsVideo = true
+		u.Type = model.TypeVideo
 		u.Sharpness = format.Resolution()
 	}
 	return format, nil

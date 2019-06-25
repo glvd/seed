@@ -12,8 +12,8 @@ type UpdateContent string
 // UpdateMethod ...
 type UpdateMethod string
 
-// UpdateMethodBefore ...
-const UpdateMethodBefore UpdateMethod = "before"
+// UpdateMethodVideo ...
+const UpdateMethodVideo UpdateMethod = "video"
 
 // UpdateMethodAll ...
 const UpdateMethodAll UpdateMethod = "all"
@@ -57,8 +57,41 @@ func updateOption(update *update) Options {
 }
 
 func doContent(video *model.Video, content UpdateContent) (e error) {
-	if e != nil {
-		return e
+	switch content {
+	case UpdateContentAll:
+		fallthrough
+	case UpdateContentHash:
+		unfins := new([]*model.Unfinished)
+		i, e := model.DB().Where("relate = ?", video.Bangumi).FindAndCount(unfins)
+		if e != nil {
+			return e
+		}
+		var unfin *model.Unfinished
+		for ; i > 0; i-- {
+			unfin = (*unfins)[i]
+			switch unfin.Type {
+			case model.TypeSlice:
+				video.M3U8Hash = unfin.Hash
+			case model.TypePoster:
+				video.PosterHash = unfin.Hash
+			case model.TypeThumb:
+				video.ThumbHash = unfin.Hash
+			case model.TypeVideo:
+				video.SourceHash = unfin.Hash
+			}
+		}
+	case UpdateContentInfo:
+		//old, e := model.FindVideo(nil, video.Bangumi)
+		//if e != nil {
+		//	return e
+		//}
+		//video.ID = old.ID
+		//video.SourceHash = old.SourceHash
+		//video.M3U8Hash = old.M3U8Hash
+		//video.PosterHash = old.PosterHash
+		//video.ThumbHash = old.ThumbHash
+		//video.Version = old.Version
+
 	}
 	return nil
 }
@@ -80,7 +113,6 @@ func (u *update) Run(context.Context) {
 			u.videos[video.Bangumi] = video
 		}
 	case UpdateMethodUnfinished:
-
 		for _, unfin := range u.unfinished {
 			video, b := u.videos[unfin.Relate]
 			if !b {
@@ -90,7 +122,6 @@ func (u *update) Run(context.Context) {
 					continue
 				}
 			}
-
 			e := doContent(video, u.content)
 			if e != nil {
 				log.With("id", unfin.ID).Error(e)
@@ -99,8 +130,14 @@ func (u *update) Run(context.Context) {
 
 			u.videos[video.Bangumi] = video
 		}
-	case UpdateMethodBefore:
-
+	case UpdateMethodVideo:
+		for _, video := range u.videos {
+			e := doContent(video, u.content)
+			if e != nil {
+				log.With("video", video.Bangumi).Error(e)
+				continue
+			}
+		}
 	}
 
 	if u.videos == nil {

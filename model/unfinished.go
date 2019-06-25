@@ -23,6 +23,9 @@ const TypePoster Type = "poster"
 // TypeThumb ...
 const TypeThumb Type = "thumb"
 
+// TypeCaption caption file
+const TypeCaption Type = "caption"
+
 // Unfinished 未分类
 type Unfinished struct {
 	Model       `xorm:"extends"`

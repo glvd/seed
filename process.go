@@ -41,19 +41,7 @@ func (p *process) BeforeRun(seed *Seed) {
 // AfterRun ...
 func (p *process) AfterRun(seed *Seed) {
 	seed.Unfinished = p.unfinished
-	seed.moves = p.moves
-}
-
-func tmp(path string, name string) string {
-	mp, e := filepath.Abs(path)
-	if e != nil {
-		mp, e = filepath.Abs(filepath.Dir(os.Args[0]))
-		if e != nil {
-			//ignore error
-			mp, _ = os.UserHomeDir()
-		}
-	}
-	return filepath.Join(mp, name)
+	seed.Moves = p.moves
 }
 
 // Process ...
@@ -62,11 +50,6 @@ func Process(path string) Options {
 		path: path,
 	}
 	return processOption(process)
-}
-
-func prefix(s string) (ret string) {
-	ret = "/ipfs/" + s
-	return
 }
 
 func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
@@ -99,20 +82,6 @@ func (p *process) videoAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 	return model.AddOrUpdateUnfinished(unfin)
 }
 
-func fixPath(file string) string {
-	n := strings.Replace(file, " ", "", -1)
-	dir, _ := filepath.Split(n)
-	err := os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		log.Error(err)
-	}
-	err = os.Rename(file, n)
-	if err != nil {
-		log.Error(err)
-	}
-	return n
-}
-
 // Run ...
 func (p *process) Run(ctx context.Context) {
 	files := p.getFiles(p.path)
@@ -143,7 +112,7 @@ func (p *process) Run(ctx context.Context) {
 				continue
 			}
 			p.unfinished[unfin.Hash] = unfin
-			if unfin.IsVideo {
+			if unfin.IsVideo || p.skip(format) {
 				unfinSlice := cloneUnfinished(unfin)
 				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
@@ -152,7 +121,6 @@ func (p *process) Run(ctx context.Context) {
 				}
 				p.unfinished[unfinSlice.Hash] = unfinSlice
 			}
-
 		}
 		p.moves[unfin.Checksum] = file
 	}
@@ -204,6 +172,21 @@ func (p *process) getFiles(ws string) (files []string) {
 		return files
 	}
 	return append(files, ws)
+}
+
+func (p *process) skip(format *cmd.StreamFormat) bool {
+	if !p.skipConvert {
+		return p.skipConvert
+	}
+	video := format.Video()
+	audio := format.Audio()
+	if audio == nil || video == nil {
+		return true
+	}
+	if video.CodecName != "h264" || audio.CodecName != "aac" {
+		return true
+	}
+	return false
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

@@ -49,11 +49,13 @@ func init() {
 }
 
 // FindVideo ...
-func FindVideo(ban string, video *Video) (b bool, e error) {
+func FindVideo(session *xorm.Session, ban string) (video *Video, e error) {
+	video = new(Video)
 	ban = strings.ReplaceAll(ban, "-", "")
 	ban = strings.ReplaceAll(ban, "_", "")
 	ban = strings.ToUpper(ban)
-	return DB().Where("find_no = ?", ban).Get(video)
+	_, e = DB().Where("find_no = ?", ban).Get(video)
+	return
 }
 
 // Top ...
@@ -62,8 +64,8 @@ func Top(video *Video) (b bool, e error) {
 }
 
 // AllVideos ...
-func AllVideos(session *xorm.Session, limit int, start ...int) (v []*Video, e error) {
-	var videos = new([]*Video)
+func AllVideos(session *xorm.Session, limit int, start ...int) (videos *[]*Video, e error) {
+	videos = new([]*Video)
 	session = MustSession(session)
 	if limit > 0 {
 		session = session.Limit(limit, start...)
@@ -71,7 +73,7 @@ func AllVideos(session *xorm.Session, limit int, start ...int) (v []*Video, e er
 	if e = session.Find(videos); e != nil {
 		return
 	}
-	return *videos, nil
+	return videos, nil
 }
 
 // DeepFind ...

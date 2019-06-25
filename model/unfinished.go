@@ -47,13 +47,13 @@ func init() {
 }
 
 // AllUnfinished ...
-func AllUnfinished(session *xorm.Session, limit int, start ...int) (unfins []*Unfinished, e error) {
-	unfins = []*Unfinished{}
+func AllUnfinished(session *xorm.Session, limit int, start ...int) (unfins *[]*Unfinished, e error) {
+	unfins = new([]*Unfinished)
 	session = MustSession(session)
 	if limit > 0 {
 		session = session.Limit(limit, start...)
 	}
-	if err := session.Find(&unfins); err != nil {
+	if err := session.Find(unfins); err != nil {
 		return nil, err
 	}
 	return unfins, nil

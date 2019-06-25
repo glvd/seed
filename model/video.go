@@ -1,6 +1,8 @@
 package model
 
-import "strings"
+import (
+	"strings"
+)
 
 // Video ...
 type Video struct {
@@ -87,29 +89,31 @@ func DeepFind(s string, video *Video) (b bool, e error) {
 	return b, e
 }
 
+func mustStr(s *string, d string) {
+	if *s == "" {
+		*s = d
+	}
+}
+
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
 	var tmp Video
-	b, e := DB().Where("bangumi = ?", video.Bangumi).Get(&tmp)
+	found, e := DB().Where("bangumi = ?", video.Bangumi).Get(&tmp)
 	if e != nil {
 		return e
 	}
-	if b {
+	if found {
 		video.Version = tmp.Version
 		video.ID = tmp.ID
-		if tmp.M3U8Hash != "" || tmp.SourceHash != "" {
-
-		}
-
-		if _, err := DB().ID(video.ID).Update(video); err != nil {
-			return err
-		}
-		return nil
+		mustStr(&video.M3U8Hash, tmp.M3U8Hash)
+		mustStr(&video.SourceHash, tmp.SourceHash)
+		mustStr(&video.PosterHash, tmp.PosterHash)
+		mustStr(&video.ThumbHash, tmp.ThumbHash)
+		_, e = DB().ID(video.ID).Update(video)
+		return
 	}
-	if _, err := DB().InsertOne(video); err != nil {
-		return err
-	}
-	return nil
+	_, e = DB().InsertOne(video)
+	return
 }
 
 // Visited ...

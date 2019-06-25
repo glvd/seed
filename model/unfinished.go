@@ -74,10 +74,9 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 	}
 	if found {
 		unfin.Version = tmp.Version
-		if _, e = DB().Where("checksum = ?", unfin.Checksum).Update(unfin); e != nil {
-			return e
-		}
-		return nil
+		unfin.ID = tmp.ID
+		_, e = DB().ID(unfin.ID).Update(unfin)
+		return
 	}
 	_, e = DB().InsertOne(unfin)
 	return

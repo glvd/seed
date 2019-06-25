@@ -4,7 +4,7 @@ import "testing"
 
 // TestInformation ...
 func TestInformation(t *testing.T) {
-	seed := NewSeed(Information("D:\\videoall\\video2.json", InfoFlagBSON), DatabaseOption("sqlite3", "test2.db"))
+	seed := NewSeed(Information("D:\\videoall\\video2.json", InfoFlagBSON), DatabaseOption("sqlite3", "test3.db"))
 	seed.Workspace = "D:\\videoall"
 	seed.AfterInit(SyncDatabase())
 	seed.Start()

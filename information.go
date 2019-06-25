@@ -42,7 +42,6 @@ type information struct {
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
 	from       InfoFlag
-	status     UpdateStatus
 	path       string
 	list       []string
 	videos     map[string]*model.Video

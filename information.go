@@ -136,7 +136,6 @@ func defaultUnfinished(name string) *model.Unfinished {
 		Relate:      "",
 		Name:        file,
 		Hash:        "",
-		IsVideo:     false,
 		Sharpness:   "",
 		Caption:     "",
 		Encrypt:     false,

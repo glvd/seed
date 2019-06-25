@@ -11,11 +11,12 @@ type UpdateStatus string
 
 // UpdateStatusNone ...
 const (
-	UpdateStatusNone   UpdateStatus = "none"
-	UpdateStatusVerify UpdateStatus = "verify"
-	UpdateStatusAdd    UpdateStatus = "add"
-	UpdateStatusUpdate UpdateStatus = "update"
-	UpdateStatusDelete UpdateStatus = "delete"
+	UpdateStatusNone       UpdateStatus = "none"
+	UpdateStatusVerify     UpdateStatus = "verify"
+	UpdateStatusAdd        UpdateStatus = "add"
+	UpdateStatusUpdateHash UpdateStatus = "updateHash"
+	UpdateStatusUpdateInfo UpdateStatus = "updateInfo"
+	UpdateStatusDelete     UpdateStatus = "delete"
 )
 
 type update struct {

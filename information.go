@@ -177,8 +177,17 @@ func (info *information) Run(ctx context.Context) {
 			fallthrough
 		case InfoFlagSQLite:
 			if info.list == nil {
-				videos := model.AllVideos()
+				videos, e := model.AllVideos()
+				if e != nil {
+					log.Error(e)
+					return
+				}
+				for _, video := range videos {
+					info.videos[video.Bangumi] = video
+				}
+				return
 			}
+
 			for _, name := range info.list {
 				video := model.Video{}
 				b, e := model.FindVideo(name, &video)
@@ -209,37 +218,22 @@ func (info *information) Run(ctx context.Context) {
 			info.videos[v.Bangumi] = v
 			if !skipIPFS {
 				s.Thumb = filepath.Join(info.workspace, s.Thumb)
-				unfinThumb := defaultUnfinished(s.Thumb)
-				unfinThumb.Type = model.TypeThumb
-				unfinThumb.Relate = s.Bangumi
 				thumb, e := addThumbHash(info.shell, s)
 				if e != nil {
 					log.Error(e)
 					skipIPFS = true
 					continue
 				}
-				if thumb != "" {
-					unfinThumb.Hash = thumb
-					v.ThumbHash = thumb
-					info.unfinished[v.ThumbHash] = unfinThumb
-				}
+				v.ThumbHash = thumb
+
 				s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-				unfinPoster := defaultUnfinished(s.PosterPath)
-				unfinPoster.Type = model.TypePoster
-				unfinPoster.Relate = s.Bangumi
 				poster, e := addPosterHash(info.shell, s)
 				if e != nil {
 					log.Error(e)
 					skipIPFS = true
 					continue
 				}
-
-				if poster != "" {
-					v.PosterHash = poster
-					unfinPoster.Hash = poster
-					info.unfinished[v.PosterHash] = unfinPoster
-				}
-
+				v.PosterHash = poster
 				if s.Poster != "" {
 					v.PosterHash = s.Poster
 				}

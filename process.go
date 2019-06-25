@@ -107,9 +107,7 @@ func (p *process) Run(ctx context.Context) {
 	files := p.getFiles(p.path)
 	log.Info(files)
 	var unfin *model.Unfinished
-	for _, oldFile := range files {
-		file := fixPath(oldFile)
-		log.With("old", oldFile, "new", file).Info("print filename")
+	for _, file := range files {
 		select {
 		case <-ctx.Done():
 			if err := ctx.Err(); err != nil {

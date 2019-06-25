@@ -260,7 +260,11 @@ func (info *information) Run(ctx context.Context) {
 				}
 
 			}
-
+			e := model.AddOrUpdateVideo(v)
+			if e != nil {
+				log.Error(e)
+				continue
+			}
 		}
 	}
 

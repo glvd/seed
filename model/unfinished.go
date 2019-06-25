@@ -34,7 +34,6 @@ type Unfinished struct {
 	Relate      string       `xorm:"default()" json:"relate"`       //关联信息
 	Name        string       `xorm:"default() name"`                //名称
 	Hash        string       `xorm:"default() hash"`                //哈希地址
-	IsVideo     bool         `xorm:"default(0)"`                    //视频文件
 	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
 	Caption     string       `xorm:"default()" json:"caption"`      //字幕
 	Encrypt     bool         `json:"encrypt"`                       //加密

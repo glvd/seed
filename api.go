@@ -10,28 +10,12 @@ import (
 	"time"
 )
 
-var rest *shell.Shell
-
-// Rest ...
-func Rest() *shell.Shell {
-	if rest == nil {
-		rest = shell.NewShell("localhost:5001")
-	}
-	return rest
-}
-
-// InitShell ...
-func InitShell(s string) {
-	log.Info("ipfs Shell:", s)
-	rest = shell.NewShell(s)
-}
-
 // QuickConnect ...
-func QuickConnect(addr string) {
+func QuickConnect(shell *shell.Shell, addr string) {
 	var e error
 	go func() {
 		for {
-			e = SwarmConnect(addr)
+			e = SwarmConnect(shell, addr)
 			if e != nil {
 				return
 			}
@@ -43,7 +27,7 @@ func QuickConnect(addr string) {
 var swarms = sync.Pool{}
 
 // PoolSwarmConnect ...
-func PoolSwarmConnect() {
+func PoolSwarmConnect(shell *shell.Shell) {
 	SwarmAdd(&model.SourcePeer{
 		SourcePeerDetail: model.SourcePeerDetail{
 			Addr: "/ip4/47.101.169.94/tcp/4001",
@@ -55,7 +39,7 @@ func PoolSwarmConnect() {
 		if s := swarms.Get(); s != nil {
 			sp, b := s.(*model.SourcePeer)
 			if b {
-				e := SwarmConnect(swarmAddress(sp))
+				e := SwarmConnect(shell, swarmAddress(sp))
 				log.Info(swarmAddress(sp))
 				if e != nil {
 					log.Error("swarm connect err:", e)
@@ -87,14 +71,11 @@ func SwarmAddList(sps []*model.SourcePeer) {
 }
 
 // SwarmConnect ...
-func SwarmConnect(addr string) (e error) {
+func SwarmConnect(shell *shell.Shell, addr string) (e error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	log.Info("connect to:", addr)
-	if rest == nil {
-		return xerrors.New("rest is not inited")
-	}
-	if err := rest.SwarmConnect(ctx, addr); err != nil {
+	if err := shell.SwarmConnect(ctx, addr); err != nil {
 		return err
 	}
 	return
@@ -123,7 +104,7 @@ func AddressSwarm(address string) (peer *model.SourcePeer) {
 	}
 }
 
-func swarmConnectTo(peer *model.SourcePeer) (e error) {
+func swarmConnectTo(shell *shell.Shell, peer *model.SourcePeer) (e error) {
 	address := swarmAddress(peer)
 	if address == "" {
 		return xerrors.New("null address")
@@ -131,20 +112,20 @@ func swarmConnectTo(peer *model.SourcePeer) (e error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	log.Info("connect to:", address)
-	if err := rest.SwarmConnect(ctx, address); err != nil {
+	if err := shell.SwarmConnect(ctx, address); err != nil {
 		return err
 	}
 	return
 }
 
-func swarmConnects(peers []*model.SourcePeer) {
+func swarmConnects(shell *shell.Shell, peers []*model.SourcePeer) {
 	if peers == nil {
 		return
 	}
 
 	var nextPeers []*model.SourcePeer
 	for _, value := range peers {
-		e := swarmConnectTo(value)
+		e := swarmConnectTo(shell, value)
 		if e != nil {
 			//log.Error(e)
 			time.Sleep(30 * time.Second)
@@ -155,5 +136,5 @@ func swarmConnects(peers []*model.SourcePeer) {
 		time.Sleep(30 * time.Second)
 	}
 	//rerun when connect is end
-	swarmConnects(nextPeers)
+	swarmConnects(shell, nextPeers)
 }

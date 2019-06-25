@@ -7,7 +7,7 @@ type Video struct {
 	Model        `xorm:"extends"`
 	FindNo       string   `json:"find_no"`                    //查找号
 	Bangumi      string   `json:"bangumi"`                    //番組
-	Thumb        string   `json:"thumb"`                      //缩略图
+	ThumbHash    string   `json:"thumb_hash"`                 //缩略图
 	Intro        string   `xorm:"varchar(2048)" json:"intro"` //简介
 	Alias        []string `xorm:"json" json:"alias"`          //别名，片名
 	SourceHash   string   `json:"source_hash"`                //原片地址
@@ -89,7 +89,6 @@ func DeepFind(s string, video *Video) (b bool, e error) {
 
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
-	log.Infof("%+v", *video)
 	var tmp Video
 	b, e := DB().Where("bangumi = ?", video.Bangumi).Get(&tmp)
 	if e != nil {

@@ -118,7 +118,7 @@ func (p *process) Run(ctx context.Context) {
 			return
 		default:
 			log.With("file", file).Info("process run")
-			unfin = DefaultUnfinished(file)
+			unfin = defaultUnfinished(file)
 			object, err := rest.AddFile(file)
 			if err != nil {
 				log.Error(err)
@@ -209,33 +209,6 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 		u.Sharpness = format.Resolution()
 	}
 	return format, nil
-}
-
-// DefaultUnfinished ...
-func DefaultUnfinished(name string) *model.Unfinished {
-	_, file := filepath.Split(name)
-	uncat := &model.Unfinished{
-		Model:       model.Model{},
-		Checksum:    "",
-		Type:        "other",
-		Name:        file,
-		Hash:        "",
-		SliceHash:   "",
-		IsVideo:     false,
-		Sharpness:   "",
-		Sync:        false,
-		Sliced:      false,
-		Encrypt:     false,
-		Key:         "",
-		M3U8:        "media.m3u8",
-		Caption:     "",
-		SegmentFile: "media-%05d.ts",
-		Object:      new(model.VideoObject),
-		SliceObject: new(model.VideoObject),
-	}
-	log.With("file", name).Info("calculate checksum")
-	uncat.Checksum = model.Checksum(name)
-	return uncat
 }
 
 func moveSuccess(file string) (e error) {

@@ -236,10 +236,6 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 			if u.Hash != "" {
 				seed.Unfinished[u.Hash] = u
 			}
-
-			if u.SliceHash != "" {
-				seed.Unfinished[u.SliceHash] = u
-			}
 		}
 	}
 }

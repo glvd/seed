@@ -168,6 +168,8 @@ func (info *information) Run(ctx context.Context) {
 		return
 	}
 
+	skipIPFS := false
+
 	for _, s := range vs {
 		select {
 		case <-ctx.Done():
@@ -178,34 +180,41 @@ func (info *information) Run(ctx context.Context) {
 			unfinThumb := DefaultUnfinished(s.Thumb)
 			unfinThumb.Type = model.TypeThumb
 			unfinThumb.Relate = s.Bangumi
-			thumb, e := addThumbHash(info.shell, s)
-			if e != nil {
-				log.Error(e)
-			}
-			if thumb != "" {
-				unfinThumb.Hash = thumb
-				v.Thumb = thumb
-				info.unfinished[v.Thumb] = unfinThumb
-			}
-			s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-			unfinPoster := DefaultUnfinished(s.PosterPath)
-			unfinPoster.Type = model.TypePoster
-			unfinPoster.Relate = s.Bangumi
-			poster, e := addPosterHash(info.shell, s)
-			if e != nil {
-				log.Error(e)
-			}
-
-			if poster != "" {
-				v.PosterHash = poster
-				unfinPoster.Hash = poster
-				info.unfinished[v.PosterHash] = unfinPoster
-			}
-
-			if s.Poster != "" {
-				v.PosterHash = s.Poster
-			}
 			info.videos[v.Bangumi] = v
+			if !skipIPFS {
+				thumb, e := addThumbHash(info.shell, s)
+				if e != nil {
+					log.Error(e)
+					skipIPFS = true
+					continue
+				}
+				if thumb != "" {
+					unfinThumb.Hash = thumb
+					v.Thumb = thumb
+					info.unfinished[v.Thumb] = unfinThumb
+				}
+				s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
+				unfinPoster := DefaultUnfinished(s.PosterPath)
+				unfinPoster.Type = model.TypePoster
+				unfinPoster.Relate = s.Bangumi
+				poster, e := addPosterHash(info.shell, s)
+				if e != nil {
+					log.Error(e)
+					skipIPFS = true
+					continue
+				}
+
+				if poster != "" {
+					v.PosterHash = poster
+					unfinPoster.Hash = poster
+					info.unfinished[v.PosterHash] = unfinPoster
+				}
+
+				if s.Poster != "" {
+					v.PosterHash = s.Poster
+				}
+			}
+
 		}
 	}
 

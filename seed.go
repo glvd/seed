@@ -66,10 +66,10 @@ type Seed struct {
 	Workspace   string
 	Unfinished  map[string]*model.Unfinished
 	Videos      map[string]*model.Video
+	Moves       map[string]string
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc
-	moves       map[string]string
 	skipConvert bool
 	threads     int
 	thread      []Threader

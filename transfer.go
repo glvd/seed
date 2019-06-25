@@ -69,33 +69,33 @@ func Transfer(path string, to InfoFlag, status TransferStatus) Options {
 	return TransferOption(t)
 }
 
-func addThumbHash(shell *shell.Shell, source *VideoSource) (string, error) {
+func addThumbHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		abs, e := filepath.Abs(source.Thumb)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
 
 		object, e := shell.AddFile(abs)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
 
 		unfinThumb.Hash = object.Hash
 		e = model.AddOrUpdateUnfinished(unfinThumb)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
-		return object.Hash, nil
+		return unfinThumb, nil
 	}
 
-	return "", xerrors.New("no thumb")
+	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(shell *shell.Shell, source *VideoSource) (string, error) {
+func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi
@@ -103,20 +103,20 @@ func addPosterHash(shell *shell.Shell, source *VideoSource) (string, error) {
 	if source.PosterPath != "" {
 		abs, e := filepath.Abs(source.PosterPath)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
 		object, e := shell.AddFile(abs)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
 		unfinPoster.Hash = object.Hash
 		e = model.AddOrUpdateUnfinished(unfinPoster)
 		if e != nil {
-			return "", e
+			return nil, e
 		}
-		return object.Hash, nil
+		return unfinPoster, nil
 	}
-	return "", xerrors.New("no poster")
+	return nil, xerrors.New("no poster")
 }
 
 // Run ...

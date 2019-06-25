@@ -233,26 +233,33 @@ func (info *information) Run(ctx context.Context) {
 			v := video(s)
 			info.videos[v.Bangumi] = v
 			if !skipIPFS {
-				s.Thumb = filepath.Join(info.workspace, s.Thumb)
-				thumb, e := addThumbHash(info.shell, s)
-				if e != nil {
-					log.Error(e)
-					skipIPFS = true
-					continue
+				if s.Thumb != "" {
+					s.Thumb = filepath.Join(info.workspace, s.Thumb)
+					thumb, e := addThumbHash(info.shell, s)
+					if e != nil {
+						log.Error(e)
+						skipIPFS = true
+						continue
+					}
+					v.ThumbHash = thumb.Hash
+					info.unfinished[thumb.Hash] = thumb
 				}
-				v.ThumbHash = thumb
 
-				s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-				poster, e := addPosterHash(info.shell, s)
-				if e != nil {
-					log.Error(e)
-					skipIPFS = true
-					continue
+				if s.PosterPath != "" {
+					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
+					poster, e := addPosterHash(info.shell, s)
+					if e != nil {
+						log.Error(e)
+						skipIPFS = true
+						continue
+					}
+					v.PosterHash = poster.Hash
+					if s.Poster != "" {
+						v.PosterHash = s.Poster
+					}
+					info.unfinished[poster.Hash] = poster
 				}
-				v.PosterHash = poster
-				if s.Poster != "" {
-					v.PosterHash = s.Poster
-				}
+
 			}
 
 		}

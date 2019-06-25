@@ -1,5 +1,7 @@
 package model
 
+import "strings"
+
 // Video ...
 type Video struct {
 	Model        `xorm:"extends"`
@@ -44,11 +46,11 @@ func init() {
 }
 
 // FindVideo ...
-func FindVideo(ban string, video *Video, check bool) (b bool, e error) {
-	if check {
-		return DB().Where("sync = ?", !check).Where("bangumi like ?", "%"+ban+"%").Get(video)
-	}
-	return DB().Where("bangumi like ?", "%"+ban+"%").Get(video)
+func FindVideo(ban string, video *Video) (b bool, e error) {
+	ban = strings.ReplaceAll(ban, "-", "")
+	ban = strings.ReplaceAll(ban, "_", "")
+	ban = strings.ToUpper(ban)
+	return DB().Where("find_no = ?", ban).Get(video)
 }
 
 // Top ...

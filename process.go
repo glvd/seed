@@ -80,12 +80,23 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 		return err
 	}
 
-	last := unfin.SliceObject.ParseLinks(dirs)
+	last := unfin.Object.ParseLinks(dirs)
 	if last != nil {
-		unfin.Sliced = true
-		unfin.SliceHash = last.Hash
+		unfin.Type = model.TypeSlice
+		unfin.Hash = last.Hash
 	}
-	return nil
+	return model.AddOrUpdateUnfinished(unfin)
+}
+
+func (p *process) videoAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+	object, err := rest.AddFile(file)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	unfin.Hash = object.Hash
+	unfin.Object.Link = model.ObjectToVideoLink(object)
+	return model.AddOrUpdateUnfinished(unfin)
 }
 
 func fixPath(file string) string {
@@ -117,35 +128,31 @@ func (p *process) Run(ctx context.Context) {
 		default:
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
-			object, err := rest.AddFile(file)
-			if err != nil {
-				log.Error(err)
-				continue
-			}
 			//fix name and get format
 			format, err := parseUnfinishedFromStreamFormat(file, unfin)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
-			log.Infof("%+v", format)
 
-			unfin.Hash = object.Hash
-			unfin.Object.Link = model.ObjectToVideoLink(object)
+			log.Infof("%+v", format)
+			err = p.videoAdd(unfin, format, file)
+			if err != nil {
+				log.With("add video", file).Error(err)
+				continue
+			}
 			if unfin.IsVideo {
-				err := p.sliceAdd(unfin, format, file)
+				unfinSlice := cloneUnfinished(unfin)
+				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
-					log.With("split", file).Error(err)
+					log.With("add slice", file).Error(err)
 					continue
 				}
-				p.unfinished[unfin.SliceHash] = unfin
 			}
 
 		}
 		p.moves[unfin.Hash] = file
-		p.unfinished[unfin.Hash] = unfin
 	}
-	log.Infof("unfinished:%+v", p.unfinished)
 	return
 }
 

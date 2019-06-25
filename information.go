@@ -6,6 +6,7 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -115,23 +116,34 @@ func video(source *VideoSource) (video *model.Video) {
 	return
 }
 
+func onlyName(name string) string {
+	for i := len(name) - 1; i >= 0 && !os.IsPathSeparator(name[i]); i-- {
+		if name[i] == '.' {
+			return name[:i]
+		}
+	}
+	return ""
+}
+
 // defaultUnfinished ...
 func defaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
+
 	uncat := &model.Unfinished{
 		Model:       model.Model{},
 		Checksum:    "",
 		Type:        "other",
+		Relate:      onlyName(file),
 		Name:        file,
 		Hash:        "",
 		IsVideo:     false,
 		Sharpness:   "",
-		Sync:        false,
+		Caption:     "",
 		Encrypt:     false,
 		Key:         "",
 		M3U8:        "media.m3u8",
-		Caption:     "",
 		SegmentFile: "media-%05d.ts",
+		Sync:        false,
 		Object:      new(model.VideoObject),
 	}
 	log.With("file", name).Info("calculate checksum")

@@ -76,6 +76,7 @@ func addThumbHash(shell *shell.Shell, source *VideoSource) (string, error) {
 		if e != nil {
 			return "", e
 		}
+
 		object, e := shell.AddFile(abs)
 		if e != nil {
 			return "", e

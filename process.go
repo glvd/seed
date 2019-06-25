@@ -128,6 +128,7 @@ func (p *process) Run(ctx context.Context) {
 		default:
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
+			unfin.Relate = onlyName(file)
 			//fix name and get format
 			format, err := parseUnfinishedFromStreamFormat(file, unfin)
 			if err != nil {
@@ -141,6 +142,7 @@ func (p *process) Run(ctx context.Context) {
 				log.With("add video", file).Error(err)
 				continue
 			}
+			p.unfinished[unfin.Hash] = unfin
 			if unfin.IsVideo {
 				unfinSlice := cloneUnfinished(unfin)
 				err := p.sliceAdd(unfinSlice, format, file)
@@ -148,10 +150,11 @@ func (p *process) Run(ctx context.Context) {
 					log.With("add slice", file).Error(err)
 					continue
 				}
+				p.unfinished[unfinSlice.Hash] = unfinSlice
 			}
 
 		}
-		p.moves[unfin.Hash] = file
+		p.moves[unfin.Checksum] = file
 	}
 	return
 }

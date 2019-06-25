@@ -117,6 +117,7 @@ func video(source *VideoSource) (video *model.Video) {
 }
 
 func onlyName(name string) string {
+	_, name = filepath.Split(name)
 	for i := len(name) - 1; i >= 0 && !os.IsPathSeparator(name[i]); i-- {
 		if name[i] == '.' {
 			return name[:i]
@@ -133,7 +134,7 @@ func defaultUnfinished(name string) *model.Unfinished {
 		Model:       model.Model{},
 		Checksum:    "",
 		Type:        "other",
-		Relate:      onlyName(file),
+		Relate:      "",
 		Name:        file,
 		Hash:        "",
 		IsVideo:     false,

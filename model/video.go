@@ -101,7 +101,11 @@ func mustStr(s *string, d string) {
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
 	var tmp Video
-	found, e := DB().Where("bangumi = ?", video.Bangumi).Get(&tmp)
+	found, e := DB().Where("bangumi = ?", video.Bangumi).
+		Where("season = ?", video.Season).
+		Where("episode = ?", video.Episode).
+		Where("sharpness = ?", video.Sharpness).
+		Get(&tmp)
 	if e != nil {
 		return e
 	}
@@ -126,4 +130,11 @@ func Visited(video *Video) (err error) {
 		return err
 	}
 	return nil
+}
+
+// Clone ...
+func (v *Video) Clone() (n *Video) {
+	n = new(Video)
+	*n = *v
+	return
 }

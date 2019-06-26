@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 
@@ -82,6 +83,25 @@ func (p *process) fileAdd(unfin *model.Unfinished, file string) (err error) {
 	return model.AddOrUpdateUnfinished(unfin)
 }
 
+func onlyName(name string) string {
+	_, name = filepath.Split(name)
+	for i := len(name) - 1; i >= 0 && !os.IsPathSeparator(name[i]); i-- {
+		if name[i] == '.' {
+			return name[:i]
+		}
+	}
+	return ""
+}
+
+func onlyNo(name string) string {
+	s := []rune(onlyName(name))
+	last := len(s) - 1
+	if last > 0 && unicode.IsLetter(s[last]) {
+		return string(s[:last])
+	}
+	return string(s)
+}
+
 // Run ...
 func (p *process) Run(ctx context.Context) {
 	files := p.getFiles(p.path)
@@ -97,7 +117,7 @@ func (p *process) Run(ctx context.Context) {
 		default:
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
-			unfin.Relate = onlyNo(file)
+			unfin.Relate = onlyName(file)
 			if isPicture(file) {
 				unfin.Type = model.TypePoster
 			}
@@ -118,7 +138,7 @@ func (p *process) Run(ctx context.Context) {
 			}
 			log.Infof("%+v", format)
 			if unfin.Type == model.TypeVideo || p.skip(format) {
-				unfinSlice := cloneUnfinished(unfin)
+				unfinSlice := unfin.Clone()
 				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
 					log.With("add slice", file).Error(err)

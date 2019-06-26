@@ -80,17 +80,26 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				//	video.SourceHash = unfin.Hash
 			}
 		}
-		//vtmp := video.Clone()
+		vs = make([]*model.Video, i)
 
 		for ; i > 0; i-- {
 			unfin = (*unfins)[i-1]
-			//unfin.Relate[]
-			//strings.Index(relateList,)
+			if idx := noIndex(unfin.Relate); idx != -1 {
+				vs[idx] = video.Clone()
+				switch unfin.Type {
+				case model.TypeSlice:
+					vs[idx].M3U8Hash = unfin.Hash
+				case model.TypeVideo:
+					vs[idx].SourceHash = unfin.Hash
+				}
+				continue
+			}
+			vs[0] = video.Clone()
 			switch unfin.Type {
 			case model.TypeSlice:
-				video.M3U8Hash = unfin.Hash
+				vs[0].M3U8Hash = unfin.Hash
 			case model.TypeVideo:
-				video.SourceHash = unfin.Hash
+				vs[0].SourceHash = unfin.Hash
 			}
 		}
 
@@ -114,7 +123,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 func (u *update) Run(context.Context) {
 	log.Info("update running")
 	var e error
-	//var videos []*model.Video
+	var updateVideos []*model.Video
 	switch u.method {
 	case UpdateMethodAll:
 		videos, e := model.AllVideos(nil, 0)
@@ -122,11 +131,12 @@ func (u *update) Run(context.Context) {
 			return
 		}
 		for _, video := range *videos {
-			_, e := doContent(video, u.content)
+			vs, e := doContent(video, u.content)
 			if e != nil {
 				continue
 			}
-			u.videos[video.Bangumi] = video
+			//u.videos[video.Bangumi] = video
+			updateVideos = append(updateVideos, vs...)
 		}
 	case UpdateMethodUnfinished:
 		for _, unfin := range u.unfinished {
@@ -145,25 +155,26 @@ func (u *update) Run(context.Context) {
 					continue
 				}
 			}
-			_, e := doContent(video, u.content)
+			vs, e := doContent(video, u.content)
 			if e != nil {
 				log.With("id", unfin.ID).Error(e)
 				continue
 			}
-
-			u.videos[video.Bangumi] = video
+			updateVideos = append(updateVideos, vs...)
+			//u.videos[video.Bangumi] = video
 		}
 	case UpdateMethodVideo:
 		for _, video := range u.videos {
-			_, e := doContent(video, u.content)
+			vs, e := doContent(video, u.content)
 			if e != nil {
 				log.With("video", video.Bangumi).Error(e)
 				continue
 			}
+			updateVideos = append(updateVideos, vs...)
 		}
 	}
 
-	if u.videos == nil {
+	if updateVideos == nil {
 		log.Error("nil videos")
 		return
 	}
@@ -171,7 +182,10 @@ func (u *update) Run(context.Context) {
 	u.wg.Add(1)
 	go func() {
 		defer u.wg.Done()
-		for _, video := range u.videos {
+		for _, video := range updateVideos {
+			if video == nil {
+				continue
+			}
 			e := model.AddOrUpdateVideo(video)
 			if e != nil {
 				log.Error(e)

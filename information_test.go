@@ -11,13 +11,3 @@ func TestInformation(t *testing.T) {
 
 	seed.Wait()
 }
-
-// TestName ...
-func TestName(t *testing.T) {
-	t.Log(onlyNo("file-09B.name"))
-	t.Log(onlyNo("file-09.name"))
-	t.Log(onlyNo("file"))
-	t.Log(onlyNo(".file"))
-	t.Log(onlyNo("."))
-	t.Log(onlyNo(""))
-}

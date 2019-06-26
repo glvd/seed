@@ -56,15 +56,15 @@ func updateOption(update *update) Options {
 	}
 }
 
-func doContent(video *model.Video, content UpdateContent) (e error) {
+func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
 	switch content {
 	case UpdateContentAll:
 		fallthrough
 	case UpdateContentHash:
 		unfins := new([]*model.Unfinished)
-		i, e := model.DB().Where("relate = ?", video.Bangumi).FindAndCount(unfins)
+		i, e := model.DB().Where("relate like ?", video.Bangumi).FindAndCount(unfins)
 		if e != nil {
-			return e
+			return nil, e
 		}
 		var unfin *model.Unfinished
 		for ; i > 0; i-- {
@@ -80,6 +80,20 @@ func doContent(video *model.Video, content UpdateContent) (e error) {
 				//	video.SourceHash = unfin.Hash
 			}
 		}
+		//vtmp := video.Clone()
+
+		for ; i > 0; i-- {
+			unfin = (*unfins)[i-1]
+			//unfin.Relate[]
+			//strings.Index(relateList,)
+			switch unfin.Type {
+			case model.TypeSlice:
+				video.M3U8Hash = unfin.Hash
+			case model.TypeVideo:
+				video.SourceHash = unfin.Hash
+			}
+		}
+
 	case UpdateContentInfo:
 		//old, e := model.FindVideo(nil, video.Bangumi)
 		//if e != nil {
@@ -93,13 +107,14 @@ func doContent(video *model.Video, content UpdateContent) (e error) {
 		//video.Version = old.Version
 
 	}
-	return nil
+	return nil, nil
 }
 
 // Run ...
 func (u *update) Run(context.Context) {
 	log.Info("update running")
 	var e error
+	//var videos []*model.Video
 	switch u.method {
 	case UpdateMethodAll:
 		videos, e := model.AllVideos(nil, 0)
@@ -107,7 +122,7 @@ func (u *update) Run(context.Context) {
 			return
 		}
 		for _, video := range *videos {
-			e := doContent(video, u.content)
+			_, e := doContent(video, u.content)
 			if e != nil {
 				continue
 			}
@@ -130,7 +145,7 @@ func (u *update) Run(context.Context) {
 					continue
 				}
 			}
-			e := doContent(video, u.content)
+			_, e := doContent(video, u.content)
 			if e != nil {
 				log.With("id", unfin.ID).Error(e)
 				continue
@@ -140,7 +155,7 @@ func (u *update) Run(context.Context) {
 		}
 	case UpdateMethodVideo:
 		for _, video := range u.videos {
-			e := doContent(video, u.content)
+			_, e := doContent(video, u.content)
 			if e != nil {
 				log.With("video", video.Bangumi).Error(e)
 				continue

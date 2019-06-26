@@ -97,7 +97,7 @@ func (p *process) Run(ctx context.Context) {
 		default:
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
-			unfin.Relate = onlyName(file)
+			unfin.Relate = onlyNo(file)
 			if isPicture(file) {
 				unfin.Type = model.TypePoster
 			}

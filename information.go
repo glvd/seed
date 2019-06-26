@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 // InfoFlag ...
@@ -123,6 +124,15 @@ func onlyName(name string) string {
 		}
 	}
 	return ""
+}
+
+func onlyNo(name string) string {
+	s := []rune(onlyName(name))
+	last := len(s) - 1
+	if last > 0 && unicode.IsLetter(s[last]) {
+		return string(s[:last])
+	}
+	return string(s)
 }
 
 // defaultUnfinished ...

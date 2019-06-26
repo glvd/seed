@@ -74,8 +74,13 @@ func FindUnfinished(session *xorm.Session, checksum string) (unfin *Unfinished, 
 // AddOrUpdateUnfinished ...
 func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 	tmp := new(Unfinished)
-	found, e := DB().Where("checksum = ?", unfin.Checksum).
-		Where("type = ?", unfin.Type).Get(tmp)
+	var found bool
+	if unfin.ID != "" {
+		found, e = DB().ID(unfin.ID).Get(tmp)
+	} else {
+		found, e = DB().Where("checksum = ?", unfin.Checksum).
+			Where("type = ?", unfin.Type).Get(tmp)
+	}
 	if e != nil {
 		return e
 	}

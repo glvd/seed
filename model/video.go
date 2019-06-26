@@ -101,11 +101,17 @@ func mustStr(s *string, d string) {
 // AddOrUpdateVideo ...
 func AddOrUpdateVideo(video *Video) (e error) {
 	var tmp Video
-	found, e := DB().Where("bangumi = ?", video.Bangumi).
-		Where("season = ?", video.Season).
-		Where("episode = ?", video.Episode).
-		Where("sharpness = ?", video.Sharpness).
-		Get(&tmp)
+	var found bool
+	if video.ID != "" {
+		found, e = DB().ID(video.ID).Get(&tmp)
+	} else {
+		found, e = DB().Where("bangumi = ?", video.Bangumi).
+			Where("season = ?", video.Season).
+			Where("episode = ?", video.Episode).
+			Where("sharpness = ?", video.Sharpness).
+			Get(&tmp)
+	}
+
 	if e != nil {
 		return e
 	}

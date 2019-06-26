@@ -92,6 +92,11 @@ func (p *pin) Run(ctx context.Context) {
 				p.wg.Wait()
 				unf.Sync = true
 				p.unfinished[unf.Hash] = unf
+				e := model.AddOrUpdateUnfinished(unf)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
 			}
 		}
 	case PinStatusUnfinished:
@@ -104,6 +109,10 @@ func (p *pin) Run(ctx context.Context) {
 				go p.pinHash(hash)
 				p.wg.Wait()
 				p.unfinished[hash].Sync = true
+				e := model.AddOrUpdateUnfinished(p.unfinished[hash])
+				if e != nil {
+					continue
+				}
 			}
 		}
 	case PinStatusAssignHash:
@@ -123,7 +132,7 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				unfins, e := model.AllUnfinished(model.DB().Where("relate = ?", relate), 0)
+				unfins, e := model.AllUnfinished(model.DB().Where("relate like ?", relate+"%"), 0)
 				if e != nil {
 					log.Error(e)
 					continue
@@ -140,7 +149,6 @@ func (p *pin) Run(ctx context.Context) {
 }
 
 func (p *pin) pinHash(hash string) {
-	log.Info("pin:", hash)
 	defer func() {
 		if p.wg != nil {
 			p.wg.Done()
@@ -151,6 +159,5 @@ func (p *pin) pinHash(hash string) {
 		log.Error("pin error:", hash, e)
 		return
 	}
-
 	log.Info("pinned:", hash)
 }

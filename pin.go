@@ -59,8 +59,8 @@ const PinStatusUnfinished PinStatus = "unfinished"
 // PinStatusAssignHash ...
 const PinStatusAssignHash PinStatus = "assignHash"
 
-// PinStatusAssignBan ...
-const PinStatusAssignBan PinStatus = "assignBan"
+// PinStatusAssignRelate ...
+const PinStatusAssignRelate PinStatus = "assignRelate"
 
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
@@ -115,6 +115,24 @@ func (p *pin) Run(ctx context.Context) {
 				p.wg.Add(1)
 				go p.pinHash(hash)
 				p.wg.Wait()
+			}
+		}
+	case PinStatusAssignRelate:
+		for _, relate := range p.list {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				unfins, e := model.AllUnfinished(model.DB().Where("relate = ?", relate), 0)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
+				for _, unfin := range *unfins {
+					p.wg.Add(1)
+					go p.pinHash(unfin.Hash)
+					p.wg.Wait()
+				}
 			}
 		}
 	}

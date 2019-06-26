@@ -70,14 +70,14 @@ func doContent(video *model.Video, content UpdateContent) (e error) {
 		for ; i > 0; i-- {
 			unfin = (*unfins)[i-1]
 			switch unfin.Type {
-			case model.TypeSlice:
-				video.M3U8Hash = unfin.Hash
+			//case model.TypeSlice:
+			//	video.M3U8Hash = unfin.Hash
 			case model.TypePoster:
 				video.PosterHash = unfin.Hash
 			case model.TypeThumb:
 				video.ThumbHash = unfin.Hash
-			case model.TypeVideo:
-				video.SourceHash = unfin.Hash
+				//case model.TypeVideo:
+				//	video.SourceHash = unfin.Hash
 			}
 		}
 	case UpdateContentInfo:

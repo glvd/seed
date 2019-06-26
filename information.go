@@ -204,7 +204,6 @@ func (info *information) Run(ctx context.Context) {
 	}
 
 	skipIPFS := false
-
 	for _, s := range vs {
 		select {
 		case <-ctx.Done():
@@ -219,10 +218,10 @@ func (info *information) Run(ctx context.Context) {
 					if e != nil {
 						log.Error(e)
 						skipIPFS = true
-						continue
+					} else {
+						v.ThumbHash = thumb.Hash
+						info.unfinished[thumb.Hash] = thumb
 					}
-					v.ThumbHash = thumb.Hash
-					info.unfinished[thumb.Hash] = thumb
 				}
 
 				if s.PosterPath != "" {
@@ -231,13 +230,13 @@ func (info *information) Run(ctx context.Context) {
 					if e != nil {
 						log.Error(e)
 						skipIPFS = true
-						continue
+					} else {
+						v.PosterHash = poster.Hash
+						if s.Poster != "" {
+							v.PosterHash = s.Poster
+						}
+						info.unfinished[poster.Hash] = poster
 					}
-					v.PosterHash = poster.Hash
-					if s.Poster != "" {
-						v.PosterHash = s.Poster
-					}
-					info.unfinished[poster.Hash] = poster
 				}
 
 			}

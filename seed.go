@@ -4,9 +4,10 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"github.com/go-xorm/xorm"
 	"strings"
 	"sync"
+
+	"github.com/go-xorm/xorm"
 
 	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
@@ -242,9 +243,9 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 }
 
 // ShellOption ...
-func ShellOption(s *shell.Shell) Options {
+func ShellOption(s string) Options {
 	return func(seed *Seed) {
-		seed.Shell = s
+		seed.Shell = shell.NewShell(s)
 	}
 }
 

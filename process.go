@@ -36,7 +36,10 @@ func (p *process) BeforeRun(seed *Seed) {
 	p.unfinished = seed.Unfinished
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
+	p.moves = seed.Moves
+	p.skipConvert = seed.skipConvert
 	p.ignores = seed.ignores
+
 }
 
 // AfterRun ...
@@ -129,8 +132,17 @@ func (p *process) Run(ctx context.Context) {
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
 			unfin.Relate = onlyName(file)
+			var format *cmd.StreamFormat
+			var e error
 			if isPicture(file) {
 				unfin.Type = model.TypePoster
+			} else {
+				//fix name and get format
+				format, e = parseUnfinishedFromStreamFormat(file, unfin)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
 			}
 			err := p.fileAdd(unfin, file)
 			if err != nil {
@@ -138,17 +150,8 @@ func (p *process) Run(ctx context.Context) {
 				continue
 			}
 			p.unfinished[unfin.Hash] = unfin
-			if unfin.Type == model.TypePoster {
-				continue
-			}
-			//fix name and get format
-			format, err := parseUnfinishedFromStreamFormat(file, unfin)
-			if err != nil {
-				log.Error(err)
-				continue
-			}
 			log.Infof("%+v", format)
-			if unfin.Type == model.TypeVideo || p.skip(format) {
+			if unfin.Type == model.TypeVideo && !p.skip(format) {
 				unfinSlice := unfin.Clone()
 				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
@@ -217,16 +220,20 @@ func (p *process) getFiles(ws string) (files []string) {
 
 func (p *process) skip(format *cmd.StreamFormat) bool {
 	if !p.skipConvert {
+		log.Info("noskip")
 		return p.skipConvert
 	}
 	video := format.Video()
 	audio := format.Audio()
 	if audio == nil || video == nil {
+		log.Info("skip")
 		return true
 	}
 	if video.CodecName != "h264" || audio.CodecName != "aac" {
+		log.Info("skip")
 		return true
 	}
+	log.Info("noskip")
 	return false
 }
 

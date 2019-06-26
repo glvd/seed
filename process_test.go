@@ -12,12 +12,22 @@ func TestGetFiles(t *testing.T) {
 
 	unfin, _ := model.FindUnfinished(nil, "d0384c15ca0862e3d558e9d610219a4bc9433f74")
 
-	seed := NewSeed(IgnoreOption("d:\\videos\\tmp"), Process("D:\\videos"), UnfinishedOption(unfin), Pin(PinStatusAll))
+	seed := NewSeed(IgnoreOption("d:\\videos\\tmp"), Process("D:\\videoall\\videos"), UnfinishedOption(unfin), Pin(PinStatusAll))
 	seed.Workspace = "d:\\videos\\tmp"
 	//seed.ProcessPath ="d:\\videos"
 	seed.Start()
 	seed.Wait()
 
+}
+
+// TestProcess ...
+func TestProcess(t *testing.T) {
+	seed := NewSeed(Process("D:\\videoall\\videos"), SkipConvertOption(), DatabaseOption("sqlite3", "t1.db"))
+	seed.Workspace = "d:\\videos\\tmp"
+	//seed.ProcessPath ="d:\\videos"
+	seed.AfterInit(SyncDatabase())
+	seed.Start()
+	seed.Wait()
 }
 
 // TestName ...

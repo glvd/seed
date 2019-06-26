@@ -117,6 +117,7 @@ func NewSeed(ops ...Options) *Seed {
 	seed := &Seed{
 		Unfinished: make(map[string]*model.Unfinished),
 		Videos:     make(map[string]*model.Video),
+		Moves:      make(map[string]string),
 		wg:         &sync.WaitGroup{},
 		ctx:        ctx,
 		cancel:     cancel,

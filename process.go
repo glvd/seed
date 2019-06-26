@@ -102,6 +102,17 @@ func onlyNo(name string) string {
 	return string(s)
 }
 
+// RelateList ...
+const relateList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func noIndex(name string) int {
+	size := len(name)
+	if size > 0 {
+		return strings.IndexByte(relateList, name[size-1])
+	}
+	return -1
+}
+
 // Run ...
 func (p *process) Run(ctx context.Context) {
 	files := p.getFiles(p.path)

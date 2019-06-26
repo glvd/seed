@@ -87,3 +87,11 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 	_, e = DB().InsertOne(unfin)
 	return
 }
+
+// Clone ...
+func (unfin *Unfinished) Clone() (n *Unfinished) {
+	n = new(Unfinished)
+	*n = *unfin
+	n.Object = new(VideoObject)
+	return
+}

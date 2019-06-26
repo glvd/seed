@@ -115,8 +115,15 @@ func (u *update) Run(context.Context) {
 		}
 	case UpdateMethodUnfinished:
 		for _, unfin := range u.unfinished {
+
 			video, b := u.videos[unfin.Relate]
 			if !b {
+				relate := onlyNo(unfin.Relate)
+				video, b := u.videos[relate]
+				if b {
+					video.Clone()
+				}
+
 				video, e = model.FindVideo(nil, unfin.Relate)
 				if e != nil {
 					log.With("id", unfin.ID).Error(e)

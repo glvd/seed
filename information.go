@@ -6,11 +6,9 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"unicode"
 )
 
 // InfoFlag ...
@@ -116,25 +114,6 @@ func video(source *VideoSource) (video *model.Video) {
 	return
 }
 
-func onlyName(name string) string {
-	_, name = filepath.Split(name)
-	for i := len(name) - 1; i >= 0 && !os.IsPathSeparator(name[i]); i-- {
-		if name[i] == '.' {
-			return name[:i]
-		}
-	}
-	return ""
-}
-
-func onlyNo(name string) string {
-	s := []rune(onlyName(name))
-	last := len(s) - 1
-	if last > 0 && unicode.IsLetter(s[last]) {
-		return string(s[:last])
-	}
-	return string(s)
-}
-
 // defaultUnfinished ...
 func defaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
@@ -158,13 +137,6 @@ func defaultUnfinished(name string) *model.Unfinished {
 	log.With("file", name).Info("calculate checksum")
 	uncat.Checksum = model.Checksum(name)
 	return uncat
-}
-
-func cloneUnfinished(unf *model.Unfinished) (n *model.Unfinished) {
-	n = new(model.Unfinished)
-	*n = *unf
-	n.Object = new(model.VideoObject)
-	return
 }
 
 // Run ...

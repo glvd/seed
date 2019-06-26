@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"github.com/yinhevr/seed/model"
+	"strconv"
 	"sync"
 )
 
@@ -59,16 +60,18 @@ func updateOption(update *update) Options {
 func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
 	switch content {
 	case UpdateContentAll:
+		log.Info("update all")
 		fallthrough
 	case UpdateContentHash:
+		log.Info("update hash")
 		unfins := new([]*model.Unfinished)
-		i, e := model.DB().Where("relate like ?", video.Bangumi).FindAndCount(unfins)
+		i, e := model.DB().Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
 		if e != nil {
 			return nil, e
 		}
 		var unfin *model.Unfinished
-		for ; i > 0; i-- {
-			unfin = (*unfins)[i-1]
+		for j := i; j > 0; j-- {
+			unfin = (*unfins)[j-1]
 			switch unfin.Type {
 			//case model.TypeSlice:
 			//	video.M3U8Hash = unfin.Hash
@@ -82,10 +85,16 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		}
 		vs = make([]*model.Video, i)
 
-		for ; i > 0; i-- {
-			unfin = (*unfins)[i-1]
+		for j := i; j > 0; j-- {
+			unfin = (*unfins)[j-1]
+			log.Infof("%+v", unfin)
 			if idx := noIndex(unfin.Relate); idx != -1 {
-				vs[idx] = video.Clone()
+				log.Info("update multi")
+				if vs[idx] == nil {
+					vs[idx] = video.Clone()
+					vs[idx].Episode = strconv.Itoa(idx + 1)
+				}
+
 				switch unfin.Type {
 				case model.TypeSlice:
 					vs[idx].M3U8Hash = unfin.Hash
@@ -102,7 +111,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				vs[0].SourceHash = unfin.Hash
 			}
 		}
-
+		log.Infof("%+v", vs)
 	case UpdateContentInfo:
 		//old, e := model.FindVideo(nil, video.Bangumi)
 		//if e != nil {
@@ -116,7 +125,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		//video.Version = old.Version
 
 	}
-	return nil, nil
+	return vs, nil
 }
 
 // Run ...

@@ -136,5 +136,6 @@ func Visited(video *Video) (err error) {
 func (v *Video) Clone() (n *Video) {
 	n = new(Video)
 	*n = *v
+	n.ID = ""
 	return
 }

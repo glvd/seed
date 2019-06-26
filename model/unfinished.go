@@ -93,6 +93,7 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 func (unfin *Unfinished) Clone() (n *Unfinished) {
 	n = new(Unfinished)
 	*n = *unfin
+	n.ID = ""
 	n.Object = new(VideoObject)
 	return
 }

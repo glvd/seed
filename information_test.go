@@ -14,9 +14,10 @@ func TestInformation(t *testing.T) {
 
 // TestName ...
 func TestName(t *testing.T) {
-	t.Log(onlyName("file.name"))
-	t.Log(onlyName("file"))
-	t.Log(onlyName(".file"))
-	t.Log(onlyName("."))
-	t.Log(onlyName(""))
+	t.Log(onlyNo("file-09B.name"))
+	t.Log(onlyNo("file-09.name"))
+	t.Log(onlyNo("file"))
+	t.Log(onlyNo(".file"))
+	t.Log(onlyNo("."))
+	t.Log(onlyNo(""))
 }

@@ -133,7 +133,7 @@ func AddOrUpdateVideo(video *Video) (e error) {
 // Visited ...
 func Visited(video *Video) (err error) {
 	video.Visit++
-	if _, err := DB().ID(video.ID).Cols("visit").Update(video); err != nil {
+	if _, err := DB().Where("bangumi = ?", video.Bangumi).Cols("visit").Update(video); err != nil {
 		return err
 	}
 	return nil

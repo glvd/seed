@@ -77,19 +77,20 @@ func AllVideos(session *xorm.Session, limit int, start ...int) (videos *[]*Video
 }
 
 // DeepFind ...
-func DeepFind(s string, video *Video) (b bool, e error) {
+func DeepFind(s string, videos *[]*Video) (e error) {
 	s1 := strings.ReplaceAll(s, "-", "")
 	s1 = strings.ReplaceAll(s1, "_", "")
 	s1 = strings.ToUpper(s1)
-	b, e = DB().Where("find_no = ?", s1).Get(video)
-	if e != nil || !b {
+	e = DB().Where("find_no = ?", s1).OrderBy("season,episode asc").Find(videos)
+	if e != nil || len(*videos) <= 0 {
 		like := "%" + strings.ToUpper(s) + "%"
-		return DB().Where("find_no like ? ", like).
+		e = DB().Where("find_no like ? ", like).
 			Or("alias like ?", like).
 			Or("role like ?", like).
-			Get(video)
+			OrderBy("season,episode asc").
+			Find(videos)
 	}
-	return b, e
+	return e
 }
 
 func mustStr(s *string, d string) {

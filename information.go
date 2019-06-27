@@ -42,6 +42,7 @@ type information struct {
 	unfinished map[string]*model.Unfinished
 	from       InfoFlag
 	path       string
+	thread     int
 	list       []string
 	videos     map[string]*model.Video
 }

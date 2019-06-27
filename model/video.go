@@ -85,7 +85,7 @@ func DeepFind(s string, videos *[]*Video) (e error) {
 	if e != nil || len(*videos) <= 0 {
 		like := "%" + strings.ToUpper(s) + "%"
 		e = DB().Where("find_no like ? ", like).
-			Or("alias like ?", like).
+			Or("intro like ?", like).
 			Or("role like ?", like).
 			OrderBy("season,episode asc").
 			Find(videos)

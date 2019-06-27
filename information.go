@@ -5,6 +5,7 @@ import (
 	"context"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
+	"go.uber.org/atomic"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
@@ -45,6 +46,7 @@ type information struct {
 	thread     int
 	list       []string
 	videos     map[string]*model.Video
+	//mutex      sync.Mutex
 }
 
 // Information ...
@@ -73,6 +75,10 @@ func (info *information) AfterRun(seed *Seed) {
 func fixBson(s []byte) []byte {
 	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
 	return reg.ReplaceAll(s, []byte(" "))
+}
+
+func videoChan(source *VideoSource, v chan<- *model.Video) {
+	v <- video(source)
 }
 
 func video(source *VideoSource) (video *model.Video) {
@@ -204,43 +210,64 @@ func (info *information) Run(ctx context.Context) {
 		return
 	}
 
-	skipIPFS := false
+	skipIPFS := atomic.NewBool(false)
+	v1 := make(chan *model.Video)
+	//
+	go func(v chan<- *model.Video) {
+		for _, s := range vs {
+			v <- video(s)
+		}
+	}(v1)
+
+	v2 := make(chan *model.Video)
+
 	for _, s := range vs {
 		select {
+		case v := <-v1:
+			//default:
+			//	v := video(s)
+			info.videos[v.Bangumi] = v
+			//TODO:
+			go func(s *VideoSource, v2 chan<- *model.Video) {
+				if !skipIPFS.Load() {
+					if s.Thumb != "" {
+						s.Thumb = filepath.Join(info.workspace, s.Thumb)
+						thumb, e := addThumbHash(info.shell, s)
+						if e != nil {
+							log.Error(e)
+							skipIPFS.Store(true)
+						} else {
+							v.ThumbHash = thumb.Hash
+							//info.unfinished[thumb.Hash] = thumb
+						}
+					}
+
+					if s.PosterPath != "" {
+						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
+						poster, e := addPosterHash(info.shell, s)
+						if e != nil {
+							log.Error(e)
+							skipIPFS.Store(true)
+						} else {
+							v.PosterHash = poster.Hash
+							if s.Poster != "" {
+								v.PosterHash = s.Poster
+							}
+							//info.unfinished[poster.Hash] = poster
+						}
+					}
+				}
+				v2 <- v
+			}(s, v2)
+
 		case <-ctx.Done():
 			return
-		default:
-			v := video(s)
-			info.videos[v.Bangumi] = v
-			if !skipIPFS {
-				if s.Thumb != "" {
-					s.Thumb = filepath.Join(info.workspace, s.Thumb)
-					thumb, e := addThumbHash(info.shell, s)
-					if e != nil {
-						log.Error(e)
-						skipIPFS = true
-					} else {
-						v.ThumbHash = thumb.Hash
-						info.unfinished[thumb.Hash] = thumb
-					}
-				}
+		}
+	}
 
-				if s.PosterPath != "" {
-					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-					poster, e := addPosterHash(info.shell, s)
-					if e != nil {
-						log.Error(e)
-						skipIPFS = true
-					} else {
-						v.PosterHash = poster.Hash
-						if s.Poster != "" {
-							v.PosterHash = s.Poster
-						}
-						info.unfinished[poster.Hash] = poster
-					}
-				}
-
-			}
+	for max := len(vs); max > 0; max-- {
+		select {
+		case v := <-v2:
 			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)

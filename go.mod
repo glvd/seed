@@ -31,6 +31,7 @@ require (
 	github.com/rjeczalik/notify v0.9.2 // indirect
 	github.com/rs/cors v1.6.0 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
+	go.uber.org/atomic v1.4.0
 	go.uber.org/zap v1.10.0
 	golang.org/x/xerrors v0.0.0-20190315151331-d61658bd2e18
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect

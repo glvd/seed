@@ -28,12 +28,6 @@ var swarms = sync.Pool{}
 
 // PoolSwarmConnect ...
 func PoolSwarmConnect(shell *shell.Shell) {
-	SwarmAdd(&model.SourcePeer{
-		SourcePeerDetail: model.SourcePeerDetail{
-			Addr: "/ip4/47.101.169.94/tcp/4001",
-			Peer: "QmeF1HVnBYTzFFLGm4VmAsHM4M7zZS3WUYx62PiKC2sqRq",
-		},
-	})
 	log.Info("PoolSwarmConnect running")
 	for {
 		if s := swarms.Get(); s != nil {

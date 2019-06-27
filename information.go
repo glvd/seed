@@ -3,13 +3,14 @@ package seed
 import (
 	"bytes"
 	"context"
-	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
-	"go.uber.org/atomic"
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	shell "github.com/godcong/go-ipfs-restapi"
+	"github.com/yinhevr/seed/model"
+	"go.uber.org/atomic"
 )
 
 // InfoFlag ...
@@ -227,38 +228,38 @@ func (info *information) Run(ctx context.Context) {
 			//default:
 			//	v := video(s)
 			info.videos[v.Bangumi] = v
-			//TODO:
-			go func(s *VideoSource, v2 chan<- *model.Video) {
-				if !skipIPFS.Load() {
-					if s.Thumb != "" {
-						s.Thumb = filepath.Join(info.workspace, s.Thumb)
-						thumb, e := addThumbHash(info.shell, s)
-						if e != nil {
-							log.Error(e)
-							skipIPFS.Store(true)
-						} else {
-							v.ThumbHash = thumb.Hash
-							//info.unfinished[thumb.Hash] = thumb
-						}
-					}
 
-					if s.PosterPath != "" {
-						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-						poster, e := addPosterHash(info.shell, s)
-						if e != nil {
-							log.Error(e)
-							skipIPFS.Store(true)
-						} else {
-							v.PosterHash = poster.Hash
-							if s.Poster != "" {
-								v.PosterHash = s.Poster
-							}
-							//info.unfinished[poster.Hash] = poster
-						}
+			//func(s *VideoSource, v2 chan<- *model.Video) {
+			if !skipIPFS.Load() {
+				if s.Thumb != "" {
+					s.Thumb = filepath.Join(info.workspace, s.Thumb)
+					thumb, e := addThumbHash(info.shell, s)
+					if e != nil {
+						log.Error(e)
+						skipIPFS.Store(true)
+					} else {
+						v.ThumbHash = thumb.Hash
+						//info.unfinished[thumb.Hash] = thumb
 					}
 				}
-				v2 <- v
-			}(s, v2)
+
+				if s.PosterPath != "" {
+					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
+					poster, e := addPosterHash(info.shell, s)
+					if e != nil {
+						log.Error(e)
+						skipIPFS.Store(true)
+					} else {
+						v.PosterHash = poster.Hash
+						if s.Poster != "" {
+							v.PosterHash = s.Poster
+						}
+						//info.unfinished[poster.Hash] = poster
+					}
+				}
+			}
+			//v2 <- v
+			//}(s, v2)
 
 		case <-ctx.Done():
 			return

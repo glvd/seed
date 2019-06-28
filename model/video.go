@@ -63,6 +63,19 @@ func Top(video *Video) (b bool, e error) {
 	return DB().OrderBy("created_at desc").Get(video)
 }
 
+// TopList ...
+func TopList(session *xorm.Session, limit int, start ...int) (videos *[]*Video, e error) {
+	videos = new([]*Video)
+	session = MustSession(session)
+	if limit > 0 {
+		session = session.Limit(limit, start...)
+	}
+	if e = session.OrderBy("visit desc").Find(videos); e != nil {
+		return
+	}
+	return videos, nil
+}
+
 // AllVideos ...
 func AllVideos(session *xorm.Session, limit int, start ...int) (videos *[]*Video, e error) {
 	videos = new([]*Video)

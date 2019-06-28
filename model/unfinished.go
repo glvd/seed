@@ -94,6 +94,16 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 	return
 }
 
+// IsExist ...
+func (unfin *Unfinished) IsExist() bool {
+	i, e := DB().Where("checksum = ?", unfin.Checksum).
+		Where("type = ?", unfin.Type).Count()
+	if e != nil || i <= 0 {
+		return false
+	}
+	return true
+}
+
 // Clone ...
 func (unfin *Unfinished) Clone() (n *Unfinished) {
 	n = new(Unfinished)

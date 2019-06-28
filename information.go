@@ -214,22 +214,10 @@ func (info *information) Run(ctx context.Context) {
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
 	//
-	go func(v chan<- *model.Video) {
+	go func(v1 chan<- *model.Video) {
 		for _, s := range vs {
-			v <- video(s)
-		}
-	}(v1)
-
-	v2 := make(chan *model.Video)
-
-	for _, s := range vs {
-		select {
-		case v := <-v1:
-			//default:
-			//	v := video(s)
-			info.videos[v.Bangumi] = v
-
-			//func(s *VideoSource, v2 chan<- *model.Video) {
+			v := video(s)
+			//info.videos[v.Bangumi] = v
 			if !skipIPFS.Load() {
 				if s.Thumb != "" {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
@@ -258,17 +246,13 @@ func (info *information) Run(ctx context.Context) {
 					}
 				}
 			}
-			//v2 <- v
-			//}(s, v2)
-
-		case <-ctx.Done():
-			return
+			v1 <- v
 		}
-	}
+	}(v1)
 
 	for max := len(vs); max > 0; max-- {
 		select {
-		case v := <-v2:
+		case v := <-v1:
 			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)

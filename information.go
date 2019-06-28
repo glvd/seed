@@ -47,7 +47,7 @@ type information struct {
 	thread     int
 	list       []string
 	videos     map[string]*model.Video
-	//mutex      sync.Mutex
+	//filter     []string
 }
 
 // Information ...
@@ -211,6 +211,8 @@ func (info *information) Run(ctx context.Context) {
 		return
 	}
 
+	vs = filterList(vs, info.list)
+
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
 	//
@@ -261,5 +263,19 @@ func (info *information) Run(ctx context.Context) {
 		}
 	}
 
+	return
+}
+
+func filterList(sources []*VideoSource, list []string) (vs []*VideoSource) {
+	if list == nil || len(list) <= 0 {
+		return vs
+	}
+	for _, source := range sources {
+		for _, v := range list {
+			if source.Bangumi == v {
+				vs = append(vs, source)
+			}
+		}
+	}
 	return
 }

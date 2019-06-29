@@ -2,9 +2,10 @@ package seed
 
 import (
 	"context"
-	"github.com/yinhevr/seed/model"
 	"strconv"
 	"sync"
+
+	"github.com/yinhevr/seed/model"
 )
 
 // UpdateContent ...
@@ -103,7 +104,9 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				}
 				continue
 			}
-			vs[0] = video.Clone()
+			if vs[0] == nil {
+				vs[0] = video.Clone()
+			}
 			switch unfin.Type {
 			case model.TypeSlice:
 				vs[0].M3U8Hash = unfin.Hash

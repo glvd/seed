@@ -27,12 +27,12 @@ func (m *move) Run(context.Context) {
 
 // BeforeRun ...
 func (m *move) BeforeRun(seed *Seed) {
-
+	m.moves = seed.Moves
 }
 
 // AfterRun ...
 func (m *move) AfterRun(seed *Seed) {
-	panic("implement me")
+	//output nothing
 }
 
 // Move ...

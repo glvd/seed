@@ -98,8 +98,10 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 
 				switch unfin.Type {
 				case model.TypeSlice:
+					vs[idx].Sharpness = unfin.Sharpness
 					vs[idx].M3U8Hash = unfin.Hash
 				case model.TypeVideo:
+					vs[idx].Sharpness = unfin.Sharpness
 					vs[idx].SourceHash = unfin.Hash
 				}
 				continue
@@ -109,8 +111,10 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 			}
 			switch unfin.Type {
 			case model.TypeSlice:
+				vs[0].Sharpness = unfin.Sharpness
 				vs[0].M3U8Hash = unfin.Hash
 			case model.TypeVideo:
+				vs[0].Sharpness = unfin.Sharpness
 				vs[0].SourceHash = unfin.Hash
 			}
 		}

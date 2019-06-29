@@ -1,6 +1,10 @@
 package seed
 
-import "context"
+import (
+	"context"
+	"os"
+	"path/filepath"
+)
 
 type move struct {
 	to    string
@@ -9,7 +13,16 @@ type move struct {
 
 // Run ...
 func (m *move) Run(context.Context) {
+	var e error
+	for _, v := range m.moves {
+		_, name := filepath.Split(v)
+		e = os.Rename(v, filepath.Join(m.to, name))
+		if e != nil {
+			log.Error(e)
+			continue
+		}
 
+	}
 }
 
 // BeforeRun ...

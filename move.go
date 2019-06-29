@@ -3,7 +3,8 @@ package seed
 import "context"
 
 type move struct {
-	to string
+	to    string
+	moves map[string]string
 }
 
 // Run ...
@@ -13,7 +14,7 @@ func (m *move) Run(context.Context) {
 
 // BeforeRun ...
 func (m *move) BeforeRun(seed *Seed) {
-	panic("implement me")
+
 }
 
 // AfterRun ...

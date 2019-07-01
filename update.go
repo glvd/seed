@@ -2,9 +2,10 @@ package seed
 
 import (
 	"context"
-	"github.com/yinhevr/seed/model"
 	"strconv"
 	"sync"
+
+	"github.com/yinhevr/seed/model"
 )
 
 // UpdateContent ...
@@ -82,6 +83,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				//case model.TypeVideo:
 				//	video.SourceHash = unfin.Hash
 			}
+
 		}
 		vs = make([]*model.Video, i)
 
@@ -97,17 +99,27 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 
 				switch unfin.Type {
 				case model.TypeSlice:
+					//TODO: fix sharpness
+					vs[idx].Sharpness = unfin.Sharpness
 					vs[idx].M3U8Hash = unfin.Hash
 				case model.TypeVideo:
+					//TODO: fix sharpness
+					vs[idx].Sharpness = unfin.Sharpness
 					vs[idx].SourceHash = unfin.Hash
 				}
 				continue
 			}
-			vs[0] = video.Clone()
+			if vs[0] == nil {
+				vs[0] = video.Clone()
+			}
 			switch unfin.Type {
 			case model.TypeSlice:
+				//TODO: fix sharpness
+				vs[0].Sharpness = unfin.Sharpness
 				vs[0].M3U8Hash = unfin.Hash
 			case model.TypeVideo:
+				//TODO: fix sharpness
+				vs[0].Sharpness = unfin.Sharpness
 				vs[0].SourceHash = unfin.Hash
 			}
 		}

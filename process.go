@@ -29,6 +29,7 @@ type process struct {
 	unfinished  map[string]*model.Unfinished
 	moves       map[string]string
 	skipConvert bool
+	skipSource  bool
 }
 
 // BeforeRun ...
@@ -38,6 +39,7 @@ func (p *process) BeforeRun(seed *Seed) {
 	p.shell = seed.Shell
 	p.moves = seed.Moves
 	p.skipConvert = seed.skipConvert
+	p.skipSource = seed.skipSource
 	p.ignores = seed.ignores
 
 }
@@ -144,14 +146,17 @@ func (p *process) Run(ctx context.Context) {
 					continue
 				}
 			}
-			log.Info("adding...", file)
-			err := p.fileAdd(unfin, file)
-			if err != nil {
-				log.With("add file", file).Error(err)
-				continue
-			}
-			p.unfinished[unfin.Hash] = unfin
 			log.Infof("%+v", format)
+			log.Info("adding:", file)
+			if p.skipSource {
+				err := p.fileAdd(unfin, file)
+				if err != nil {
+					log.With("add file", file).Error(err)
+					continue
+				}
+				p.unfinished[unfin.Hash] = unfin
+			}
+
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
 				unfinSlice := unfin.Clone()
 				err := p.sliceAdd(unfinSlice, format, file)
@@ -162,6 +167,7 @@ func (p *process) Run(ctx context.Context) {
 				p.unfinished[unfinSlice.Hash] = unfinSlice
 			}
 		}
+
 		p.moves[unfin.Checksum] = file
 	}
 	return

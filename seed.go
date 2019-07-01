@@ -245,6 +245,7 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 // ShellOption ...
 func ShellOption(s string) Options {
 	return func(seed *Seed) {
+		log.Info("ipfs: ", s)
 		seed.Shell = shell.NewShell(s)
 	}
 }

@@ -1,24 +1,38 @@
 package seed
 
-import "context"
+import (
+	"context"
+	"os"
+	"path/filepath"
+)
 
 type move struct {
-	to string
+	to    string
+	moves map[string]string
 }
 
 // Run ...
 func (m *move) Run(context.Context) {
+	var e error
+	for _, v := range m.moves {
+		_, name := filepath.Split(v)
+		e = os.Rename(v, filepath.Join(m.to, name))
+		if e != nil {
+			log.Error(e)
+			continue
+		}
 
+	}
 }
 
 // BeforeRun ...
 func (m *move) BeforeRun(seed *Seed) {
-	panic("implement me")
+	m.moves = seed.Moves
 }
 
 // AfterRun ...
 func (m *move) AfterRun(seed *Seed) {
-	panic("implement me")
+	//output nothing
 }
 
 // Move ...

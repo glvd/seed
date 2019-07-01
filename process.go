@@ -144,6 +144,7 @@ func (p *process) Run(ctx context.Context) {
 					continue
 				}
 			}
+			log.Info("adding...", file)
 			err := p.fileAdd(unfin, file)
 			if err != nil {
 				log.With("add file", file).Error(err)

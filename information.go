@@ -255,6 +255,7 @@ func (info *information) Run(ctx context.Context) {
 	for max := len(vs); max > 0; max-- {
 		select {
 		case v := <-v1:
+			info.videos[v.Bangumi] = v
 			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)

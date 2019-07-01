@@ -72,6 +72,7 @@ type Seed struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	skipConvert bool
+	skipSource  bool
 	threads     int
 	thread      []Threader
 	ignores     map[string][]byte
@@ -247,6 +248,13 @@ func ShellOption(s string) Options {
 	return func(seed *Seed) {
 		log.Info("ipfs: ", s)
 		seed.Shell = shell.NewShell(s)
+	}
+}
+
+//SkipSourceOption skip source add
+func SkipSourceOption() Options {
+	return func(seed *Seed) {
+		seed.skipSource = true
 	}
 }
 

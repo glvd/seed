@@ -145,7 +145,6 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	}
-
 }
 
 func (p *pin) pinHash(hash string) {

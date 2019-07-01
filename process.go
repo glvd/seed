@@ -138,6 +138,7 @@ func (p *process) Run(ctx context.Context) {
 			var e error
 			if isPicture(file) {
 				unfin.Type = model.TypePoster
+				p.unfinished[unfin.Hash] = unfin
 			} else {
 				//fix name and get format
 				format, e = parseUnfinishedFromStreamFormat(file, unfin)
@@ -172,6 +173,11 @@ func (p *process) Run(ctx context.Context) {
 	}
 	return
 }
+
+func updateRelate(unfinished model.Unfinished) error {
+	return nil
+}
+
 func isPicture(name string) bool {
 	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
 	ext := filepath.Ext(name)

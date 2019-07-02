@@ -32,7 +32,7 @@ func (m *move) BeforeRun(seed *Seed) {
 
 // AfterRun ...
 func (m *move) AfterRun(seed *Seed) {
-	//output nothing
+
 }
 
 // Move ...

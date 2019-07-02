@@ -37,6 +37,8 @@ type Video struct {
 	Series       string   `json:"series"`                     //系列
 	Tags         []string `xorm:"json" json:"tags"`           //标签
 	Length       string   `json:"length"`                     //时长
+	MagnetLinks  []string `json:"magnet_links"`               //磁链
+	Uncensored   bool     `json:"uncensored"`                 //有码,无码
 	//访问统计
 	//HLS          HLS      `xorm:"json" json:"hls,omitempty"`  //切片信息
 	//VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`

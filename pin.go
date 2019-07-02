@@ -24,6 +24,7 @@ type pin struct {
 	wg         *sync.WaitGroup
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
+	skipSource bool
 	state      PinStatus
 	flag       PinFlag
 	status     PinStatus
@@ -39,6 +40,8 @@ func (p *pin) BeforeRun(seed *Seed) {
 	if p.shell == nil {
 		p.shell = seed.Shell
 	}
+
+	p.skipSource = seed.skipSource
 
 }
 
@@ -87,6 +90,10 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
+				if p.skipSource && unf.Type == model.TypeVideo {
+					continue
+				}
+
 				p.wg.Add(1)
 				go p.pinHash(unf.Hash)
 				p.wg.Wait()

@@ -110,7 +110,16 @@ func onlyNo(name string) string {
 // RelateList ...
 const relateList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func noIndex(name string) int {
+// IndexNumber ...
+func IndexNumber(index int) byte {
+	if index > len(relateList) {
+		return byte(nil)
+	}
+	return relateList[index]
+}
+
+// NumberIndex ...
+func NumberIndex(name string) int {
 	size := len(name)
 	if size > 0 {
 		return strings.IndexByte(relateList, name[size-1])

@@ -91,11 +91,11 @@ func (p *pin) Run(ctx context.Context) {
 				return
 			default:
 				if p.skipSource && unf.Type == model.TypeVideo {
-					log.With("type", unf.Type).Info("pin skip")
+					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness).Info("pin skip")
 					continue
 				}
 
-				log.With("type", unf.Type).Info("pin")
+				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness).Info("pin")
 				p.wg.Add(1)
 				go p.pinHash(unf.Hash)
 				p.wg.Wait()
@@ -114,7 +114,7 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				log.With("type", unf.Type).Info("pin")
+				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness).Info("pin")
 				p.wg.Add(1)
 				go p.pinHash(hash)
 				p.wg.Wait()

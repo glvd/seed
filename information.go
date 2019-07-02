@@ -83,7 +83,7 @@ func videoChan(source *VideoSource, v chan<- *model.Video) {
 }
 
 func video(source *VideoSource) (video *model.Video) {
-	video = new(model.Video)
+
 	//always not null
 	alias := []string{}
 	aliasS := ""
@@ -103,22 +103,34 @@ func video(source *VideoSource) (video *model.Video) {
 	if intro == "" {
 		intro = aliasS + " " + roleS
 	}
-	video.FindNo = strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")
-	video.Bangumi = strings.ToUpper(source.Bangumi)
-	video.Intro = intro
-	video.Alias = alias
-	video.Role = role
-	video.Director = source.Director
-	video.Series = source.Series
-	video.Tags = source.Tags
-	video.Date = source.Date
-	video.SourceHash = source.SourceHash
-	video.Season = MustString(source.Season, "1")
-	video.Episode = MustString(source.Episode, "1")
-	video.TotalEpisode = MustString(source.TotalEpisode, "1")
-	video.Format = MustString(source.Format, "2D")
-	video.Publisher = source.Publisher
-	video.Length = source.Length
+
+	return &model.Video{
+		FindNo:       strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", ""),
+		Bangumi:      strings.ToUpper(source.Bangumi),
+		Type:         source.Type,
+		Systematics:  source.Systematics,
+		Sharpness:    source.Sharpness,
+		Producer:     source.Producer,
+		Language:     source.Language,
+		Caption:      source.Caption,
+		Intro:        intro,
+		Alias:        alias,
+		Role:         role,
+		Director:     source.Director,
+		Series:       source.Series,
+		Tags:         source.Tags,
+		Date:         source.Date,
+		SourceHash:   source.SourceHash,
+		Season:       MustString(source.Season, "1"),
+		Episode:      MustString(source.Episode, "1"),
+		TotalEpisode: MustString(source.TotalEpisode, "1"),
+		Format:       MustString(source.Format, "2D"),
+		Publisher:    source.Publisher,
+		Length:       source.Length,
+		MagnetLinks:  source.MagnetLinks,
+		Uncensored:   source.Uncensored,
+	}
+
 	return
 }
 

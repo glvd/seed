@@ -113,7 +113,7 @@ const relateList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 // IndexNumber ...
 func IndexNumber(index int) byte {
 	if index > len(relateList) {
-		return byte(nil)
+		return relateList[0]
 	}
 	return relateList[index]
 }

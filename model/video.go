@@ -20,6 +20,7 @@ type Video struct {
 	PosterHash   string   `json:"poster_hash"`                //海报地址
 	Role         []string `xorm:"json" json:"role"`           //主演
 	Director     string   `json:"director"`                   //导演
+	Systematics  string   `json:"systematics"`                //分级
 	Season       string   `json:"season,omitempty"`           //季
 	TotalEpisode string   `json:"total_episode,omitempty"`    //总集数
 	Episode      string   `json:"episode,omitempty"`          //集数

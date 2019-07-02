@@ -38,9 +38,9 @@ func TestName(t *testing.T) {
 	t.Log(onlyNo(".file"))
 	t.Log(onlyNo("."))
 	t.Log(onlyNo(""))
-	t.Log(noIndex("file-09"))
-	t.Log(noIndex("file-09C"))
-	t.Log(noIndex("file-09B"))
-	t.Log(noIndex("file-09A"))
+	t.Log(NumberIndex("file-09"))
+	t.Log(NumberIndex("file-09C"))
+	t.Log(NumberIndex("file-09B"))
+	t.Log(NumberIndex("file-09A"))
 
 }

@@ -130,8 +130,6 @@ func video(source *VideoSource) (video *model.Video) {
 		MagnetLinks:  source.MagnetLinks,
 		Uncensored:   source.Uncensored,
 	}
-
-	return
 }
 
 // defaultUnfinished ...

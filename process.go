@@ -63,7 +63,13 @@ func Process(path string) Options {
 }
 
 func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
-	sa, err := cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
+	var sa *cmd.SplitArgs
+	if p.scale != 0 {
+		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(p.scale), cmd.OutputOption(p.workspace))
+	} else {
+		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
+	}
+
 	if err != nil {
 		return err
 	}

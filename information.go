@@ -279,7 +279,7 @@ func (info *information) Run(ctx context.Context) {
 
 func filterList(sources []*VideoSource, list []string) (vs []*VideoSource) {
 	if list == nil || len(list) <= 0 {
-		return vs
+		return sources
 	}
 	for _, source := range sources {
 		for _, v := range list {

@@ -28,8 +28,10 @@ type process struct {
 	ignores     map[string][]byte
 	unfinished  map[string]*model.Unfinished
 	moves       map[string]string
+	scale       int64
 	skipConvert bool
 	skipSource  bool
+	preAdd      bool
 }
 
 // BeforeRun ...
@@ -38,6 +40,8 @@ func (p *process) BeforeRun(seed *Seed) {
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
 	p.moves = seed.Moves
+	p.preAdd = seed.preAdd
+	p.scale = seed.Scale
 	p.skipConvert = seed.skipConvert
 	p.skipSource = seed.skipSource
 	p.ignores = seed.ignores

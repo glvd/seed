@@ -65,6 +65,7 @@ type Seed struct {
 	Shell       *shell.Shell
 	maindb      *xorm.Engine
 	Workspace   string
+	Scale       int64
 	Unfinished  map[string]*model.Unfinished
 	Videos      map[string]*model.Video
 	Moves       map[string]string
@@ -73,6 +74,7 @@ type Seed struct {
 	cancel      context.CancelFunc
 	skipConvert bool
 	skipSource  bool
+	preAdd      bool
 	threads     int
 	thread      []Threader
 	ignores     map[string][]byte
@@ -188,6 +190,13 @@ func ShowExecTimeOption() AfterInitOptions {
 func SkipConvertOption() Options {
 	return func(seed *Seed) {
 		seed.skipConvert = true
+	}
+}
+
+// PreAddOption ...
+func PreAddOption() Options {
+	return func(seed *Seed) {
+		seed.preAdd = true
 	}
 }
 

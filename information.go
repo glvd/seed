@@ -220,12 +220,11 @@ func (info *information) Run(ctx context.Context) {
 		log.Info("no videos to process")
 		return
 	}
-	log.With("size", len(vs)).Info("video source")
 	vs = filterList(vs, info.list)
+	log.With("size", len(vs)).Info("video source")
 
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
-	//
 	go func(v1 chan<- *model.Video) {
 		for _, s := range vs {
 			log.With("bangumi", s.Bangumi).Info("add info")

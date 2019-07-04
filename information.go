@@ -220,7 +220,7 @@ func (info *information) Run(ctx context.Context) {
 		log.Info("no videos to process")
 		return
 	}
-
+	log.With("size", len(vs)).Info("video source")
 	vs = filterList(vs, info.list)
 
 	skipIPFS := atomic.NewBool(false)
@@ -228,8 +228,8 @@ func (info *information) Run(ctx context.Context) {
 	//
 	go func(v1 chan<- *model.Video) {
 		for _, s := range vs {
+			log.With("bangumi", s.Bangumi).Info("add info")
 			v := video(s)
-			//info.videos[v.Bangumi] = v
 			if !skipIPFS.Load() {
 				if s.Thumb != "" {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)

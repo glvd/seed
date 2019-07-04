@@ -226,8 +226,8 @@ func (info *information) Run(ctx context.Context) {
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
 	go func(v1 chan<- *model.Video) {
-		for _, s := range vs {
-			log.With("bangumi", s.Bangumi).Info("add info")
+		for i, s := range vs {
+			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
 			v := video(s)
 			if !skipIPFS.Load() {
 				if s.Thumb != "" {
@@ -238,7 +238,6 @@ func (info *information) Run(ctx context.Context) {
 						skipIPFS.Store(true)
 					} else {
 						v.ThumbHash = thumb.Hash
-						//info.unfinished[thumb.Hash] = thumb
 					}
 				}
 
@@ -253,7 +252,6 @@ func (info *information) Run(ctx context.Context) {
 						if s.Poster != "" {
 							v.PosterHash = s.Poster
 						}
-						//info.unfinished[poster.Hash] = poster
 					}
 				}
 			}
@@ -265,6 +263,7 @@ func (info *information) Run(ctx context.Context) {
 		select {
 		case v := <-v1:
 			info.videos[v.Bangumi] = v
+			log.With("bangumi", v.Bangumi).Info("add video")
 			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)

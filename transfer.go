@@ -128,7 +128,7 @@ func insertOldToUnfinished(ban string, obj *old.Object) error {
 	}
 	unf := &model.Unfinished{
 		Checksum:    hash,
-		Type:        model.TypeVideo,
+		Type:        model.TypeSlice,
 		Relate:      ban,
 		Name:        ban,
 		Hash:        hash,

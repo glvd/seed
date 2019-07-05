@@ -159,21 +159,26 @@ func (transfer *transfer) Run(ctx context.Context) {
 	case InfoFlagSQLite:
 		if transfer.status == TransferStatusOld {
 			objects := old.LoadFrom(transfer.path)
-
+			log.With("size", len(objects)).Info("objects")
 			for ban, obj := range objects {
 				e := insertOldToUnfinished(ban, obj)
 				if e != nil {
-					log.Error(e)
+					log.With("bangumi", ban).Error(e)
 					continue
 				}
 				vd, e := model.FindVideo(nil, ban)
-				if e != nil {
-					log.Error(e)
+				if e != nil || vd.ID == "" {
+					log.With("bangumi", ban).Error(e)
 					continue
 				}
-
+				log.With("bangumi", ban, "video", vd).Info("video")
 				if vd.M3U8Hash != "" && obj.Link != nil {
 					vd.M3U8Hash = obj.Link.Hash
+				}
+				e = model.AddOrUpdateVideo(vd)
+				if e != nil {
+					log.With("bangumi", ban).Error(e)
+					continue
 				}
 			}
 

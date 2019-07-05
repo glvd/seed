@@ -11,6 +11,7 @@ import (
 	"golang.org/x/xerrors"
 	"io"
 	"path/filepath"
+	"strings"
 )
 
 // TransferStatus ...
@@ -171,15 +172,19 @@ func (transfer *transfer) Run(ctx context.Context) {
 					log.With("bangumi", ban).Error(e)
 					continue
 				}
-				log.With("bangumi", ban, "video", vd).Info("video")
-				if vd.M3U8Hash != "" && obj.Link != nil {
+				log.With("bangumi", ban, "video", vd).Info("video update")
+				if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
+					log.With("hash:", obj.Link.Hash, "bangumi", ban).Info("info")
 					vd.M3U8Hash = obj.Link.Hash
+					e = model.AddOrUpdateVideo(vd)
+					if e != nil {
+						log.With("bangumi", ban).Error(e)
+						continue
+					}
+				} else {
+
 				}
-				e = model.AddOrUpdateVideo(vd)
-				if e != nil {
-					log.With("bangumi", ban).Error(e)
-					continue
-				}
+
 			}
 
 		}

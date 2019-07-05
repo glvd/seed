@@ -128,10 +128,10 @@ func AddOrUpdateVideo(video *Video) (e error) {
 			Where("sharpness = ?", video.Sharpness).
 			Get(&tmp)
 	}
-
 	if e != nil {
 		return e
 	}
+
 	if found {
 		video.Version = tmp.Version
 		video.ID = tmp.ID
@@ -139,8 +139,9 @@ func AddOrUpdateVideo(video *Video) (e error) {
 		mustStr(&video.SourceHash, tmp.SourceHash)
 		mustStr(&video.PosterHash, tmp.PosterHash)
 		mustStr(&video.ThumbHash, tmp.ThumbHash)
-		_, e = DB().ID(video.ID).Update(video)
-		return
+		i, e := DB().ID(video.ID).Update(video)
+		log.Infof("updated(%d): %+v", i, tmp)
+		return e
 	}
 	_, e = DB().InsertOne(video)
 	return

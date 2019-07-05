@@ -7,6 +7,7 @@ import (
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
+	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
 	"io"
 	"path/filepath"
@@ -20,6 +21,7 @@ const (
 	TransferStatusNone   TransferStatus = "none"
 	TransferFlagVerify   TransferStatus = "verify"
 	TransferStatusAdd    TransferStatus = "add"
+	TransferStatusOld    TransferStatus = "old"
 	TransferStatusUpdate TransferStatus = "update"
 	TransferStatusDelete TransferStatus = "delete"
 )
@@ -60,10 +62,10 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(path string, to InfoFlag, status TransferStatus) Options {
+func Transfer(path string, from InfoFlag, status TransferStatus) Options {
 	t := &transfer{
 		path:   path,
-		to:     to,
+		from:   from,
 		status: status,
 	}
 	return TransferOption(t)
@@ -119,9 +121,64 @@ func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, 
 	return nil, xerrors.New("no poster")
 }
 
+func insertOldToUnfinished(ban string, obj *old.Object) error {
+	hash := ""
+	if obj.Link != nil {
+		hash = obj.Link.Hash
+	}
+	unf := &model.Unfinished{
+		Checksum:    hash,
+		Type:        model.TypeVideo,
+		Relate:      ban,
+		Name:        ban,
+		Hash:        hash,
+		Sharpness:   "",
+		Caption:     "",
+		Encrypt:     false,
+		Key:         "",
+		M3U8:        "",
+		SegmentFile: "",
+		Sync:        false,
+		Object:      ObjectFromOld(obj),
+	}
+	return model.AddOrUpdateUnfinished(unf)
+
+}
+
+// ObjectFromOld ...
+func ObjectFromOld(obj *old.Object) *model.VideoObject {
+	return &model.VideoObject{
+		Links: obj.Links,
+		Link:  obj.Link,
+	}
+}
+
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
-	log.Info("transfer running")
+	switch transfer.from {
+	case InfoFlagSQLite:
+		if transfer.status == TransferStatusOld {
+			objects := old.LoadFrom(transfer.path)
+
+			for ban, obj := range objects {
+				e := insertOldToUnfinished(ban, obj)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
+				vd, e := model.FindVideo(nil, ban)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
+
+				if vd.M3U8Hash != "" && obj.Link != nil {
+					vd.M3U8Hash = obj.Link.Hash
+				}
+			}
+
+		}
+	}
 
 }
 

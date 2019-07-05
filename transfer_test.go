@@ -4,7 +4,7 @@ import "testing"
 
 // TestTransfer ...
 func TestTransfer(t *testing.T) {
-	seed := NewSeed(Transfer("D:\\videoall\\video2.json", InfoFlagBSON, TransferStatusUpdate))
+	seed := NewSeed(Transfer("D:\\workspace\\goproject\\seed\\old\\seed.db", InfoFlagSQLite, TransferStatusOld))
 	seed.Workspace = "D:\\videoall"
 	seed.Start()
 	seed.Wait()

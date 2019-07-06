@@ -207,9 +207,45 @@ func (transfer *transfer) Run(ctx context.Context) {
 				video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
 				video.Sharpness = MustString(from.Sharpness, video.Sharpness)
 				video.SourceHash = MustString(from.SourceHash, video.SourceHash)
+				e = model.AddOrUpdateVideo(video)
+				if e != nil {
+					log.With("bangumi", from.Bangumi).Error(e)
+					continue
+				}
 			}
 
 		} else if transfer.status == TransferStatusOther {
+			eng, e := model.InitDB("sqlite3", transfer.path)
+			if e != nil {
+				return
+			}
+			fromList := new([]*model.Unfinished)
+			e = eng.Find(fromList)
+			if e != nil {
+				return
+			}
+			for _, from := range *fromList {
+				video, e := model.FindVideo(model.DB().Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
+				if e != nil {
+					log.Error(e)
+					continue
+				}
+
+				if from.Type == model.TypeSlice {
+					video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+					video.M3U8Hash = MustString(from.Hash, video.M3U8Hash)
+				} else if from.Type == model.TypeVideo {
+					video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+					video.SourceHash = MustString(from.Hash, video.SourceHash)
+				} else {
+
+				}
+				e = model.AddOrUpdateVideo(video)
+				if e != nil {
+					log.With("bangumi", video.Bangumi, "index", video.Episode).Error(e)
+					continue
+				}
+			}
 
 		}
 	}

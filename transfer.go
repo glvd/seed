@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"io"
+	"path/filepath"
+	"strings"
+
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
-	"io"
-	"path/filepath"
-	"strings"
 )
 
 // TransferStatus ...
@@ -186,6 +187,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				}
 
 			}
+		} else if transfer.status == TransferStatusUpdate {
 
 		}
 	}

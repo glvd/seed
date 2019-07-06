@@ -23,6 +23,7 @@ const (
 	TransferStatusNone   TransferStatus = "none"
 	TransferFlagVerify   TransferStatus = "verify"
 	TransferStatusAdd    TransferStatus = "add"
+	TransferStatusOther  TransferStatus = "other"
 	TransferStatusOld    TransferStatus = "old"
 	TransferStatusUpdate TransferStatus = "update"
 	TransferStatusDelete TransferStatus = "delete"
@@ -207,6 +208,8 @@ func (transfer *transfer) Run(ctx context.Context) {
 				video.Sharpness = MustString(from.Sharpness, video.Sharpness)
 				video.SourceHash = MustString(from.SourceHash, video.SourceHash)
 			}
+
+		} else if transfer.status == TransferStatusOther {
 
 		}
 	}

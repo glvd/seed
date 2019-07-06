@@ -188,6 +188,25 @@ func (transfer *transfer) Run(ctx context.Context) {
 
 			}
 		} else if transfer.status == TransferStatusUpdate {
+			eng, e := model.InitDB("sqlite3", transfer.path)
+			if e != nil {
+				return
+			}
+			fromList := new([]*model.Video)
+			e = eng.Find(fromList)
+			if e != nil {
+				return
+			}
+			for _, from := range *fromList {
+				video, e := model.FindVideo(nil, from.Bangumi)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
+				video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
+				video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+				video.SourceHash = MustString(from.SourceHash, video.SourceHash)
+			}
 
 		}
 	}

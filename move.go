@@ -21,7 +21,6 @@ func (m *move) Run(context.Context) {
 			log.Error(e)
 			continue
 		}
-
 	}
 }
 
@@ -36,15 +35,22 @@ func (m *move) AfterRun(seed *Seed) {
 }
 
 // Move ...
-func Move(path string) Options {
+func MoveInfo(path string) Options {
 	info := &move{
 		to: path,
 	}
-	return moveOption(info)
+	return moveOption(StepperMoveInfo, info)
 }
 
-func moveOption(move *move) Options {
+func MoveProc(path string) Options {
+	proc := &move{
+		to: path,
+	}
+	return moveOption(StepperMoveproc, proc)
+}
+
+func moveOption(m Stepper, move *move) Options {
 	return func(seed *Seed) {
-		seed.thread[StepperMove] = move
+		seed.thread[m] = move
 	}
 }

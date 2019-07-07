@@ -44,8 +44,9 @@ type Stepper int
 const (
 	StepperNone Stepper = iota
 	StepperInformation
+	StepperMoveInfo
 	StepperProcess
-	StepperMove
+	StepperMoveproc
 	StepperTransfer
 	StepperPin
 	StepperUpdate

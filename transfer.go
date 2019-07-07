@@ -247,6 +247,8 @@ func (transfer *transfer) Run(ctx context.Context) {
 				}
 			}
 
+		} else {
+
 		}
 	}
 

@@ -31,7 +31,7 @@ func (m *move) BeforeRun(seed *Seed) {
 
 // AfterRun ...
 func (m *move) AfterRun(seed *Seed) {
-
+	seed.Moves = make(map[string]string)
 }
 
 // MoveInfo ...

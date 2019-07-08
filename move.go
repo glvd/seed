@@ -34,7 +34,7 @@ func (m *move) AfterRun(seed *Seed) {
 
 }
 
-// Move ...
+// MoveInfo ...
 func MoveInfo(path string) Options {
 	info := &move{
 		to: path,
@@ -42,6 +42,7 @@ func MoveInfo(path string) Options {
 	return moveOption(StepperMoveInfo, info)
 }
 
+// MoveProc ...
 func MoveProc(path string) Options {
 	proc := &move{
 		to: path,

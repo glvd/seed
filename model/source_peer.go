@@ -9,6 +9,7 @@ type SourcePeerDetail struct {
 // SourcePeer ...
 type SourcePeer struct {
 	Model            `xorm:"extends"`
+	Index            int
 	SourcePeerDetail `xorm:"extends"`
 }
 

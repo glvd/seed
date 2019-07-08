@@ -29,6 +29,8 @@ type pin struct {
 	flag       PinFlag
 	status     PinStatus
 	list       []string
+	index      int
+	random     bool
 }
 
 // BeforeRun ...

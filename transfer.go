@@ -209,6 +209,9 @@ func (transfer *transfer) Run(ctx context.Context) {
 					log.Error(e)
 					continue
 				}
+				if video.ID == "" {
+					continue
+				}
 				video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
 				video.Sharpness = MustString(from.Sharpness, video.Sharpness)
 				video.SourceHash = MustString(from.SourceHash, video.SourceHash)

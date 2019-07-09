@@ -194,6 +194,10 @@ func (transfer *transfer) Run(ctx context.Context) {
 			if e != nil {
 				return
 			}
+			e = eng.Sync2(model.Video{})
+			if e != nil {
+				return
+			}
 			fromList := new([]*model.Video)
 			e = eng.Find(fromList)
 			if e != nil {

@@ -42,7 +42,11 @@ func LoadFrom(path string) map[string]*Object {
 		log.Error(e)
 		return nil
 	}
-
+	e = engine.Sync2(Video{})
+	if e != nil {
+		log.Error(e)
+		return nil
+	}
 	var tables = new([]*Video)
 	e = engine.Find(tables)
 	if e != nil {

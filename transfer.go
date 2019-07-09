@@ -188,6 +188,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				}
 
 			}
+			//update from video from other sqlite3
 		} else if transfer.status == TransferStatusOther {
 			eng, e := model.InitDB("sqlite3", transfer.path)
 			if e != nil {
@@ -213,7 +214,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 					continue
 				}
 			}
-
+			//update from unfinished from other sqlite3
 		} else if transfer.status == TransferStatusUpdate {
 			eng, e := model.InitDB("sqlite3", transfer.path)
 			if e != nil {

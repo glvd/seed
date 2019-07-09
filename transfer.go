@@ -188,7 +188,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				}
 
 			}
-		} else if transfer.status == TransferStatusUpdate {
+		} else if transfer.status == TransferStatusOther {
 			eng, e := model.InitDB("sqlite3", transfer.path)
 			if e != nil {
 				return
@@ -214,7 +214,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				}
 			}
 
-		} else if transfer.status == TransferStatusOther {
+		} else if transfer.status == TransferStatusUpdate {
 			eng, e := model.InitDB("sqlite3", transfer.path)
 			if e != nil {
 				return

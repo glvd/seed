@@ -85,8 +85,11 @@ func (p *pin) Run(ctx context.Context) {
 	case PinStatusAll:
 		unfins, e := model.AllUnfinished(nil, 0)
 		if e != nil {
+			log.Error(e)
 			return
 		}
+
+		log.Infof("pin(%d)", len(*unfins))
 		for _, unf := range *unfins {
 			select {
 			case <-ctx.Done():

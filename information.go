@@ -47,7 +47,7 @@ type information struct {
 	thread     int
 	list       []string
 	videos     map[string]*model.Video
-	//filter     []string
+	moves      map[string]string
 }
 
 // Information ...
@@ -66,6 +66,7 @@ func (info *information) BeforeRun(seed *Seed) {
 	info.videos = seed.Videos
 	info.unfinished = seed.Unfinished
 	info.shell = seed.Shell
+	info.moves = seed.Moves
 }
 
 // AfterRun ...
@@ -238,19 +239,22 @@ func (info *information) Run(ctx context.Context) {
 						skipIPFS.Store(true)
 					} else {
 						v.ThumbHash = thumb.Hash
+						info.moves[thumb.Hash] = s.Thumb
 					}
 				}
 
 				if s.PosterPath != "" {
 					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-					poster, e := addPosterHash(info.shell, s)
-					if e != nil {
-						log.Error(e)
-						skipIPFS.Store(true)
+					if s.Poster != "" {
+						v.PosterHash = s.Poster
 					} else {
-						v.PosterHash = poster.Hash
-						if s.Poster != "" {
-							v.PosterHash = s.Poster
+						poster, e := addPosterHash(info.shell, s)
+						if e != nil {
+							log.Error(e)
+							skipIPFS.Store(true)
+						} else {
+							v.PosterHash = poster.Hash
+							info.moves[poster.Hash] = s.PosterPath
 						}
 					}
 				}

@@ -18,11 +18,12 @@ func (m *move) Run(context.Context) {
 	if e != nil {
 		return
 	}
-	for _, v := range m.moves {
-		_, name := filepath.Split(v)
-		e = os.Rename(v, filepath.Join(s, name))
+	for hash, v := range m.moves {
+		//_, name := filepath.Split(v)
+		path := filepath.Join(s, hash+filepath.Ext(v))
+		e = os.Rename(v, path)
 		if e != nil {
-			log.Error(e)
+			log.Error(e, path)
 			continue
 		}
 	}

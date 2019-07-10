@@ -14,9 +14,13 @@ type move struct {
 // Run ...
 func (m *move) Run(context.Context) {
 	var e error
+	s, e := filepath.Abs(m.to)
+	if e != nil {
+		return
+	}
 	for _, v := range m.moves {
 		_, name := filepath.Split(v)
-		e = os.Rename(v, filepath.Join(m.to, name))
+		e = os.Rename(v, filepath.Join(s, name))
 		if e != nil {
 			log.Error(e)
 			continue

@@ -247,6 +247,7 @@ func (info *information) Run(ctx context.Context) {
 					} else {
 						poster, e := addPosterHash(info.shell, s)
 						if os.IsNotExist(e) {
+							max++
 							continue
 						}
 						if e != nil {
@@ -263,6 +264,7 @@ func (info *information) Run(ctx context.Context) {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
 					thumb, e := addThumbHash(info.shell, s)
 					if os.IsNotExist(e) {
+						max++
 						continue
 					}
 					if e != nil {

@@ -233,9 +233,10 @@ func (info *information) Run(ctx context.Context) {
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
 	go func(v1 chan<- *model.Video) {
+		skips := 0
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
-			if i >= max {
+			if i >= max+skips {
 				return
 			}
 			v := video(s)
@@ -247,7 +248,7 @@ func (info *information) Run(ctx context.Context) {
 					} else {
 						poster, e := addPosterHash(info.shell, s)
 						if os.IsNotExist(e) {
-							max++
+							skips++
 							continue
 						}
 						if e != nil {
@@ -264,7 +265,7 @@ func (info *information) Run(ctx context.Context) {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
 					thumb, e := addThumbHash(info.shell, s)
 					if os.IsNotExist(e) {
-						max++
+						skips++
 						continue
 					}
 					if e != nil {

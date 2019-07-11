@@ -85,9 +85,12 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 		return e
 	}
 	if found {
-		unfin.Version = tmp.Version
-		unfin.ID = tmp.ID
-		_, e = DB().ID(unfin.ID).Update(unfin)
+		//only slice need update,video update for check
+		if unfin.Type == TypeSlice || unfin.Type == TypeVideo {
+			unfin.Version = tmp.Version
+			unfin.ID = tmp.ID
+			_, e = DB().ID(unfin.ID).Update(unfin)
+		}
 		return
 	}
 	_, e = DB().InsertOne(unfin)

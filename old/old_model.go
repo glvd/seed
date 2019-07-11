@@ -15,6 +15,7 @@ type Video struct {
 	Bangumi        string        `json:"bangumi"`                    //番組
 	Intro          string        `xorm:"varchar(2048)" json:"intro"` //简介
 	Alias          []string      `xorm:"json" json:"alias"`          //别名，片名
+	Role           []string      `xorm:"json" json:"role"`           //主演
 	VideoGroupList []*ObjectList `json:"video_group_list"`           //视频
 }
 

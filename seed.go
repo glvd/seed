@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 
@@ -70,6 +71,7 @@ type Seed struct {
 	Unfinished  map[string]*model.Unfinished
 	Videos      map[string]*model.Video
 	Moves       map[string]string
+	MaxLimit    int
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc
@@ -123,6 +125,7 @@ func NewSeed(ops ...Options) *Seed {
 		Unfinished: make(map[string]*model.Unfinished),
 		Videos:     make(map[string]*model.Video),
 		Moves:      make(map[string]string),
+		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
 		ctx:        ctx,
 		cancel:     cancel,
@@ -191,6 +194,13 @@ func ShowExecTimeOption() AfterInitOptions {
 func SkipConvertOption() Options {
 	return func(seed *Seed) {
 		seed.skipConvert = true
+	}
+}
+
+// MaxLimitOption ...
+func MaxLimitOption(max int) Options {
+	return func(seed *Seed) {
+		seed.MaxLimit = max
 	}
 }
 

@@ -48,6 +48,7 @@ type information struct {
 	list       []string
 	videos     map[string]*model.Video
 	moves      map[string]string
+	maxLimit   int
 }
 
 // Information ...
@@ -67,6 +68,7 @@ func (info *information) BeforeRun(seed *Seed) {
 	info.unfinished = seed.Unfinished
 	info.shell = seed.Shell
 	info.moves = seed.Moves
+	info.maxLimit = seed.MaxLimit
 }
 
 // AfterRun ...
@@ -222,13 +224,19 @@ func (info *information) Run(ctx context.Context) {
 		return
 	}
 	vs = filterList(vs, info.list)
-	log.With("size", len(vs)).Info("video source")
-
+	max := len(vs)
+	if max > info.maxLimit {
+		max = info.maxLimit
+	}
+	log.With("size", len(vs), "max", max).Info("video source")
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
 	go func(v1 chan<- *model.Video) {
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
+			if i >= max {
+				return
+			}
 			v := video(s)
 			if !skipIPFS.Load() {
 				if s.Thumb != "" {
@@ -263,7 +271,7 @@ func (info *information) Run(ctx context.Context) {
 		}
 	}(v1)
 
-	for max := len(vs); max > 0; max-- {
+	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
 			info.videos[v.Bangumi] = v

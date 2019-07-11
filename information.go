@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -239,24 +240,15 @@ func (info *information) Run(ctx context.Context) {
 			}
 			v := video(s)
 			if !skipIPFS.Load() {
-				if s.Thumb != "" {
-					s.Thumb = filepath.Join(info.workspace, s.Thumb)
-					thumb, e := addThumbHash(info.shell, s)
-					if e != nil {
-						log.Error(e)
-						skipIPFS.Store(true)
-					} else {
-						v.ThumbHash = thumb.Hash
-						info.moves[thumb.Hash] = s.Thumb
-					}
-				}
-
 				if s.PosterPath != "" {
 					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
 					if s.Poster != "" {
 						v.PosterHash = s.Poster
 					} else {
 						poster, e := addPosterHash(info.shell, s)
+						if os.IsNotExist(e) {
+							continue
+						}
 						if e != nil {
 							log.Error(e)
 							skipIPFS.Store(true)
@@ -266,6 +258,22 @@ func (info *information) Run(ctx context.Context) {
 						}
 					}
 				}
+
+				if s.Thumb != "" {
+					s.Thumb = filepath.Join(info.workspace, s.Thumb)
+					thumb, e := addThumbHash(info.shell, s)
+					if os.IsNotExist(e) {
+						continue
+					}
+					if e != nil {
+						log.Error(e)
+						skipIPFS.Store(true)
+					} else {
+						v.ThumbHash = thumb.Hash
+						info.moves[thumb.Hash] = s.Thumb
+					}
+				}
+
 			}
 			v1 <- v
 		}

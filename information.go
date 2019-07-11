@@ -234,10 +234,10 @@ func (info *information) Run(ctx context.Context) {
 	v1 := make(chan *model.Video)
 	skips := make(chan int)
 	go func(v1 chan<- *model.Video, skp chan<- int) {
-		skips := 0
+		runner := 0
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
-			if i >= max+skips {
+			if runner >= max {
 				return
 			}
 			v := video(s)
@@ -249,7 +249,6 @@ func (info *information) Run(ctx context.Context) {
 					} else {
 						poster, e := addPosterHash(info.shell, s)
 						if os.IsNotExist(e) {
-							skips++
 							continue
 						}
 						if e != nil {
@@ -266,7 +265,6 @@ func (info *information) Run(ctx context.Context) {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
 					thumb, e := addThumbHash(info.shell, s)
 					if os.IsNotExist(e) {
-						skips++
 						continue
 					}
 					if e != nil {
@@ -277,14 +275,11 @@ func (info *information) Run(ctx context.Context) {
 						info.moves[thumb.Hash] = s.Thumb
 					}
 				}
-
+				runner++
 			}
-			skp <- skips
 			v1 <- v
 		}
 	}(v1, skips)
-
-	//max += <-skips
 
 	for ; max > 0; max-- {
 		select {

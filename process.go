@@ -62,11 +62,20 @@ func Process(path string) Options {
 	return processOption(process)
 }
 
+func scale(scale int64) int {
+	switch scale {
+	case 480, 1080:
+		return int(scale)
+	default:
+		return 720
+	}
+}
+
 func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	var sa *cmd.SplitArgs
 	if p.scale != 0 {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(p.scale), cmd.OutputOption(p.workspace))
-		unfin.Sharpness = fmt.Sprintf("%dP", p.scale)
+		unfin.Sharpness = fmt.Sprintf("%dP", scale(p.scale))
 	} else {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
 	}

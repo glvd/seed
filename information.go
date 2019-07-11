@@ -232,7 +232,8 @@ func (info *information) Run(ctx context.Context) {
 	log.With("size", len(vs), "max", max).Info("video source")
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
-	go func(v1 chan<- *model.Video) {
+	skips := make(chan int)
+	go func(v1 chan<- *model.Video, skp chan<- int) {
 		skips := 0
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
@@ -278,9 +279,12 @@ func (info *information) Run(ctx context.Context) {
 				}
 
 			}
+			skp <- skips
 			v1 <- v
 		}
-	}(v1)
+	}(v1, skips)
+
+	//max += <-skips
 
 	for ; max > 0; max-- {
 		select {

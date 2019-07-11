@@ -11,8 +11,11 @@ var log = trait.NewZapSugar()
 // Video ...
 type Video struct {
 	//FindNo         string        `json:"find_no"`          //查找号
-	Bangumi        string        `json:"bangumi"`          //番組
-	VideoGroupList []*ObjectList `json:"video_group_list"` //视频
+
+	Bangumi        string        `json:"bangumi"`                    //番組
+	Intro          string        `xorm:"varchar(2048)" json:"intro"` //简介
+	Alias          []string      `xorm:"json" json:"alias"`          //别名，片名
+	VideoGroupList []*ObjectList `json:"video_group_list"`           //视频
 }
 
 // ObjectList ...

@@ -244,8 +244,7 @@ func (info *information) Run(ctx context.Context) {
 	go func(v1 chan<- *model.Video, skp chan<- int) {
 		runner := 0
 		for i, s := range vs {
-
-			if runner >= max {
+			if runner > max {
 				v1 <- nil
 			}
 			v := video(s)

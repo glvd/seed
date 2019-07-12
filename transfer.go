@@ -292,6 +292,9 @@ func (transfer *transfer) Run(ctx context.Context) {
 			if err := transferUpdate(fromDB); err != nil {
 				return
 			}
+		}
+	} else if transfer.flag == InfoFlagJSON {
+		switch transfer.status {
 		case TransferStatusToJSON:
 			if err := transferToJSON(transfer.path); err != nil {
 				return

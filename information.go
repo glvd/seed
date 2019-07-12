@@ -255,7 +255,7 @@ func (info *information) Run(ctx context.Context) {
 					if s.PosterPath != "" {
 						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
 						if checkFileNotExist(s.PosterPath) {
-							log.With("index", i, "bangumi", s.Bangumi).Info("poster not found")
+							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
 							continue
 						}
 						poster, e := addPosterHash(info.shell, s)
@@ -272,7 +272,7 @@ func (info *information) Run(ctx context.Context) {
 				if s.Thumb != "" {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
 					if checkFileNotExist(s.PosterPath) {
-						log.With("index", i, "bangumi", s.Bangumi).Info("thumb not found")
+						log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
 						continue
 					}
 					thumb, e := addThumbHash(info.shell, s)
@@ -284,7 +284,7 @@ func (info *information) Run(ctx context.Context) {
 						info.moves[thumb.Hash] = s.Thumb
 					}
 				}
-				log.With("index", i, "bangumi", s.Bangumi).Info("added")
+				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
 			}
 			runner++
 			v1 <- v

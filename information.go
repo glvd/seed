@@ -238,11 +238,11 @@ func (info *information) Run(ctx context.Context) {
 			}
 			v := video(s)
 			if !skipIPFS.Load() {
-				if s.PosterPath != "" {
-					s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-					if s.Poster != "" {
-						v.PosterHash = s.Poster
-					} else {
+				if s.Poster != "" {
+					v.PosterHash = s.Poster
+				} else {
+					if s.PosterPath != "" {
+						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
 						poster, e := addPosterHash(info.shell, s)
 						if os.IsNotExist(e) {
 							continue

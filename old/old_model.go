@@ -39,18 +39,9 @@ type Object struct {
 	Link  *model.VideoLink   `xorm:"extends"  json:",inline,omitempty"`
 }
 
-// LoadFrom ...
-func LoadFrom(path string) map[string]*Object {
-	engine, e := xorm.NewEngine("sqlite3", path)
-	if e != nil {
-		log.Error(e)
-		return nil
-	}
-	e = engine.Sync2(Video{})
-	if e != nil {
-		log.Error(e)
-		return nil
-	}
+// LoadOld ...
+func LoadOld(engine *xorm.Engine) map[string]*Object {
+	var e error
 	var tables = new([]*Video)
 	e = engine.Find(tables)
 	if e != nil {

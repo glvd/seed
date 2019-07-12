@@ -36,7 +36,7 @@ const InfoFlagJSON InfoFlag = "json"
 const InfoFlagBSON InfoFlag = "bson"
 
 // InfoFlagSQLite ...
-const InfoFlagSQLite InfoFlag = "sqlite"
+const InfoFlagSQLite InfoFlag = "sqlite3"
 
 // information ...
 type information struct {

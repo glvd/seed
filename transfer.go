@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"io"
-	"path/filepath"
-	"strings"
-
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
 	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // TransferStatus ...
@@ -20,13 +21,13 @@ type TransferStatus string
 
 // TransferFlagNone ...
 const (
-	TransferStatusNone   TransferStatus = "none"
-	TransferFlagVerify   TransferStatus = "verify"
-	TransferStatusAdd    TransferStatus = "add"
-	TransferStatusOther  TransferStatus = "other"
-	TransferStatusOld    TransferStatus = "old"
-	TransferStatusUpdate TransferStatus = "update"
-	TransferStatusDelete TransferStatus = "delete"
+	TransferStatusNone      TransferStatus = "none"
+	TransferFlagVerify      TransferStatus = "verify"
+	TransferStatusToJSON    TransferStatus = "json"
+	TransferStatusFromOther TransferStatus = "other"
+	TransferStatusFromOld   TransferStatus = "old"
+	TransferStatusUpdate    TransferStatus = "update"
+	TransferStatusDelete    TransferStatus = "delete"
 )
 
 // transfer ...
@@ -35,8 +36,7 @@ type transfer struct {
 	unfinished map[string]*model.Unfinished
 	videos     map[string]*model.Video
 	workspace  string
-	from       InfoFlag
-	to         InfoFlag
+	flag       InfoFlag
 	status     TransferStatus
 	path       string
 	reader     io.Reader
@@ -68,7 +68,7 @@ func TransferOption(t *transfer) Options {
 func Transfer(path string, from InfoFlag, status TransferStatus) Options {
 	t := &transfer{
 		path:   path,
-		from:   from,
+		flag:   from,
 		status: status,
 	}
 	return TransferOption(t)
@@ -156,107 +156,147 @@ func ObjectFromOld(obj *old.Object) *model.VideoObject {
 	}
 }
 
-// Run ...
-func (transfer *transfer) Run(ctx context.Context) {
-	switch transfer.from {
-	case InfoFlagSQLite:
-		if transfer.status == TransferStatusOld {
-			objects := old.LoadFrom(transfer.path)
-			log.With("size", len(objects)).Info("objects")
-			for ban, obj := range objects {
-				e := insertOldToUnfinished(ban, obj)
-				if e != nil {
-					log.With("bangumi", ban).Error(e)
-					continue
-				}
-				vd, e := model.FindVideo(nil, ban)
-				if e != nil || vd.ID == "" {
-					log.With("bangumi", ban).Error(e)
-					continue
-				}
-				log.With("bangumi", ban, "video", vd).Info("video update")
-				if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
-					log.With("hash:", obj.Link.Hash, "bangumi", ban).Info("info")
-					vd.M3U8Hash = obj.Link.Hash
-					e = model.AddOrUpdateVideo(vd)
-					if e != nil {
-						log.With("bangumi", ban).Error(e)
-						continue
-					}
-				} else {
-
-				}
-
-			}
-			//update from video from other sqlite3
-		} else if transfer.status == TransferStatusOther {
-			eng, e := model.InitDB("sqlite3", transfer.path)
+func transferFromOld(engine *xorm.Engine) (e error) {
+	objects := old.LoadOld(engine)
+	log.With("size", len(objects)).Info("objects")
+	for ban, obj := range objects {
+		e := insertOldToUnfinished(ban, obj)
+		if e != nil {
+			log.With("bangumi", ban).Error(e)
+			continue
+		}
+		vd, e := model.FindVideo(nil, ban)
+		if e != nil || vd.ID == "" {
+			log.With("bangumi", ban).Error(e)
+			continue
+		}
+		log.With("bangumi", ban, "video", vd).Info("video update")
+		if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
+			log.With("hash:", obj.Link.Hash, "bangumi", ban).Info("info")
+			vd.M3U8Hash = obj.Link.Hash
+			e = model.AddOrUpdateVideo(vd)
 			if e != nil {
-				return
+				log.With("bangumi", ban).Error(e)
+				continue
 			}
-			e = eng.Sync2(model.Video{})
-			if e != nil {
-				return
-			}
-			fromList := new([]*model.Video)
-			e = eng.Find(fromList)
-			if e != nil {
-				return
-			}
-			for _, from := range *fromList {
-				video, e := model.FindVideo(nil, from.Bangumi)
-				if e != nil {
-					log.Error(e)
-					continue
-				}
-				if video.ID == "" {
-					continue
-				}
-				video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
-				video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-				video.SourceHash = MustString(from.SourceHash, video.SourceHash)
-				e = model.AddOrUpdateVideo(video)
-				if e != nil {
-					log.With("bangumi", from.Bangumi).Error(e)
-					continue
-				}
-			}
-			//update from unfinished from other sqlite3
-		} else if transfer.status == TransferStatusUpdate {
-			eng, e := model.InitDB("sqlite3", transfer.path)
-			if e != nil {
-				return
-			}
-			fromList := new([]*model.Unfinished)
-			e = eng.Find(fromList)
-			if e != nil {
-				return
-			}
-			for _, from := range *fromList {
-				video, e := model.FindVideo(model.DB().Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
-				if e != nil {
-					log.Error(e)
-					continue
-				}
-
-				if from.Type == model.TypeSlice {
-					video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-					video.M3U8Hash = MustString(from.Hash, video.M3U8Hash)
-				} else if from.Type == model.TypeVideo {
-					video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-					video.SourceHash = MustString(from.Hash, video.SourceHash)
-				} else {
-
-				}
-				e = model.AddOrUpdateVideo(video)
-				if e != nil {
-					log.With("bangumi", video.Bangumi, "index", video.Episode).Error(e)
-					continue
-				}
-			}
-
 		} else {
 
+		}
+
+	}
+	return e
+}
+
+func transferFromOther(engine *xorm.Engine) (e error) {
+	fromList := new([]*model.Video)
+	e = engine.Find(fromList)
+	if e != nil {
+		return
+	}
+	for _, from := range *fromList {
+		video, e := model.FindVideo(nil, from.Bangumi)
+		if e != nil {
+			log.Error(e)
+			continue
+		}
+		if video.ID == "" {
+			continue
+		}
+		video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
+		video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+		video.SourceHash = MustString(from.SourceHash, video.SourceHash)
+		e = model.AddOrUpdateVideo(video)
+		if e != nil {
+			log.With("bangumi", from.Bangumi).Error(e)
+			continue
+		}
+	}
+	return e
+}
+
+func transferUpdate(engine *xorm.Engine) (e error) {
+	fromList := new([]*model.Unfinished)
+	e = engine.Find(fromList)
+	if e != nil {
+		return
+	}
+	for _, from := range *fromList {
+		video, e := model.FindVideo(model.DB().Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
+		if e != nil {
+			log.Error(e)
+			continue
+		}
+
+		if from.Type == model.TypeSlice {
+			video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+			video.M3U8Hash = MustString(from.Hash, video.M3U8Hash)
+		} else if from.Type == model.TypeVideo {
+			video.Sharpness = MustString(from.Sharpness, video.Sharpness)
+			video.SourceHash = MustString(from.Hash, video.SourceHash)
+		} else {
+
+		}
+		e = model.AddOrUpdateVideo(video)
+		if e != nil {
+			log.With("bangumi", video.Bangumi, "index", video.Episode).Error(e)
+			continue
+		}
+	}
+	return e
+}
+
+func transferToJSON(to string) (e error) {
+	videos, e := model.AllVideos(model.DB().Where("m3u8_hash <> ?", ""), 0)
+	if e != nil {
+		return e
+	}
+	bytes, e := jsoniter.Marshal(videos)
+	if e != nil {
+		return e
+	}
+	file, e := os.OpenFile(to, os.O_CREATE|os.O_SYNC|os.O_RDWR|os.O_APPEND, os.ModePerm)
+	if e != nil {
+		return e
+	}
+	defer file.Close()
+	n, e := file.Write(bytes)
+	log.Infof("write(%d)", n)
+	return e
+}
+
+// Run ...
+func (transfer *transfer) Run(ctx context.Context) {
+	if transfer.flag == InfoFlagSQLite {
+		fromDB, e := model.InitDB("sqlite3", transfer.path)
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		e = fromDB.Sync2(model.Video{})
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		switch transfer.status {
+		case TransferStatusFromOld:
+			if err := transferFromOld(fromDB); err != nil {
+				log.Error(err)
+				return
+			}
+		//update flag video flag other sqlite3
+		case TransferStatusFromOther:
+			if err := transferFromOther(fromDB); err != nil {
+				return
+			}
+		//update flag unfinished flag other sqlite3
+		case TransferStatusUpdate:
+			if err := transferUpdate(fromDB); err != nil {
+				return
+			}
+		case TransferStatusToJSON:
+			if err := transferToJSON(transfer.path); err != nil {
+				return
+			}
 		}
 	}
 
@@ -265,7 +305,6 @@ func (transfer *transfer) Run(ctx context.Context) {
 // LoadFrom ...
 func LoadFrom(vs *[]*VideoSource, reader io.Reader) (e error) {
 	dec := json.NewDecoder(bufio.NewReader(reader))
-
 	return dec.Decode(vs)
 }
 

@@ -254,7 +254,7 @@ func transferToJSON(to string) (e error) {
 	if e != nil {
 		return e
 	}
-	file, e := os.OpenFile(to, os.O_CREATE|os.O_SYNC|os.O_RDWR|os.O_APPEND, os.ModePerm)
+	file, e := os.OpenFile(to, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
 	if e != nil {
 		return e
 	}

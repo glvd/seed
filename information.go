@@ -237,8 +237,8 @@ func (info *information) Run(ctx context.Context) {
 		runner := 0
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
-			if runner >= max {
-				return
+			if runner > max {
+				v1 <- nil
 			}
 			v := video(s)
 			if !skipIPFS.Load() {
@@ -284,6 +284,9 @@ func (info *information) Run(ctx context.Context) {
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
+			if v == nil {
+				continue
+			}
 			info.videos[v.Bangumi] = v
 			log.With("bangumi", v.Bangumi).Info("add video")
 			e := model.AddOrUpdateVideo(v)

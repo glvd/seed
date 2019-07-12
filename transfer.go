@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/yinhevr/seed/model"
 	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
@@ -250,7 +249,7 @@ func transferToJSON(to string) (e error) {
 	if e != nil {
 		return e
 	}
-	bytes, e := jsoniter.Marshal(videos)
+	bytes, e := json.Marshal(videos)
 	if e != nil {
 		return e
 	}

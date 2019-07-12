@@ -157,6 +157,17 @@ func defaultUnfinished(name string) *model.Unfinished {
 	return uncat
 }
 
+func checkFileNotExist(path string) bool {
+	_, e := os.Stat(path)
+	if e != nil {
+		if os.IsNotExist(e) {
+			return true
+		}
+		return false
+	}
+	return false
+}
+
 // Run ...
 func (info *information) Run(ctx context.Context) {
 	log.Info("information running")
@@ -243,10 +254,10 @@ func (info *information) Run(ctx context.Context) {
 				} else {
 					if s.PosterPath != "" {
 						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-						poster, e := addPosterHash(info.shell, s)
-						if os.IsNotExist(e) {
+						if checkFileNotExist(s.PosterPath) {
 							continue
 						}
+						poster, e := addPosterHash(info.shell, s)
 						if e != nil {
 							log.Error(e)
 							skipIPFS.Store(true)
@@ -259,10 +270,10 @@ func (info *information) Run(ctx context.Context) {
 
 				if s.Thumb != "" {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
-					thumb, e := addThumbHash(info.shell, s)
-					if os.IsNotExist(e) {
+					if checkFileNotExist(s.PosterPath) {
 						continue
 					}
+					thumb, e := addThumbHash(info.shell, s)
 					if e != nil {
 						log.Error(e)
 						skipIPFS.Store(true)

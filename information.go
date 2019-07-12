@@ -237,7 +237,7 @@ func (info *information) Run(ctx context.Context) {
 		runner := 0
 		for i, s := range vs {
 			log.With("index", i, "bangumi", s.Bangumi).Info("add info")
-			if runner > max {
+			if runner >= max {
 				v1 <- nil
 			}
 			v := video(s)
@@ -284,6 +284,7 @@ func (info *information) Run(ctx context.Context) {
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
+			log.Info("max:", max)
 			if v == nil {
 				continue
 			}

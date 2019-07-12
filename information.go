@@ -82,10 +82,6 @@ func fixBson(s []byte) []byte {
 	return reg.ReplaceAll(s, []byte(" "))
 }
 
-func videoChan(source *VideoSource, v chan<- *model.Video) {
-	v <- video(source)
-}
-
 func video(source *VideoSource) (video *model.Video) {
 
 	//always not null

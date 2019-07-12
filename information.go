@@ -12,6 +12,7 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"go.uber.org/atomic"
+	"golang.org/x/xerrors"
 )
 
 // InfoFlag ...
@@ -309,6 +310,56 @@ func (info *information) Run(ctx context.Context) {
 	}
 
 	return
+}
+
+func addThumbHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
+	unfinThumb := defaultUnfinished(source.Thumb)
+	unfinThumb.Type = model.TypeThumb
+	unfinThumb.Relate = source.Bangumi
+	if source.Thumb != "" {
+		abs, e := filepath.Abs(source.Thumb)
+		if e != nil {
+			return nil, e
+		}
+
+		object, e := shell.AddFile(abs)
+		if e != nil {
+			return nil, e
+		}
+
+		unfinThumb.Hash = object.Hash
+		e = model.AddOrUpdateUnfinished(unfinThumb)
+		if e != nil {
+			return nil, e
+		}
+		return unfinThumb, nil
+	}
+
+	return nil, xerrors.New("no thumb")
+}
+
+func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
+	unfinPoster := defaultUnfinished(source.PosterPath)
+	unfinPoster.Type = model.TypePoster
+	unfinPoster.Relate = source.Bangumi
+
+	if source.PosterPath != "" {
+		abs, e := filepath.Abs(source.PosterPath)
+		if e != nil {
+			return nil, e
+		}
+		object, e := shell.AddFile(abs)
+		if e != nil {
+			return nil, e
+		}
+		unfinPoster.Hash = object.Hash
+		e = model.AddOrUpdateUnfinished(unfinPoster)
+		if e != nil {
+			return nil, e
+		}
+		return unfinPoster, nil
+	}
+	return nil, xerrors.New("no poster")
 }
 
 func filterList(sources []*VideoSource, list []string) (vs []*VideoSource) {

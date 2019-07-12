@@ -40,25 +40,36 @@ type Object struct {
 }
 
 // LoadOld ...
-func LoadOld(engine *xorm.Engine) map[string]*Object {
+func LoadOld(engine *xorm.Engine) []*Video {
 	var e error
-	var tables = new([]*Video)
-	e = engine.Find(tables)
+	var videos = new([]*Video)
+	e = engine.Find(videos)
 	if e != nil {
 		log.Error(e)
 		return nil
 	}
+	return *videos
+	//ret := make(map[string]*Object)
+	//for _, v := range *tables {
+	//	if len(v.VideoGroupList) > 0 {
+	//		if len(v.VideoGroupList[0].Object) > 0 {
+	//			var obj Object
+	//			obj = v.VideoGroupList[0].Object[0]
+	//			ret[v.Bangumi] = &obj
+	//		}
+	//	}
+	//}
+	//
+	//return ret
+}
 
-	ret := make(map[string]*Object)
-	for _, v := range *tables {
-		if len(v.VideoGroupList) > 0 {
-			if len(v.VideoGroupList[0].Object) > 0 {
-				var obj Object
-				obj = v.VideoGroupList[0].Object[0]
-				ret[v.Bangumi] = &obj
-			}
+func GetObject(video *Video) *Object {
+	if len(video.VideoGroupList) > 0 {
+		if len(video.VideoGroupList[0].Object) > 0 {
+			var obj Object
+			obj = video.VideoGroupList[0].Object[0]
+			return &obj
 		}
 	}
-
-	return ret
+	return nil
 }

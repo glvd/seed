@@ -259,7 +259,7 @@ func transferToJSON(to string) (e error) {
 	}
 	defer file.Close()
 	n, e := file.Write(bytes)
-	log.Infof("write(%d)", n)
+	log.With("video", len(*videos)).Infof("write(%d)", n)
 	return e
 }
 

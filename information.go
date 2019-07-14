@@ -317,6 +317,7 @@ func (info *information) Run(ctx context.Context) {
 			}
 		}
 	}
+	log.Info("move")
 	info.moves = <-moves
 
 	return

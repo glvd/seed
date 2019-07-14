@@ -20,7 +20,9 @@ func (m *move) Run(context.Context) {
 	}
 	for hash, v := range m.moves {
 		//_, name := filepath.Split(v)
-		path := filepath.Join(s, hash+filepath.Ext(v))
+		to := hash + filepath.Ext(v)
+		path := filepath.Join(s, to)
+		log.Info("move", path, "to", to)
 		e = os.Rename(v, path)
 		if e != nil {
 			log.Error(e, path)

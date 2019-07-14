@@ -272,7 +272,7 @@ func (info *information) Run(ctx context.Context) {
 								skipIPFS.Store(true)
 							} else {
 								v.PosterHash = poster.Hash
-								m[poster.Hash] = s.PosterPath
+								m[s.PosterPath] = poster.Hash
 							}
 						}
 					}
@@ -290,7 +290,7 @@ func (info *information) Run(ctx context.Context) {
 							skipIPFS.Store(true)
 						} else {
 							v.ThumbHash = thumb.Hash
-							m[thumb.Hash] = s.Thumb
+							m[s.Thumb] = thumb.Hash
 						}
 					}
 				}

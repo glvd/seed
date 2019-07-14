@@ -285,8 +285,9 @@ func (info *information) Run(ctx context.Context) {
 					}
 				}
 				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
+				runner++
 			}
-			runner++
+
 			v1 <- v
 		}
 	}(v1, skips)

@@ -245,6 +245,7 @@ func (info *information) Run(ctx context.Context) {
 		runner := max
 		m := make(map[string]string)
 		defer func() {
+			log.Info("defer")
 			moves <- m
 		}()
 		for i, s := range vs {

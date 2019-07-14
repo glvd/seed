@@ -76,6 +76,7 @@ func (info *information) BeforeRun(seed *Seed) {
 // AfterRun ...
 func (info *information) AfterRun(seed *Seed) {
 	seed.Videos = info.videos
+	seed.Moves = info.moves
 }
 
 func fixBson(s []byte) []byte {

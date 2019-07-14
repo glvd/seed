@@ -18,7 +18,7 @@ func (m *move) Run(context.Context) {
 	if e != nil {
 		return
 	}
-	for hash, v := range m.moves {
+	for v, hash := range m.moves {
 		//_, name := filepath.Split(v)
 		to := hash + filepath.Ext(v)
 		path := filepath.Join(s, to)

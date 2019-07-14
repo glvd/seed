@@ -277,7 +277,7 @@ func (info *information) Run(ctx context.Context) {
 
 				if s.Thumb != "" {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
-					if checkFileNotExist(s.PosterPath) {
+					if checkFileNotExist(s.Thumb) {
 						log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
 						continue
 					}

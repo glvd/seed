@@ -240,9 +240,10 @@ func (info *information) Run(ctx context.Context) {
 	log.With("size", len(vs), "max", max).Info("video source")
 	skipIPFS := atomic.NewBool(false)
 	v1 := make(chan *model.Video)
-	skips := make(chan int)
-	go func(v1 chan<- *model.Video, skp chan<- int) {
+	moves := make(chan map[string]string)
+	go func(v1 chan<- *model.Video, moves chan<- map[string]string) {
 		runner := 0
+		m := make(map[string]string)
 		for i, s := range vs {
 			if runner > max {
 				v1 <- nil
@@ -264,7 +265,7 @@ func (info *information) Run(ctx context.Context) {
 							skipIPFS.Store(true)
 						} else {
 							v.PosterHash = poster.Hash
-							info.moves[poster.Hash] = s.PosterPath
+							m[poster.Hash] = s.PosterPath
 						}
 					}
 				}
@@ -281,7 +282,7 @@ func (info *information) Run(ctx context.Context) {
 						skipIPFS.Store(true)
 					} else {
 						v.ThumbHash = thumb.Hash
-						info.moves[thumb.Hash] = s.Thumb
+						m[thumb.Hash] = s.Thumb
 					}
 				}
 				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
@@ -290,8 +291,9 @@ func (info *information) Run(ctx context.Context) {
 
 			v1 <- v
 		}
-	}(v1, skips)
-
+		moves <- m
+	}(v1, moves)
+	info.moves = <-moves
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:

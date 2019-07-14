@@ -22,7 +22,7 @@ func (m *move) Run(context.Context) {
 		//_, name := filepath.Split(v)
 		to := hash + filepath.Ext(v)
 		path := filepath.Join(s, to)
-		log.With("from", path, "to", to).Info("move")
+		log.With("from", v, "to", to).Info("move")
 		e = os.Rename(v, path)
 		if e != nil {
 			log.Error(e, path)

@@ -242,7 +242,7 @@ func (info *information) Run(ctx context.Context) {
 	v1 := make(chan *model.Video)
 	moves := make(chan map[string]string)
 	go func(v1 chan<- *model.Video, moves chan<- map[string]string) {
-		runner := max - 1
+		runner := max
 		m := make(map[string]string)
 		defer func() {
 			log.Info("defer")

@@ -254,7 +254,9 @@ func (info *information) Run(ctx context.Context) {
 				return
 			}
 			v := video(s)
+			var added bool
 			if !skipIPFS.Load() {
+				added = false
 				if s.Poster != "" {
 					v.PosterHash = s.Poster
 				} else {
@@ -262,15 +264,16 @@ func (info *information) Run(ctx context.Context) {
 						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
 						if checkFileNotExist(s.PosterPath) {
 							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
-							continue
-						}
-						poster, e := addPosterHash(info.shell, s)
-						if e != nil {
-							log.Error(e)
-							skipIPFS.Store(true)
 						} else {
-							v.PosterHash = poster.Hash
-							m[poster.Hash] = s.PosterPath
+							added = true
+							poster, e := addPosterHash(info.shell, s)
+							if e != nil {
+								log.Error(e)
+								skipIPFS.Store(true)
+							} else {
+								v.PosterHash = poster.Hash
+								m[poster.Hash] = s.PosterPath
+							}
 						}
 					}
 				}
@@ -279,19 +282,22 @@ func (info *information) Run(ctx context.Context) {
 					s.Thumb = filepath.Join(info.workspace, s.Thumb)
 					if checkFileNotExist(s.Thumb) {
 						log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
-						continue
-					}
-					thumb, e := addThumbHash(info.shell, s)
-					if e != nil {
-						log.Error(e)
-						skipIPFS.Store(true)
 					} else {
-						v.ThumbHash = thumb.Hash
-						m[thumb.Hash] = s.Thumb
+						added = true
+						thumb, e := addThumbHash(info.shell, s)
+						if e != nil {
+							log.Error(e)
+							skipIPFS.Store(true)
+						} else {
+							v.ThumbHash = thumb.Hash
+							m[thumb.Hash] = s.Thumb
+						}
 					}
 				}
 				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
-				runner--
+				if added {
+					runner--
+				}
 			}
 			v1 <- v
 		}

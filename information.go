@@ -294,12 +294,13 @@ func (info *information) Run(ctx context.Context) {
 						}
 					}
 				}
-				if added {
-					log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
-					runner--
-				}
 			}
-			v1 <- v
+			if added {
+				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
+				runner--
+				v1 <- v
+			}
+
 		}
 		for ; runner > 0; runner-- {
 			v1 <- nil

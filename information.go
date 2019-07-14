@@ -294,8 +294,8 @@ func (info *information) Run(ctx context.Context) {
 						}
 					}
 				}
-				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
 				if added {
+					log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
 					runner--
 				}
 			}

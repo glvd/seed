@@ -297,7 +297,7 @@ func (info *information) Run(ctx context.Context) {
 			v1 <- nil
 		}
 	}(v1, moves)
-	info.moves = <-moves
+
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
@@ -314,6 +314,7 @@ func (info *information) Run(ctx context.Context) {
 			}
 		}
 	}
+	info.moves = <-moves
 
 	return
 }

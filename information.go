@@ -242,11 +242,14 @@ func (info *information) Run(ctx context.Context) {
 	v1 := make(chan *model.Video)
 	moves := make(chan map[string]string)
 	go func(v1 chan<- *model.Video, moves chan<- map[string]string) {
-		runner := 0
+		runner := max
 		m := make(map[string]string)
+		defer func() {
+			moves <- m
+		}()
 		for i, s := range vs {
-			if runner > max {
-				v1 <- nil
+			if runner <= 0 {
+				return
 			}
 			v := video(s)
 			if !skipIPFS.Load() {
@@ -286,12 +289,13 @@ func (info *information) Run(ctx context.Context) {
 					}
 				}
 				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
-				runner++
+				runner--
 			}
-
 			v1 <- v
 		}
-		moves <- m
+		for ; runner > 0; runner-- {
+			v1 <- nil
+		}
 	}(v1, moves)
 	info.moves = <-moves
 	for ; max > 0; max-- {

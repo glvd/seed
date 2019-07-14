@@ -249,6 +249,7 @@ func (info *information) Run(ctx context.Context) {
 		}()
 		for i, s := range vs {
 			if runner <= 0 {
+				log.Info("break")
 				return
 			}
 			v := video(s)
@@ -296,6 +297,7 @@ func (info *information) Run(ctx context.Context) {
 		for ; runner > 0; runner-- {
 			v1 <- nil
 		}
+		log.Info("end")
 	}(v1, moves)
 
 	for ; max > 0; max-- {

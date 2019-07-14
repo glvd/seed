@@ -198,7 +198,7 @@ func (p *process) Run(ctx context.Context) {
 			}
 		}
 
-		p.moves[unfin.Checksum] = file
+		p.moves[file] = unfin.Hash
 	}
 	return
 }

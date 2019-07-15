@@ -105,6 +105,41 @@ func ObjectFromOld(obj *old.Object) *model.VideoObject {
 	}
 }
 
+func oldToVideo(source *old.Video) *model.Video {
+	//always not null
+	alias := []string{}
+	aliasS := ""
+	if source.Alias != nil && len(source.Alias) > 0 {
+		alias = source.Alias
+		aliasS = alias[0]
+	}
+	//always not null
+	role := []string{}
+	roleS := ""
+	if source.Role != nil && len(source.Role) > 0 {
+		role = source.Role
+		roleS = role[0]
+	}
+
+	intro := source.Intro
+	if intro == "" {
+		intro = aliasS + " " + roleS
+	}
+
+	return &model.Video{
+		FindNo:       strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", ""),
+		Bangumi:      strings.ToUpper(source.Bangumi),
+		Intro:        intro,
+		Alias:        alias,
+		Role:         role,
+		Season:       "1",
+		Episode:      "1",
+		TotalEpisode: "1",
+		Format:       "2D",
+	}
+
+}
+
 func transferFromOld(engine *xorm.Engine) (e error) {
 	videos := old.LoadOld(engine)
 	log.With("size", len(videos)).Info("videos")
@@ -122,6 +157,10 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 		}
 
 		log.With("bangumi", v.Bangumi, "v", vd).Info("v update")
+		if vd.ID == "" {
+			vd = oldToVideo(v)
+		}
+
 		if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
 			log.With("hash:", obj.Link.Hash, "bangumi", v.Bangumi).Info("info")
 			vd.M3U8Hash = obj.Link.Hash

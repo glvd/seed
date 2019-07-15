@@ -40,11 +40,6 @@ type Video struct {
 	Length       string   `json:"length"`                      //时长
 	MagnetLinks  []string `json:"-"`                           //磁链
 	Uncensored   bool     `json:"uncensored"`                  //有码,无码
-	//访问统计
-	//HLS          HLS      `xorm:"json" json:"hls,omitempty"`  //切片信息
-	//VideoGroupList []*VideoGroup `xorm:"json" json:"video_group_list"`
-	//SourceInfoList []*SourceInfo `xorm:"json" json:"source_info_list"`
-	//SourcePeerList []*SourcePeer `xorm:"json" json:"source_peer_list"`
 }
 
 func init() {

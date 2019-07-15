@@ -49,20 +49,9 @@ func LoadOld(engine *xorm.Engine) []*Video {
 		return nil
 	}
 	return *videos
-	//ret := make(map[string]*Object)
-	//for _, v := range *tables {
-	//	if len(v.VideoGroupList) > 0 {
-	//		if len(v.VideoGroupList[0].Object) > 0 {
-	//			var obj Object
-	//			obj = v.VideoGroupList[0].Object[0]
-	//			ret[v.Bangumi] = &obj
-	//		}
-	//	}
-	//}
-	//
-	//return ret
 }
 
+// GetObject ...
 func GetObject(video *Video) *Object {
 	if len(video.VideoGroupList) > 0 {
 		if len(video.VideoGroupList[0].Object) > 0 {

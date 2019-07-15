@@ -4,15 +4,15 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"io"
+	"os"
+	"strings"
+
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	"github.com/yinhevr/seed/model"
 	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 // TransferStatus ...
@@ -73,56 +73,6 @@ func Transfer(path string, from InfoFlag, status TransferStatus) Options {
 	return TransferOption(t)
 }
 
-func addThumbHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
-	unfinThumb := defaultUnfinished(source.Thumb)
-	unfinThumb.Type = model.TypeThumb
-	unfinThumb.Relate = source.Bangumi
-	if source.Thumb != "" {
-		abs, e := filepath.Abs(source.Thumb)
-		if e != nil {
-			return nil, e
-		}
-
-		object, e := shell.AddFile(abs)
-		if e != nil {
-			return nil, e
-		}
-
-		unfinThumb.Hash = object.Hash
-		e = model.AddOrUpdateUnfinished(unfinThumb)
-		if e != nil {
-			return nil, e
-		}
-		return unfinThumb, nil
-	}
-
-	return nil, xerrors.New("no thumb")
-}
-
-func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
-	unfinPoster := defaultUnfinished(source.PosterPath)
-	unfinPoster.Type = model.TypePoster
-	unfinPoster.Relate = source.Bangumi
-
-	if source.PosterPath != "" {
-		abs, e := filepath.Abs(source.PosterPath)
-		if e != nil {
-			return nil, e
-		}
-		object, e := shell.AddFile(abs)
-		if e != nil {
-			return nil, e
-		}
-		unfinPoster.Hash = object.Hash
-		e = model.AddOrUpdateUnfinished(unfinPoster)
-		if e != nil {
-			return nil, e
-		}
-		return unfinPoster, nil
-	}
-	return nil, xerrors.New("no poster")
-}
-
 func insertOldToUnfinished(ban string, obj *old.Object) error {
 	hash := ""
 	if obj.Link != nil {
@@ -156,26 +106,28 @@ func ObjectFromOld(obj *old.Object) *model.VideoObject {
 }
 
 func transferFromOld(engine *xorm.Engine) (e error) {
-	objects := old.LoadOld(engine)
-	log.With("size", len(objects)).Info("objects")
-	for ban, obj := range objects {
-		e := insertOldToUnfinished(ban, obj)
+	videos := old.LoadOld(engine)
+	log.With("size", len(videos)).Info("videos")
+	for _, v := range videos {
+		obj := old.GetObject(v)
+		e := insertOldToUnfinished(v.Bangumi, obj)
 		if e != nil {
-			log.With("bangumi", ban).Error(e)
+			log.With("bangumi", v.Bangumi).Error(e)
 			continue
 		}
-		vd, e := model.FindVideo(nil, ban)
-		if e != nil || vd.ID == "" {
-			log.With("bangumi", ban).Error(e)
+		vd, e := model.FindVideo(nil, v.Bangumi)
+		if e != nil {
+			log.With("bangumi", v.Bangumi).Error(e)
 			continue
 		}
-		log.With("bangumi", ban, "video", vd).Info("video update")
+
+		log.With("bangumi", v.Bangumi, "v", vd).Info("v update")
 		if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
-			log.With("hash:", obj.Link.Hash, "bangumi", ban).Info("info")
+			log.With("hash:", obj.Link.Hash, "bangumi", v.Bangumi).Info("info")
 			vd.M3U8Hash = obj.Link.Hash
 			e = model.AddOrUpdateVideo(vd)
 			if e != nil {
-				log.With("bangumi", ban).Error(e)
+				log.With("bangumi", v.Bangumi).Error(e)
 				continue
 			}
 		} else {

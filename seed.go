@@ -198,6 +198,13 @@ func SkipConvertOption() Options {
 	}
 }
 
+// NoSliceOption ...
+func NoSliceOption() Options {
+	return func(seed *Seed) {
+		seed.noSlice = true
+	}
+}
+
 // MaxLimitOption ...
 func MaxLimitOption(max int) Options {
 	return func(seed *Seed) {

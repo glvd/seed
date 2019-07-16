@@ -235,7 +235,7 @@ func (info *information) Run(ctx context.Context) {
 	}
 	vs = filterList(vs, info.list)
 	max := len(vs)
-	if max > info.maxLimit {
+	if max > info.maxLimit && info.maxLimit != 0 {
 		max = info.maxLimit
 	}
 	log.With("size", len(vs), "max", max).Info("video source")

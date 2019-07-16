@@ -31,6 +31,7 @@ type process struct {
 	scale       int64
 	skipConvert bool
 	skipSource  bool
+	noSlice     bool
 	preAdd      bool
 }
 

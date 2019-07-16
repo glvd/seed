@@ -78,6 +78,7 @@ type Seed struct {
 	skipConvert bool
 	skipSource  bool
 	preAdd      bool
+	noSlice     bool
 	threads     int
 	thread      []Threader
 	ignores     map[string][]byte

@@ -312,12 +312,11 @@ func (info *information) Run(ctx context.Context) {
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
-			log.Info("max:", max)
+			log.With("max", max, "data", v).Info("add video")
 			if v == nil {
 				continue
 			}
 			info.videos[v.Bangumi] = v
-			log.With("bangumi", v.Bangumi).Info("add video")
 			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)

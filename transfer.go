@@ -141,7 +141,7 @@ func oldToVideo(source *old.Video) *model.Video {
 }
 
 func transferFromOld(engine *xorm.Engine) (e error) {
-	videos := old.LoadOld(engine)
+	videos := old.AllVideos(engine)
 	log.With("size", len(videos)).Info("videos")
 	for _, v := range videos {
 		obj := old.GetObject(v)

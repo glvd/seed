@@ -39,8 +39,8 @@ type Object struct {
 	Link  *model.VideoLink   `xorm:"extends"  json:",inline,omitempty"`
 }
 
-// LoadOld ...
-func LoadOld(engine *xorm.Engine) []*Video {
+// AllVideos ...
+func AllVideos(engine *xorm.Engine) []*Video {
 	var e error
 	var videos = new([]*Video)
 	e = engine.Find(videos)

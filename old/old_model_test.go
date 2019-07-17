@@ -5,5 +5,5 @@ import _ "github.com/mattn/go-sqlite3"
 
 // TestLoadFrom ...
 func TestLoadFrom(t *testing.T) {
-	t.Logf("%+v", LoadOld("seed.db"))
+	t.Logf("%+v", AllVideos("seed.db"))
 }

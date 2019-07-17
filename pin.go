@@ -67,6 +67,9 @@ const PinStatusAssignHash PinStatus = "assignHash"
 // PinStatusAssignRelate ...
 const PinStatusAssignRelate PinStatus = "assignRelate"
 
+// PinStatusSliceOnly ...
+const PinStatusSliceOnly PinStatus = "sliceOnly"
+
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
@@ -158,6 +161,17 @@ func (p *pin) Run(ctx context.Context) {
 					p.wg.Wait()
 				}
 			}
+		}
+	case PinStatusSliceOnly:
+		videos, e := model.AllVideos(nil, 0)
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for _, v := range *videos {
+			p.wg.Add(1)
+			go p.pinHash(v.M3U8Hash)
+			p.wg.Wait()
 		}
 	}
 }

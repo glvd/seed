@@ -76,6 +76,10 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 	var sa *cmd.SplitArgs
 	if p.scale != 0 {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(p.scale), cmd.OutputOption(p.workspace))
+		res := format.ResolutionInt()
+		if int64(res) < p.scale {
+			p.scale = int64(res)
+		}
 		unfin.Sharpness = fmt.Sprintf("%dP", scale(p.scale))
 	} else {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))

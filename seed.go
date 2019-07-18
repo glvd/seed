@@ -83,6 +83,7 @@ type Seed struct {
 	thread      []Threader
 	ignores     map[string][]byte
 	err         error
+	skipExist   bool
 }
 
 // Stop ...
@@ -195,6 +196,13 @@ func ShowExecTimeOption() AfterInitOptions {
 func SkipConvertOption() Options {
 	return func(seed *Seed) {
 		seed.skipConvert = true
+	}
+}
+
+// SkipExistOption ...
+func SkipExistOption() Options {
+	return func(seed *Seed) {
+		seed.skipExist = true
 	}
 }
 

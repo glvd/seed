@@ -12,7 +12,7 @@ type Verify struct {
 	path string
 }
 
-func (v *Verify) getFiles(ws string) (files []string) {
+func GetFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
 		return nil
@@ -30,7 +30,7 @@ func (v *Verify) getFiles(ws string) (files []string) {
 		var fullPath string
 		for _, name := range names {
 			fullPath = filepath.Join(ws, name)
-			tmp := v.getFiles(fullPath)
+			tmp := GetFiles(fullPath)
 			if tmp != nil {
 				files = append(files, tmp...)
 			}
@@ -61,7 +61,7 @@ func isVideo(filename string) bool {
 }
 
 func (v *Verify) Check() (sfs map[string]*cmd.StreamFormat) {
-	files := v.getFiles(v.path)
+	files := GetFiles(v.path)
 	sfs = make(map[string]*cmd.StreamFormat, len(files))
 	for _, f := range files {
 		if !isVideo(f) {

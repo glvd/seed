@@ -3,6 +3,7 @@ package seed
 import (
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	"os"
+	"path"
 	"path/filepath"
 )
 
@@ -44,10 +45,27 @@ func NewVerify(path string) *Verify {
 	}
 }
 
+func isVideo(filename string) bool {
+	vlist := []string{
+		".swf", "flv", ".3gp", "ogm", ".vob", ".m4v", ".mkv", ".mp4", ".mpg", ".mpeg",
+		".avi", ".rm", ".rmvb", ".mov", ".wmv", ".asf", ".dat", ".asx", ".wvx", ".mpe", ".mpa",
+	}
+	ext := path.Ext(filename)
+	for _, v := range vlist {
+		if ext == v {
+			return true
+		}
+	}
+	return false
+}
+
 func (v *Verify) Check() (sfs map[string]*cmd.StreamFormat) {
 	files := v.getFiles(v.path)
 	sfs = make(map[string]*cmd.StreamFormat, len(files))
 	for _, f := range files {
+		if !isVideo(f) {
+			continue
+		}
 		format, e := cmd.FFProbeStreamFormat(f)
 		if e != nil {
 			log.Error(e)

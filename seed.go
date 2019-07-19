@@ -5,7 +5,6 @@ import (
 	"crypto/sha1"
 	"fmt"
 	"math"
-	"strings"
 	"sync"
 
 	"github.com/go-xorm/xorm"
@@ -312,7 +311,7 @@ func pinOption(pin *pin) Options {
 func IgnoreOption(ignores ...string) Options {
 	return func(seed *Seed) {
 		for _, i := range ignores {
-			seed.ignores[PathMD5(strings.ToLower(i))] = nil
+			seed.ignores[i] = nil
 		}
 	}
 }

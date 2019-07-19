@@ -232,7 +232,7 @@ func (p *process) CheckIgnore(name string) (b bool) {
 		return false
 	}
 	log.Info("check ", name)
-	_, b = p.ignores[PathMD5(strings.ToLower(name))]
+	_, b = p.ignores[name]
 	return
 }
 

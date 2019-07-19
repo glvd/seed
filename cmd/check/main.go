@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/yinhevr/seed"
 	"log"
+	"strings"
 
 	"os"
 )
@@ -28,5 +30,5 @@ func main() {
 		log.Println("enc:", err)
 		return
 	}
-
+	fmt.Println(strings.Join(v.FailedList(), " "))
 }

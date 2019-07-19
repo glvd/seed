@@ -8,6 +8,7 @@ import (
 )
 
 type Verify struct {
+	sfs  map[string]*cmd.StreamFormat
 	path string
 }
 
@@ -75,4 +76,17 @@ func (v *Verify) Check() (sfs map[string]*cmd.StreamFormat) {
 		sfs[file] = format
 	}
 	return sfs
+}
+
+func (v *Verify) FailedList() (failed []string) {
+	if v.sfs == nil {
+		v.sfs = v.Check()
+	}
+
+	for name, vv := range v.sfs {
+		if vv.ResolutionInt() < 720 {
+			failed = append(failed, name)
+		}
+	}
+	return
 }

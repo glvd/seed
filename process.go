@@ -185,26 +185,37 @@ func (p *process) Run(ctx context.Context) {
 			}
 			log.Infof("%+v", format)
 			log.Info("adding:", file)
+
 			if p.skipSource {
-				err := p.fileAdd(unfin, file)
-				if err != nil {
-					log.With("add file", file).Error(err)
-					continue
+				if p.skipExist && unfin.IsExist() {
+
+				} else {
+					err := p.fileAdd(unfin, file)
+					if err != nil {
+						log.With("add file", file).Error(err)
+						continue
+					}
+					p.unfinished[unfin.Hash] = unfin
 				}
-				p.unfinished[unfin.Hash] = unfin
+
 			}
 
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
-				unfinSlice := unfin.Clone()
-				if p.noSlice {
-					continue
+				if p.skipExist && unfin.IsExist() {
+
+				} else {
+					unfinSlice := unfin.Clone()
+					if p.noSlice {
+						continue
+					}
+					err := p.sliceAdd(unfinSlice, format, file)
+					if err != nil {
+						log.With("add slice", file).Error(err)
+						continue
+					}
+					p.unfinished[unfinSlice.Hash] = unfinSlice
 				}
-				err := p.sliceAdd(unfinSlice, format, file)
-				if err != nil {
-					log.With("add slice", file).Error(err)
-					continue
-				}
-				p.unfinished[unfinSlice.Hash] = unfinSlice
+
 			}
 		}
 

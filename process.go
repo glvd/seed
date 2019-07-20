@@ -196,6 +196,9 @@ func (p *process) Run(ctx context.Context) {
 
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
 				unfinSlice := unfin.Clone()
+				if p.noSlice {
+					continue
+				}
 				err := p.sliceAdd(unfinSlice, format, file)
 				if err != nil {
 					log.With("add slice", file).Error(err)

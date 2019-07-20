@@ -76,13 +76,14 @@ func scale(scale int64) int {
 
 func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	var sa *cmd.SplitArgs
-	if p.scale != 0 {
-		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(p.scale), cmd.OutputOption(p.workspace))
+	s := p.scale
+	if s != 0 {
 		res := format.ResolutionInt()
-		if int64(res) < p.scale {
-			p.scale = int64(res)
+		if int64(res) < s {
+			s = int64(res)
 		}
-		unfin.Sharpness = fmt.Sprintf("%dP", scale(p.scale))
+		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(p.workspace))
+		unfin.Sharpness = fmt.Sprintf("%dP", scale(s))
 	} else {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
 	}

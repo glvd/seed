@@ -31,7 +31,7 @@ func main() {
 		return
 	}
 	fixed := fixBson(bytes)
-	openFile, err := os.OpenFile("fixed.json", os.O_CREATE|os.O_APPEND|os.O_SYNC|os.O_RDWR, os.ModePerm)
+	openFile, err := os.OpenFile("fixed.json", os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
 	if err != nil {
 		log.Println(err)
 		return

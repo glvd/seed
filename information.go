@@ -233,6 +233,7 @@ func (info *information) Run(ctx context.Context) {
 		log.Info("no videos to process")
 		return
 	}
+	log.Info("list", info.list)
 	vs = filterList(vs, info.list)
 	max := len(vs)
 	if max > info.maxLimit && info.maxLimit != 0 {

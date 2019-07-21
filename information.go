@@ -228,7 +228,7 @@ func (info *information) Run(ctx context.Context) {
 			return
 		}
 	}
-
+	log.With("total", len(vs)).Info("all information")
 	if vs == nil {
 		log.Info("no videos to process")
 		return

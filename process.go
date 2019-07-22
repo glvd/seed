@@ -188,7 +188,7 @@ func (p *process) Run(ctx context.Context) {
 			log.Info("adding:", file)
 
 			if p.skipSource {
-				if !unfin.IsExist() && !p.skipExist {
+				if !unfin.IsExist() || !p.skipExist {
 					err := p.fileAdd(unfin, file)
 					if err != nil {
 						log.With("add file", file).Error(err)
@@ -200,7 +200,7 @@ func (p *process) Run(ctx context.Context) {
 			}
 
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
-				if !unfin.IsExist() && !p.skipExist {
+				if !unfin.IsExist() || !p.skipExist {
 					unfinSlice := unfin.Clone()
 					if p.noSlice {
 						continue

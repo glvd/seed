@@ -169,6 +169,23 @@ func (p *pin) Run(ctx context.Context) {
 			return
 		}
 		for _, v := range *videos {
+			if v.PosterHash != "" {
+				p.wg.Add(1)
+				go p.pinHash(v.PosterHash)
+				p.wg.Wait()
+			}
+
+			if v.ThumbHash != "" {
+				p.wg.Add(1)
+				go p.pinHash(v.ThumbHash)
+				p.wg.Wait()
+			}
+
+			if !p.skipSource && v.SourceHash != "" {
+				p.wg.Add(1)
+				go p.pinHash(v.SourceHash)
+				p.wg.Wait()
+			}
 			p.wg.Add(1)
 			go p.pinHash(v.M3U8Hash)
 			p.wg.Wait()

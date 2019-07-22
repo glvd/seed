@@ -67,6 +67,7 @@ type Seed struct {
 	maindb      *xorm.Engine
 	Workspace   string
 	Scale       int64
+	NoCheck     bool
 	Unfinished  map[string]*model.Unfinished
 	Videos      map[string]*model.Video
 	Moves       map[string]string

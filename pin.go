@@ -188,6 +188,7 @@ func (p *pin) Run(ctx context.Context) {
 			return
 		}
 		for _, v := range *videos {
+			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash).Info("pin")
 			if v.PosterHash != "" {
 				p.wg.Add(1)
 				go p.pinHash(v.PosterHash)
@@ -205,9 +206,12 @@ func (p *pin) Run(ctx context.Context) {
 				go p.pinHash(v.SourceHash)
 				p.wg.Wait()
 			}
-			p.wg.Add(1)
-			go p.pinHash(v.M3U8Hash)
-			p.wg.Wait()
+			if v.M3U8Hash != "" {
+				p.wg.Add(1)
+				go p.pinHash(v.M3U8Hash)
+				p.wg.Wait()
+			}
+
 		}
 	}
 }

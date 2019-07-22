@@ -70,6 +70,9 @@ const PinStatusAssignRelate PinStatus = "assignRelate"
 // PinStatusSliceOnly ...
 const PinStatusSliceOnly PinStatus = "sliceOnly"
 
+// PinStatusVideo ...
+const PinStatusVideo PinStatus = "video"
+
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
@@ -163,6 +166,22 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	case PinStatusSliceOnly:
+		unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypeSlice), 0)
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for _, unfin := range *unfins {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				p.wg.Add(1)
+				go p.pinHash(unfin.Hash)
+				p.wg.Wait()
+			}
+		}
+	case PinStatusVideo:
 		videos, e := model.AllVideos(nil, 0)
 		if e != nil {
 			log.Error(e)

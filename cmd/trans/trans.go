@@ -26,7 +26,7 @@ func main() {
 	ctx := cmd.FFmpegContext()
 	for _, f := range files {
 		ext := filepath.Ext(f)
-		if strings.ToUpper(ext) == ".ISO" {
+		if strings.ToUpper(ext) == ".ISO" || strings.ToUpper(ext) == ".WMV" {
 			log.Println("transfer:", f)
 			input := fmt.Sprintf("-y -i %s %s", f, f+".mp4")
 			err := cmd.FFMpegRun(ctx, input)

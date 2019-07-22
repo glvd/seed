@@ -192,6 +192,13 @@ func ShowExecTimeOption() AfterInitOptions {
 	}
 }
 
+//SkipSourceOption skip source add
+func SkipSourceOption() Options {
+	return func(seed *Seed) {
+		seed.skipSource = true
+	}
+}
+
 // SkipConvertOption ...
 func SkipConvertOption() Options {
 	return func(seed *Seed) {
@@ -284,13 +291,6 @@ func ShellOption(s string) Options {
 	return func(seed *Seed) {
 		log.Info("ipfs: ", s)
 		seed.Shell = shell.NewShell(s)
-	}
-}
-
-//SkipSourceOption skip source add
-func SkipSourceOption() Options {
-	return func(seed *Seed) {
-		seed.skipSource = true
 	}
 }
 

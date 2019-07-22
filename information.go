@@ -51,6 +51,7 @@ type information struct {
 	videos     map[string]*model.Video
 	moves      map[string]string
 	maxLimit   int
+	noCheck    bool
 }
 
 // Information ...
@@ -71,6 +72,7 @@ func (info *information) BeforeRun(seed *Seed) {
 	info.shell = seed.Shell
 	info.moves = seed.Moves
 	info.maxLimit = seed.MaxLimit
+	info.noCheck = seed.NoCheck
 }
 
 // AfterRun ...
@@ -297,7 +299,7 @@ func (info *information) Run(ctx context.Context) {
 					}
 				}
 			}
-			if added {
+			if added || info.noCheck {
 				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
 				runner--
 				v1 <- v

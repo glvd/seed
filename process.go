@@ -242,7 +242,7 @@ func (p *process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
-	log.Info("check ", name)
+	log.Info("noCheck ", name)
 	_, b = p.ignores[name]
 	return
 }

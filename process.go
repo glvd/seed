@@ -201,7 +201,7 @@ func (p *process) Run(ctx context.Context) {
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
 				unfinSlice := unfin.Clone()
 				unfinSlice.Type = model.TypeSlice
-				if !unfin.IsExist() || !p.skipExist {
+				if !unfinSlice.IsExist() || !p.skipExist {
 					if p.noSlice {
 						continue
 					}

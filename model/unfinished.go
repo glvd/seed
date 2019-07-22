@@ -101,6 +101,7 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 func (unfin *Unfinished) IsExist() bool {
 	i, e := DB().Where("checksum = ?", unfin.Checksum).
 		Where("type = ?", unfin.Type).Count()
+	log.With("checksum", unfin.Checksum, "type", unfin.Type, "num", i).Info("check exist")
 	if e != nil || i <= 0 {
 		return false
 	}

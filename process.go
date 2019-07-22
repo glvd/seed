@@ -99,7 +99,6 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 
 	last := unfin.Object.ParseLinks(dirs)
 	if last != nil {
-		unfin.Type = model.TypeSlice
 		unfin.Hash = last.Hash
 	}
 	return model.AddOrUpdateUnfinished(unfin)
@@ -200,8 +199,9 @@ func (p *process) Run(ctx context.Context) {
 			}
 
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
+				unfinSlice := unfin.Clone()
+				unfinSlice.Type = model.TypeSlice
 				if !unfin.IsExist() || !p.skipExist {
-					unfinSlice := unfin.Clone()
 					if p.noSlice {
 						continue
 					}

@@ -119,8 +119,8 @@ func AddOrUpdateVideo(video *Video) (e error) {
 	} else {
 		found, e = DB().Where("bangumi = ?", video.Bangumi).
 			//TODO:which was only one?
-			//Where("season = ?", video.Season).
-			//Where("episode = ?", video.Episode).
+			Where("season = ?", video.Season).
+			Where("episode = ?", video.Episode).
 			//Where("sharpness = ?", video.Sharpness).
 			Get(&tmp)
 	}

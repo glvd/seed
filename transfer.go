@@ -177,7 +177,29 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 	return e
 }
 
+func copyUnfinished(from *xorm.Engine) (e error) {
+	unfs := new([]*model.Unfinished)
+	e = from.Find(unfs)
+	if e != nil {
+		return e
+	}
+	for _, unf := range *unfs {
+		unf.ID = ""
+		unf.Version = 0
+		e := model.AddOrUpdateUnfinished(unf)
+		log.With("checksum", unf.Checksum, "type", unf.Type, "relate", unf.Relate, "error", e).Info("copy")
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
 func transferFromOther(engine *xorm.Engine) (e error) {
+	if err := copyUnfinished(engine); err != nil {
+		return err
+	}
+
 	fromList := new([]*model.Video)
 	e = engine.Find(fromList)
 	if e != nil {
@@ -281,6 +303,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 			}
 		//update flag video flag other sqlite3
 		case TransferStatusFromOther:
+
 			if err := transferFromOther(fromDB); err != nil {
 				return
 			}

@@ -92,9 +92,8 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
-			log.Infof("%+v", unfin)
+			log.With("checksum", unfin.Checksum, "relate", unfin.Relate, "type", unfin.Type, "sharpness", unfin.Sharpness).Infof("unfinished")
 			if idx := NumberIndex(unfin.Relate); idx != -1 {
-				log.Info("update multi")
 				if vs[idx] == nil {
 					vs[idx] = video.Clone()
 					vs[idx].Episode = strconv.Itoa(idx + 1)
@@ -125,9 +124,9 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				vs[0].SourceHash = unfin.Hash
 			}
 		}
-		log.Infof("%+v", vs)
+		log.Infof("total(%d),value:%+v", len(vs), vs)
 	case UpdateContentInfo:
-		log.Info("update hash")
+		log.With("bangumi", video.Bangumi).Info("update hash")
 		unfins := new([]*model.Unfinished)
 
 		i, e := model.DB().Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
@@ -174,7 +173,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 			}
 		}
 		vs = []*model.Video{video}
-		log.Infof("%+v", vs)
+		log.Infof("total(%d),value:%+v", len(vs), vs)
 	}
 	return vs, nil
 }

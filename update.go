@@ -257,6 +257,7 @@ func (u *update) Run(context.Context) {
 		vc <- nil
 	}(videoChan)
 
+	log.Info("update video")
 	for {
 		select {
 		case v := <-videoChan:

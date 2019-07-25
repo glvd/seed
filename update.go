@@ -127,7 +127,7 @@ func doContent(video *model.Video, content UpdateContent) (result []*model.Video
 		}
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	case UpdateContentInfo:
-		log.With("bangumi", video.Bangumi).Info("update hash")
+		log.With("bangumi", video.Bangumi).Info("update info")
 		unfins := new([]*model.Unfinished)
 
 		i, e := model.DB().Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)

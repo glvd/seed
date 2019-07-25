@@ -70,6 +70,9 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		if e != nil {
 			return nil, e
 		}
+		if i <= 0 {
+			return nil, nil
+		}
 		var unfin *model.Unfinished
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]

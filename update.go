@@ -195,18 +195,24 @@ func (u *update) Run(context.Context) {
 	go func(vc chan<- *model.Video) {
 		switch u.method {
 		case UpdateMethodAll:
-			videos, e := model.AllVideos(nil, 0)
+			i, e := model.DB().Count(&model.Video{})
 			if e != nil {
 				return
 			}
-			for _, video := range *videos {
-				vs, e := doContent(video, u.content)
+			for j := int64(0); j < i; j += 50 {
+				videos, e := model.AllVideos(nil, 50, int(j))
 				if e != nil {
-					continue
+					return
 				}
-				//u.videos[video.Bangumi] = video
-				for _, v := range vs {
-					vc <- v
+				for _, video := range *videos {
+					vs, e := doContent(video, u.content)
+					if e != nil {
+						continue
+					}
+					//u.videos[video.Bangumi] = video
+					for _, v := range vs {
+						vc <- v
+					}
 				}
 			}
 		case UpdateMethodUnfinished:

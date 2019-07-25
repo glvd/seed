@@ -191,7 +191,7 @@ func doContent(video *model.Video, content UpdateContent) (result []*model.Video
 func (u *update) Run(context.Context) {
 	log.Info("update running")
 	var e error
-	vc := make(chan *model.Video)
+	videoChan := make(chan *model.Video, 10)
 	go func(vc chan<- *model.Video) {
 		switch u.method {
 		case UpdateMethodAll:
@@ -248,11 +248,11 @@ func (u *update) Run(context.Context) {
 			}
 		}
 		vc <- nil
-	}(vc)
+	}(videoChan)
 
 	for {
 		select {
-		case v := <-vc:
+		case v := <-videoChan:
 			if v == nil {
 				goto END
 			}

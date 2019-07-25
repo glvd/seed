@@ -205,6 +205,7 @@ func (u *update) Run(context.Context) {
 					return
 				}
 				for _, video := range *videos {
+					log.With("bangumi", video.Bangumi).Info("update call")
 					vs, e := doContent(video, u.content)
 					if e != nil {
 						continue

@@ -195,6 +195,12 @@ func transferFromOther(engine *xorm.Engine) (e error) {
 		video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
 		video.Sharpness = MustString(from.Sharpness, video.Sharpness)
 		video.SourceHash = MustString(from.SourceHash, video.SourceHash)
+		if video.M3U8Hash == "" {
+			video.Season = from.Season
+			video.Episode = from.Episode
+			video.TotalEpisode = from.TotalEpisode
+		}
+
 		e = model.AddOrUpdateVideo(video)
 		if e != nil {
 			log.With("bangumi", from.Bangumi).Error(e)

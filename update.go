@@ -58,8 +58,8 @@ func updateOption(update *update) Options {
 	}
 }
 
-func doContent(video *model.Video, content UpdateContent) (result []*model.Video, e error) {
-	var vs []*model.Video
+func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
+	//var vs []*model.Video
 	switch content {
 	case UpdateContentAll:
 		log.Info("update all")
@@ -89,7 +89,7 @@ func doContent(video *model.Video, content UpdateContent) (result []*model.Video
 			}
 
 		}
-		vs := make([]*model.Video, i)
+		vs = make([]*model.Video, i)
 
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
@@ -177,14 +177,14 @@ func doContent(video *model.Video, content UpdateContent) (result []*model.Video
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	}
 
-	for _, v := range vs {
-		if v == nil {
-			continue
-		}
-		result = append(result, v)
-	}
+	//for _, v := range vs {
+	//	if v == nil {
+	//		continue
+	//	}
+	//	result = append(result, v)
+	//}
 
-	return result, nil
+	return vs, nil
 }
 
 // Run ...
@@ -212,6 +212,9 @@ func (u *update) Run(context.Context) {
 					}
 					//u.videos[video.Bangumi] = video
 					for _, v := range vs {
+						if v == nil {
+							continue
+						}
 						vc <- v
 					}
 				}
@@ -239,6 +242,9 @@ func (u *update) Run(context.Context) {
 					continue
 				}
 				for _, v := range vs {
+					if v == nil {
+						continue
+					}
 					vc <- v
 				}
 			}
@@ -250,6 +256,9 @@ func (u *update) Run(context.Context) {
 					continue
 				}
 				for _, v := range vs {
+					if v == nil {
+						continue
+					}
 					vc <- v
 				}
 			}

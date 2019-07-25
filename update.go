@@ -58,7 +58,8 @@ func updateOption(update *update) Options {
 	}
 }
 
-func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
+func doContent(video *model.Video, content UpdateContent) (result []*model.Video, e error) {
+	var vs []*model.Video
 	switch content {
 	case UpdateContentAll:
 		log.Info("update all")
@@ -88,7 +89,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 			}
 
 		}
-		vs = make([]*model.Video, i)
+		vs := make([]*model.Video, i)
 
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
@@ -175,84 +176,97 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		vs = []*model.Video{video}
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	}
-	return vs, nil
+
+	for _, v := range vs {
+		if v == nil {
+			continue
+		}
+		result = append(result, v)
+	}
+
+	return result, nil
 }
 
 // Run ...
 func (u *update) Run(context.Context) {
 	log.Info("update running")
 	var e error
-	var updateVideos []*model.Video
-	switch u.method {
-	case UpdateMethodAll:
-		videos, e := model.AllVideos(nil, 0)
-		if e != nil {
-			return
-		}
-		for _, video := range *videos {
-			vs, e := doContent(video, u.content)
+	vc := make(chan *model.Video)
+	go func(vc chan<- *model.Video) {
+		switch u.method {
+		case UpdateMethodAll:
+			videos, e := model.AllVideos(nil, 0)
 			if e != nil {
-				continue
+				return
 			}
-			//u.videos[video.Bangumi] = video
-			updateVideos = append(updateVideos, vs...)
-		}
-	case UpdateMethodUnfinished:
-		for _, unfin := range u.unfinished {
-
-			video, b := u.videos[unfin.Relate]
-			if !b {
-				relate := onlyNo(unfin.Relate)
-				video, b := u.videos[relate]
-				if b {
-					video.Clone()
+			for _, video := range *videos {
+				vs, e := doContent(video, u.content)
+				if e != nil {
+					continue
 				}
+				//u.videos[video.Bangumi] = video
+				for _, v := range vs {
+					vc <- v
+				}
+			}
+		case UpdateMethodUnfinished:
+			for _, unfin := range u.unfinished {
 
-				video, e = model.FindVideo(nil, unfin.Relate)
+				video, b := u.videos[unfin.Relate]
+				if !b {
+					relate := onlyNo(unfin.Relate)
+					video, b := u.videos[relate]
+					if b {
+						video.Clone()
+					}
+
+					video, e = model.FindVideo(nil, unfin.Relate)
+					if e != nil {
+						log.With("id", unfin.ID).Error(e)
+						continue
+					}
+				}
+				vs, e := doContent(video, u.content)
 				if e != nil {
 					log.With("id", unfin.ID).Error(e)
 					continue
 				}
+				for _, v := range vs {
+					vc <- v
+				}
 			}
-			vs, e := doContent(video, u.content)
-			if e != nil {
-				log.With("id", unfin.ID).Error(e)
-				continue
+		case UpdateMethodVideo:
+			for _, video := range u.videos {
+				vs, e := doContent(video, u.content)
+				if e != nil {
+					log.With("video", video.Bangumi).Error(e)
+					continue
+				}
+				for _, v := range vs {
+					vc <- v
+				}
 			}
-			updateVideos = append(updateVideos, vs...)
-			//u.videos[video.Bangumi] = video
 		}
-	case UpdateMethodVideo:
-		for _, video := range u.videos {
-			vs, e := doContent(video, u.content)
-			if e != nil {
-				log.With("video", video.Bangumi).Error(e)
-				continue
-			}
-			updateVideos = append(updateVideos, vs...)
-		}
-	}
+		vc <- nil
+	}(vc)
 
-	if updateVideos == nil {
-		log.Error("nil videos")
-		return
-	}
-
-	u.wg.Add(1)
-	go func() {
-		defer u.wg.Done()
-		for _, video := range updateVideos {
-			if video == nil {
-				continue
+	for {
+		select {
+		case v := <-vc:
+			if v == nil {
+				goto END
 			}
-			e := model.AddOrUpdateVideo(video)
+			log.With("bangumi", v.Bangumi, "m3u8_hash", v.M3U8Hash).Info("update")
+			e := model.AddOrUpdateVideo(v)
 			if e != nil {
 				log.Error(e)
 				continue
 			}
 		}
-	}()
-	u.wg.Wait()
+	}
+
+END:
+	log.Info("update end")
 }
 
 // BeforeRun ...

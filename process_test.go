@@ -32,15 +32,15 @@ func TestProcess(t *testing.T) {
 
 // TestName ...
 func TestName(t *testing.T) {
+	t.Log(onlyNo("file-09-B.name"))
 	t.Log(onlyNo("file-09B.name"))
-	t.Log(onlyNo("file-09.name"))
 	t.Log(onlyNo("file"))
 	t.Log(onlyNo(".file"))
 	t.Log(onlyNo("."))
 	t.Log(onlyNo(""))
 	t.Log(NumberIndex("file-09"))
-	t.Log(NumberIndex("file-09C"))
-	t.Log(NumberIndex("file-09B"))
-	t.Log(NumberIndex("file-09A"))
+	t.Log(NumberIndex("file-09-C"))
+	t.Log(NumberIndex("file-09-B"))
+	t.Log(NumberIndex("file-09-A"))
 
 }

@@ -129,7 +129,10 @@ func onlyNo(name string) string {
 	s := []rune(onlyName(name))
 	last := len(s) - 1
 	if last > 0 && unicode.IsLetter(s[last]) {
-		return string(s[:last])
+		if s[last-1] == rune('-') {
+			return string(s[:last-1])
+		}
+		//return string(s[:last])
 	}
 	return string(s)
 }
@@ -149,9 +152,20 @@ func IndexNumber(index int) byte {
 func NumberIndex(name string) int {
 	size := len(name)
 	if size > 0 {
-		return strings.IndexByte(relateList, name[size-1])
+		return strings.Index(relateList, LastSlice(name, "-"))
 	}
 	return -1
+}
+
+func LastSlice(s, sep string) string {
+	ss := strings.Split(s, sep)
+	for i := len(ss) - 1; i >= 0; i-- {
+		if ss[i] == "" {
+			continue
+		}
+		return ss[i]
+	}
+	return ""
 }
 
 // Run ...

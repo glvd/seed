@@ -34,7 +34,7 @@ func TestProcess(t *testing.T) {
 func TestName(t *testing.T) {
 	t.Log(onlyNo("file-09-B.name"))
 	t.Log(onlyNo("file-09B.name"))
-	t.Log(onlyNo("file"))
+	t.Log(onlyNo("file-001R"))
 	t.Log(onlyNo(".file"))
 	t.Log(onlyNo("."))
 	t.Log(onlyNo(""))

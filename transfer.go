@@ -178,20 +178,45 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 }
 
 func copyUnfinished(from *xorm.Engine) (e error) {
-	unfs := new([]*model.Unfinished)
-	e = from.Find(unfs)
+	i, e := from.Count(&model.Unfinished{})
 	if e != nil {
-		return e
+		log.Error(e)
+		return
 	}
-	for _, unf := range *unfs {
-		unf.ID = ""
-		unf.Version = 0
-		e := model.AddOrUpdateUnfinished(unf)
-		log.With("checksum", unf.Checksum, "type", unf.Type, "relate", unf.Relate, "error", e).Info("copy")
-		if e != nil {
-			return e
+
+	unfChan := make(chan *model.Unfinished, 5)
+	go func(unfin chan<- *model.Unfinished) {
+		for x := int64(0); x < i; x += 5 {
+			unfs := new([]*model.Unfinished)
+			e := from.Limit(5, int(x)).Find(unfs)
+			if e != nil {
+				continue
+			}
+			for _, u := range *unfs {
+				unfin <- u
+			}
+		}
+		unfin <- nil
+	}(unfChan)
+
+	for {
+		select {
+		case unfin := <-unfChan:
+			if unfin == nil {
+				goto END
+			}
+			unfin.ID = ""
+			unfin.Version = 0
+			e := model.AddOrUpdateUnfinished(unfin)
+			log.With("checksum", unfin.Checksum, "type", unfin.Type, "relate", unfin.Relate, "error", e).Info("copy")
+			if e != nil {
+				return e
+			}
 		}
 	}
+
+END:
+	log.Infof("unfinished(%d) done", i)
 	return nil
 }
 

@@ -127,7 +127,7 @@ func oldToVideo(source *old.Video) *model.Video {
 	}
 
 	return &model.Video{
-		FindNo:       strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", ""),
+		FindNo:       strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(source.Bangumi, "-", ""), "_", "")),
 		Bangumi:      strings.ToUpper(source.Bangumi),
 		Intro:        intro,
 		Alias:        alias,

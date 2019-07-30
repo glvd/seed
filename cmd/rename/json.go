@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/godcong/go-trait"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 var log = trait.NewZapSugar()
@@ -20,18 +23,30 @@ func main() {
 		return
 	}
 
-	var role Role
-	err = json.Unmarshal(&role)
+	bytes, err := ioutil.ReadFile(dir)
 	if err != nil {
 		panic(err)
 	}
 
+	var role Role
+	err = json.Unmarshal(fixBson(bytes), &role)
+	if err != nil {
+		panic(err)
+	}
+	path, _ := filepath.Split(dir)
 	for _, ele := range ([]RoleElement)(role) {
 		ext := filepath.Ext(ele.Avatar)
 		log.With("from", ele.Avatar, "to", ele.Name+ext).Info("rename")
-		_ = os.Rename(ele.Avatar, ele.Name+ext)
+		old := filepath.Join(path, ele.Avatar)
+		new := filepath.Join(path, ele.Name+ext)
+		_ = os.Rename(old, new)
 	}
 
+}
+
+func fixBson(s []byte) []byte {
+	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
+	return reg.ReplaceAll(s, []byte(" "))
 }
 
 type Role []RoleElement

@@ -104,7 +104,7 @@ func DeepFind(s string, videos *[]*Video) (e error) {
 	return e
 }
 
-func mustStr(s *string, d string) {
+func parseStr(s *string, d string) {
 	if *s == "" {
 		*s = d
 	}
@@ -131,10 +131,10 @@ func AddOrUpdateVideo(video *Video) (e error) {
 	if found {
 		video.Version = tmp.Version
 		video.ID = tmp.ID
-		mustStr(&video.M3U8Hash, tmp.M3U8Hash)
-		mustStr(&video.SourceHash, tmp.SourceHash)
-		mustStr(&video.PosterHash, tmp.PosterHash)
-		mustStr(&video.ThumbHash, tmp.ThumbHash)
+		parseStr(&video.M3U8Hash, tmp.M3U8Hash)
+		parseStr(&video.SourceHash, tmp.SourceHash)
+		parseStr(&video.PosterHash, tmp.PosterHash)
+		parseStr(&video.ThumbHash, tmp.ThumbHash)
 		i, e := DB().ID(video.ID).Update(video)
 		log.Infof("updated(%d): %+v", i, tmp)
 		return e

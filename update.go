@@ -104,8 +104,8 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				if vs[idx] == nil {
 					vs[idx] = video.Clone()
 					vs[idx].Episode = strconv.Itoa(idx + 1)
-					if total < vs[idx].Episode {
-						total = vs[idx].Episode
+					if total < idx+1 {
+						total = idx + 1
 					}
 				}
 
@@ -120,7 +120,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 
 		for i := range vs {
 			if vs[i] != nil {
-				vs[i].TotalEpisode = total
+				vs[i].TotalEpisode = strconv.Itoa(total)
 			}
 		}
 

@@ -136,52 +136,23 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		var unfin *model.Unfinished
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
-			switch unfin.Type {
-			//case model.TypeSlice:
-			//	video.M3U8Hash = unfin.Hash
-			case model.TypePoster:
-				video.PosterHash = unfin.Hash
-			case model.TypeThumb:
-				video.ThumbHash = unfin.Hash
-				//case model.TypeVideo:
-				//	video.SourceHash = unfin.Hash
-			}
+			parseInfo(video, unfin)
 
 		}
-		//vs = make([]*model.Video, i)
 
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
 			if idx := NumberIndex(unfin.Relate); idx != -1 {
 				if strconv.Itoa(idx) == video.Episode {
-					video.Sharpness = unfin.Sharpness
-					switch unfin.Type {
-					case model.TypeSlice:
-						video.M3U8Hash = unfin.Hash
-					case model.TypeVideo:
-						video.SourceHash = unfin.Hash
-					}
+					parseInfo(video, unfin)
 				}
 			} else {
-				video.Sharpness = unfin.Sharpness
-				switch unfin.Type {
-				case model.TypeSlice:
-					video.M3U8Hash = unfin.Hash
-				case model.TypeVideo:
-					video.SourceHash = unfin.Hash
-				}
+				parseInfo(video, unfin)
 			}
 		}
 		vs = []*model.Video{video}
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	}
-
-	//for _, v := range vs {
-	//	if v == nil {
-	//		continue
-	//	}
-	//	result = append(result, v)
-	//}
 
 	return vs, nil
 }

@@ -58,6 +58,21 @@ func updateOption(update *update) Options {
 	}
 }
 
+func parseInfo(video *model.Video, unfin *model.Unfinished) {
+	switch unfin.Type {
+	case model.TypePoster:
+		video.PosterHash = unfin.Hash
+	case model.TypeThumb:
+		video.ThumbHash = unfin.Hash
+	case model.TypeSlice:
+		video.Sharpness = unfin.Sharpness
+		video.M3U8Hash = unfin.Hash
+	case model.TypeVideo:
+		video.Sharpness = MustString(video.Sharpness, unfin.Sharpness)
+		video.SourceHash = unfin.Hash
+	}
+}
+
 func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
 	//var vs []*model.Video
 	switch content {
@@ -77,20 +92,11 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		var unfin *model.Unfinished
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
-			switch unfin.Type {
-			//case model.TypeSlice:
-			//	video.M3U8Hash = unfin.Hash
-			case model.TypePoster:
-				video.PosterHash = unfin.Hash
-			case model.TypeThumb:
-				video.ThumbHash = unfin.Hash
-				//case model.TypeVideo:
-				//	video.SourceHash = unfin.Hash
-			}
-
+			parseInfo(video, unfin)
 		}
-		vs = make([]*model.Video, i)
 
+		vs = make([]*model.Video, i)
+		total := 1
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
 			log.With("checksum", unfin.Checksum, "relate", unfin.Relate, "type", unfin.Type, "sharpness", unfin.Sharpness).Infof("unfinished")
@@ -98,33 +104,26 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 				if vs[idx] == nil {
 					vs[idx] = video.Clone()
 					vs[idx].Episode = strconv.Itoa(idx + 1)
+					if total < vs[idx].Episode {
+						total = vs[idx].Episode
+					}
 				}
 
-				switch unfin.Type {
-				case model.TypeSlice:
-					//slice sharpness > source sharpness
-					vs[idx].Sharpness = unfin.Sharpness
-					vs[idx].M3U8Hash = unfin.Hash
-				case model.TypeVideo:
-					vs[idx].Sharpness = MustString(vs[idx].Sharpness, unfin.Sharpness)
-					//vs[idx].Sharpness = unfin.Sharpness
-					vs[idx].SourceHash = unfin.Hash
-				}
+				parseInfo(vs[idx], unfin)
 				continue
 			}
 			if vs[0] == nil {
 				vs[0] = video.Clone()
 			}
-			switch unfin.Type {
-			case model.TypeSlice:
-				//slice sharpness > source sharpness
-				vs[0].Sharpness = unfin.Sharpness
-				vs[0].M3U8Hash = unfin.Hash
-			case model.TypeVideo:
-				vs[0].Sharpness = MustString(vs[0].Sharpness, unfin.Sharpness)
-				vs[0].SourceHash = unfin.Hash
+			parseInfo(vs[0], unfin)
+		}
+
+		for i := range vs {
+			if vs[i] != nil {
+				vs[i].TotalEpisode = total
 			}
 		}
+
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	case UpdateContentInfo:
 		log.With("bangumi", video.Bangumi).Info("update info")

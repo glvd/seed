@@ -1,4 +1,4 @@
-module github.com/yinhevr/seed
+module github.com/glvd/seed
 
 go 1.12
 

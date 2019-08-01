@@ -82,7 +82,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 	case UpdateContentHash:
 		log.With("bangumi", video.Bangumi).Info("update hash")
 		unfins := new([]*model.Unfinished)
-		i, e := model.DB().Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
+		i, e = model.DB().Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"-%").FindAndCount(unfins)
 		if e != nil {
 			return nil, e
 		}

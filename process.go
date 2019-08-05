@@ -11,8 +11,8 @@ import (
 
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 
+	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
 )
 
 func dummy(process *process) (e error) {

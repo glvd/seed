@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/yinhevr/seed"
+	"github.com/glvd/seed"
 )
 
 func main() {

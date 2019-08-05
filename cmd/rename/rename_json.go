@@ -9,7 +9,7 @@ import (
 	"regexp"
 )
 
-var log = trait.NewZapSugar()
+var log2 = trait.NewZapSugar()
 
 func main() {
 	args := os.Args
@@ -19,7 +19,7 @@ func main() {
 		dir = args[1]
 	}
 	if err != nil {
-		log.Info("wd:", err)
+		log2.Info("wd:", err)
 		return
 	}
 
@@ -36,7 +36,7 @@ func main() {
 	path, _ := filepath.Split(dir)
 	for _, ele := range ([]RoleElement)(role) {
 		ext := filepath.Ext(ele.Avatar)
-		log.With("from", ele.Avatar, "to", ele.Name+ext).Info("rename")
+		log2.With("from", ele.Avatar, "to", ele.Name+ext).Info("rename")
 		old := filepath.Join(path, ele.Avatar)
 		new := filepath.Join(path, ele.Name+ext)
 		_ = os.Rename(old, new)

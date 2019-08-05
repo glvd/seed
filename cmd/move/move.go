@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/yinhevr/seed"
+	"github.com/glvd/seed"
 	"log"
 	"os"
 	"path/filepath"

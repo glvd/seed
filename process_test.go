@@ -1,7 +1,7 @@
 package seed
 
 import (
-	"github.com/yinhevr/seed/model"
+	"github.com/glvd/seed/model"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"

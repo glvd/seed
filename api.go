@@ -2,8 +2,8 @@ package seed
 
 import (
 	"context"
+	"github.com/glvd/seed/model"
 	"github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
 	"golang.org/x/xerrors"
 	"strings"
 	"sync"

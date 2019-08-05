@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/glvd/seed"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
-	"github.com/yinhevr/seed"
 )
 
 func main() {

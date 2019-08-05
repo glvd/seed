@@ -8,10 +8,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/glvd/seed/model"
+	"github.com/glvd/seed/old"
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
-	"github.com/yinhevr/seed/old"
 	"golang.org/x/xerrors"
 )
 

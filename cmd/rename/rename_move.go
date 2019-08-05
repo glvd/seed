@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/glvd/seed"
 	"github.com/godcong/go-trait"
-	"github.com/yinhevr/seed"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-var log = trait.NewZapSugar()
+var log1 = trait.NewZapSugar()
 
 func main() {
 	args := os.Args
@@ -18,7 +18,7 @@ func main() {
 		dir = args[1]
 	}
 	if err != nil {
-		log.Info("wd:", err)
+		log1.Info("wd:", err)
 		return
 	}
 	files := seed.GetFiles(dir)
@@ -26,13 +26,13 @@ func main() {
 	for _, f := range files {
 		dir, name := filepath.Split(f)
 		dirname := strings.Split(dir, string(os.PathSeparator))
-		log.With("role", getRealName(dirname)).Info("proc")
+		log1.With("role", getRealName(dirname)).Info("proc")
 		ext := filepath.Ext(name)
 		nDir := getDir2(dir)
 		_ = os.MkdirAll(nDir, os.ModePerm)
 		nPath := filepath.Join(nDir, getRealName(dirname)+ext)
 		e := os.Rename(f, nPath)
-		log.Error(e)
+		log1.Error(e)
 	}
 }
 

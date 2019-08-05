@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-xorm/xorm"
 
+	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
-	"github.com/yinhevr/seed/model"
 )
 
 // Options ...

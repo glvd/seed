@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
-	"github.com/yinhevr/seed/model"
 	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )

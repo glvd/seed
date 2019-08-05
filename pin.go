@@ -5,7 +5,7 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	"sync"
 
-	"github.com/yinhevr/seed/model"
+	"github.com/glvd/seed/model"
 )
 
 // PinFlag ...

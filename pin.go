@@ -281,7 +281,7 @@ func (p *pin) pinHash(hash string) (e error) {
 	log.Info("pinning:", hash)
 	e = p.shell.Pin(hash)
 	if e != nil {
-		log.Error("pin error:", hash, e)
+		log.With("hash", hash).Error(e)
 	}
 	return
 }

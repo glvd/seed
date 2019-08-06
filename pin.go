@@ -273,11 +273,11 @@ func (p *pin) Run(ctx context.Context) {
 }
 
 func (p *pin) pinHash(hash string) (e error) {
-	defer func() {
-		if p.wg != nil {
-			p.wg.Done()
-		}
-	}()
+	//defer func() {
+	//	if p.wg != nil {
+	//		p.wg.Done()
+	//	}
+	//}()
 	log.Info("pinning:", hash)
 	e = p.shell.Pin(hash)
 	if e != nil {

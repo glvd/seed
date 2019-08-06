@@ -193,26 +193,34 @@ func (p *pin) Run(ctx context.Context) {
 		for _, v := range *videos {
 			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("pin")
 			if v.PosterHash != "" {
-				p.wg.Add(1)
-				go p.pinHash(v.PosterHash)
-				p.wg.Wait()
+				e := p.pinHash(v.PosterHash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 
 			if v.ThumbHash != "" {
-				p.wg.Add(1)
-				go p.pinHash(v.ThumbHash)
-				p.wg.Wait()
+				e := p.pinHash(v.ThumbHash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 
 			if !p.skipSource && v.SourceHash != "" {
-				p.wg.Add(1)
-				go p.pinHash(v.SourceHash)
-				p.wg.Wait()
+				e := p.pinHash(v.SourceHash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 			if v.M3U8Hash != "" {
-				p.wg.Add(1)
-				go p.pinHash(v.M3U8Hash)
-				p.wg.Wait()
+				e := p.pinHash(v.M3U8Hash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 
 		}
@@ -236,12 +244,14 @@ func (p *pin) Run(ctx context.Context) {
 					return
 				default:
 					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
-					p.wg.Add(1)
-					go p.pinHash(unf.Hash)
-					p.wg.Wait()
+					e := p.pinHash(unf.Hash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
 					unf.Sync = true
 					p.unfinished[unf.Hash] = unf
-					e := model.AddOrUpdateUnfinished(unf)
+					e = model.AddOrUpdateUnfinished(unf)
 					if e != nil {
 						log.Error(e)
 						continue
@@ -252,17 +262,16 @@ func (p *pin) Run(ctx context.Context) {
 	}
 }
 
-func (p *pin) pinHash(hash string) {
+func (p *pin) pinHash(hash string) (e error) {
 	defer func() {
 		if p.wg != nil {
 			p.wg.Done()
 		}
 	}()
 	log.Info("pinning:", hash)
-	e := p.shell.Pin(hash)
+	e = p.shell.Pin(hash)
 	if e != nil {
 		log.Error("pin error:", hash, e)
-		return
 	}
-
+	return
 }

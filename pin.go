@@ -81,7 +81,7 @@ func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
 		status: status,
 		list:   list,
-		wg:     &sync.WaitGroup{},
+		//wg:     &sync.WaitGroup{},
 	}
 
 	return pinOption(pin)

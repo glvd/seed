@@ -110,12 +110,14 @@ func (p *pin) Run(ctx context.Context) {
 				}
 
 				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
-				p.wg.Add(1)
-				go p.pinHash(unf.Hash)
-				p.wg.Wait()
+				e := p.pinHash(unf.Hash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 				unf.Sync = true
 				p.unfinished[unf.Hash] = unf
-				e := model.AddOrUpdateUnfinished(unf)
+				e = model.AddOrUpdateUnfinished(unf)
 				if e != nil {
 					log.Error(e)
 					continue
@@ -129,11 +131,13 @@ func (p *pin) Run(ctx context.Context) {
 				return
 			default:
 				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
-				p.wg.Add(1)
-				go p.pinHash(hash)
-				p.wg.Wait()
+				e := p.pinHash(hash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 				p.unfinished[hash].Sync = true
-				e := model.AddOrUpdateUnfinished(p.unfinished[hash])
+				e = model.AddOrUpdateUnfinished(p.unfinished[hash])
 				if e != nil {
 					continue
 				}
@@ -145,9 +149,11 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				p.wg.Add(1)
-				go p.pinHash(hash)
-				p.wg.Wait()
+				e := p.pinHash(hash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 		}
 	case PinStatusAssignRelate:
@@ -162,9 +168,11 @@ func (p *pin) Run(ctx context.Context) {
 					continue
 				}
 				for _, unfin := range *unfins {
-					p.wg.Add(1)
-					go p.pinHash(unfin.Hash)
-					p.wg.Wait()
+					e := p.pinHash(unfin.Hash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
 				}
 			}
 		}
@@ -179,9 +187,11 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				p.wg.Add(1)
-				go p.pinHash(unfin.Hash)
-				p.wg.Wait()
+				e := p.pinHash(unfin.Hash)
+				if e != nil {
+					log.Error(e)
+					return
+				}
 			}
 		}
 	case PinStatusVideo:

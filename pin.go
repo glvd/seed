@@ -73,6 +73,9 @@ const PinStatusSliceOnly PinStatus = "sliceOnly"
 // PinStatusVideo ...
 const PinStatusVideo PinStatus = "video"
 
+// PinStatusVideo ...
+const PinStatusPoster PinStatus = "poster"
+
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
@@ -212,6 +215,39 @@ func (p *pin) Run(ctx context.Context) {
 				p.wg.Wait()
 			}
 
+		}
+	case PinStatusPoster:
+		i, e := model.DB().Where("type = ?", model.TypePoster).Count(model.Unfinished{})
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for start := 0; start < int(i); i += 50 {
+			unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypePoster), 50, start)
+			if e != nil {
+				log.Error(e)
+				return
+			}
+
+			log.Infof("pin(%d)", len(*unfins))
+			for _, unf := range *unfins {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
+					p.wg.Add(1)
+					go p.pinHash(unf.Hash)
+					p.wg.Wait()
+					unf.Sync = true
+					p.unfinished[unf.Hash] = unf
+					e := model.AddOrUpdateUnfinished(unf)
+					if e != nil {
+						log.Error(e)
+						continue
+					}
+				}
+			}
 		}
 	}
 }

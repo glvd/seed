@@ -240,7 +240,7 @@ func (p *pin) Run(ctx context.Context) {
 			log.Error(e)
 			return
 		}
-		for start := 0; start < int(i); i += 50 {
+		for start := 0; start < int(i); start += 50 {
 			unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypePoster), 50, start)
 			if e != nil {
 				log.Error(e)

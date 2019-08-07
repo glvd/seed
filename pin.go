@@ -2,8 +2,9 @@ package seed
 
 import (
 	"context"
-	shell "github.com/godcong/go-ipfs-restapi"
 	"sync"
+
+	shell "github.com/godcong/go-ipfs-restapi"
 
 	"github.com/glvd/seed/model"
 )
@@ -92,35 +93,42 @@ func (p *pin) Run(ctx context.Context) {
 	log.Info("pin running")
 	switch p.status {
 	case PinStatusAll:
-		unfins, e := model.AllUnfinished(nil, 0)
+		i, e := model.DB().Count(model.Unfinished{})
 		if e != nil {
 			log.Error(e)
 			return
 		}
-
-		log.Infof("pin(%d)", len(*unfins))
-		for _, unf := range *unfins {
-			select {
-			case <-ctx.Done():
+		for start := 0; start < int(i); start += 50 {
+			unfins, e := model.AllUnfinished(nil, 50, start)
+			if e != nil {
+				log.Error(e)
 				return
-			default:
-				if p.skipSource && unf.Type == model.TypeVideo {
-					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin skip")
-					continue
-				}
+			}
 
-				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
-				e := p.pinHash(unf.Hash)
-				if e != nil {
-					log.Error(e)
+			log.Infof("pin(%d)", len(*unfins))
+			for _, unf := range *unfins {
+				select {
+				case <-ctx.Done():
 					return
-				}
-				unf.Sync = true
-				p.unfinished[unf.Hash] = unf
-				e = model.AddOrUpdateUnfinished(unf)
-				if e != nil {
-					log.Error(e)
-					continue
+				default:
+					if p.skipSource && unf.Type == model.TypeVideo {
+						log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin skip")
+						continue
+					}
+
+					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
+					e := p.pinHash(unf.Hash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
+					unf.Sync = true
+					p.unfinished[unf.Hash] = unf
+					e = model.AddOrUpdateUnfinished(unf)
+					if e != nil {
+						log.Error(e)
+						continue
+					}
 				}
 			}
 		}
@@ -162,7 +170,7 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				unfins, e := model.AllUnfinished(model.DB().Where("relate like ?", relate+"%"), 0)
+				unfins, e := model.AllUnfinished(model.DB().Where("relate = ?", relate).Or("relate like ?", relate+"-%"), 0)
 				if e != nil {
 					log.Error(e)
 					continue
@@ -177,20 +185,27 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	case PinStatusSliceOnly:
-		unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypeSlice), 0)
+		i, e := model.DB().Where("type = ?", model.TypeSlice).Count(model.Unfinished{})
 		if e != nil {
 			log.Error(e)
 			return
 		}
-		for _, unfin := range *unfins {
-			select {
-			case <-ctx.Done():
+		for start := 0; start < int(i); start += 50 {
+			unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypeSlice), 50, start)
+			if e != nil {
+				log.Error(e)
 				return
-			default:
-				e := p.pinHash(unfin.Hash)
-				if e != nil {
-					log.Error(e)
+			}
+			for _, unfin := range *unfins {
+				select {
+				case <-ctx.Done():
 					return
+				default:
+					e := p.pinHash(unfin.Hash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
 				}
 			}
 		}

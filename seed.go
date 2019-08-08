@@ -49,6 +49,7 @@ const (
 	StepperMoveproc
 	StepperTransfer
 	StepperPin
+	StepperCheck
 	StepperUpdate
 	StepperMax
 )

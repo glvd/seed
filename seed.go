@@ -11,6 +11,7 @@ import (
 
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
+	api "github.com/ipfs/go-ipfs-http-client"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -65,6 +66,7 @@ type Seeder interface {
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell
+	API         *api.HttpApi
 	maindb      *xorm.Engine
 	Workspace   string
 	Scale       int64
@@ -142,6 +144,14 @@ func NewSeed(ops ...Options) *Seed {
 
 	if seed.Shell == nil {
 		seed.Shell = shell.NewShell("localhost:5001")
+	}
+
+	if seed.API == nil {
+		addrApi, e := api.NewAddrApi("/ip4/127.0.0.1/tcp/5001")
+		if e != nil {
+			return nil
+		}
+		seed.API = addrApi
 	}
 
 	return seed

@@ -3,25 +3,36 @@ package seed
 import (
 	"context"
 
-	shell "github.com/godcong/go-ipfs-restapi"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 )
 
 // check ...
 type check struct {
-	shell *shell.Shell
-	Type  string
+	api  *httpapi.HttpApi
+	Type string
 }
 
 func (c *check) Run(context.Context) {
 	switch c.Type {
 	case "pin":
-
+		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
+			settings.Type = "recursive"
+			return nil
+		})
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for _, p := range pins {
+			log.With("path", p.Path()).Info("pinned")
+		}
 	}
 }
 
 // BeforeRun ...
 func (c *check) BeforeRun(seed *Seed) {
-	c.shell = seed.Shell
+	c.api = seed.API
 }
 
 // AfterRun ...

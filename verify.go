@@ -7,11 +7,13 @@ import (
 	"path/filepath"
 )
 
+// Verify ...
 type Verify struct {
 	sfs  map[string]*cmd.StreamFormat
 	path string
 }
 
+// GetFiles ...
 func GetFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
@@ -40,6 +42,7 @@ func GetFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
+// NewVerify ...
 func NewVerify(path string) *Verify {
 	return &Verify{
 		path: path,
@@ -60,6 +63,7 @@ func isVideo(filename string) bool {
 	return false
 }
 
+// Check ...
 func (v *Verify) Check() (sfs map[string]*cmd.StreamFormat) {
 	files := GetFiles(v.path)
 	sfs = make(map[string]*cmd.StreamFormat, len(files))
@@ -78,6 +82,7 @@ func (v *Verify) Check() (sfs map[string]*cmd.StreamFormat) {
 	return sfs
 }
 
+// FailedList ...
 func (v *Verify) FailedList() (failed []string) {
 	if v.sfs == nil {
 		v.sfs = v.Check()

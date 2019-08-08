@@ -157,6 +157,7 @@ func NumberIndex(name string) int {
 	return -1
 }
 
+// LastSlice ...
 func LastSlice(s, sep string) string {
 	ss := strings.Split(s, sep)
 	for i := len(ss) - 1; i >= 0; i-- {

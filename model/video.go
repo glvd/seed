@@ -9,15 +9,15 @@ import (
 type Video struct {
 	Model        `xorm:"extends" json:"-"`
 	FindNo       string   `json:"-"`                           //查找号
-	Bangumi      string   `json:"bangumi"`                     //番組
-	ThumbHash    string   `json:"thumb_hash"`                  //缩略图
+	Bangumi      string   `xorm:"bangumi"`                     //番組
+	ThumbHash    string   `xorm:"thumb_hash"`                  //缩略图
 	Intro        string   `xorm:"varchar(2048)" json:"intro"`  //简介
 	Alias        []string `xorm:"json" json:"alias"`           //别名，片名
-	SourceHash   string   `json:"source_hash"`                 //原片地址
+	SourceHash   string   `xorm:"source_hash"`                 //原片地址
 	Key          string   `json:"-"`                           //秘钥
 	M3U8         string   `xorm:"m3u8" json:"-"`               //M3U8名
 	M3U8Hash     string   `xorm:"m3u8_hash" json:"m3u8_hash"`  //切片地址
-	PosterHash   string   `json:"poster_hash"`                 //海报地址
+	PosterHash   string   `xorm:"poster_hash"`                 //海报地址
 	Role         []string `xorm:"json" json:"role"`            //主演
 	Director     string   `json:"-"`                           //导演
 	Systematics  string   `json:"-"`                           //分级

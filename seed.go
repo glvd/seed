@@ -157,6 +157,20 @@ func NewSeed(ops ...Options) *Seed {
 	return seed
 }
 
+type PeerID struct {
+	Addresses       []string `json:"Addresses"`
+	AgentVersion    string   `json:"AgentVersion"`
+	ID              string   `json:"ID"`
+	ProtocolVersion string   `json:"ProtocolVersion"`
+	PublicKey       string   `json:"PublicKey"`
+}
+
+func (seed *Seed) MyPeerID() (pid *PeerID, e error) {
+	pid = new(PeerID)
+	e = seed.API.Request("id").Exec(context.Background(), pid)
+	return
+}
+
 // Register ...
 func (seed *Seed) Register(ops ...Options) {
 	for _, op := range ops {

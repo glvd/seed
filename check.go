@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 
+	"github.com/glvd/seed/model"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
@@ -10,6 +11,7 @@ import (
 // check ...
 type check struct {
 	api  *httpapi.HttpApi
+	myID *PeerID
 	Type string
 }
 
@@ -23,15 +25,29 @@ func (c *check) Run(context.Context) {
 		log.Error(e)
 		return
 	}
-	for _, p := range pins {
-		log.With("path", p.Path()).Info("pinned")
+	for _, path := range pins {
+		log.With("path", path.Path()).Info("pinned")
+		p := &model.Pin{
+			PinHash: model.PinHash(path.Path()),
+			PeerID:  []string{c.myID.ID},
+			VideoID: "",
+		}
+		e := p.UpdateVideo()
+		if e != nil {
+			log.Error(e)
+		}
 	}
 
 }
 
 // BeforeRun ...
 func (c *check) BeforeRun(seed *Seed) {
+	var e error
 	c.api = seed.API
+	c.myID, e = seed.MyPeerID()
+	if e != nil {
+		log.Error(e)
+	}
 }
 
 // AfterRun ...

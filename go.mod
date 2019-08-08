@@ -10,6 +10,7 @@ require (
 	github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0
 	github.com/godcong/go-trait v0.0.0-20190528080809-9a857488365f
 	github.com/google/uuid v1.1.1
+	github.com/ipfs/go-cid v0.0.2
 	github.com/ipfs/go-ipfs-http-client v0.0.0-00010101000000-000000000000
 	github.com/ipfs/interface-go-ipfs-core v0.1.0
 	github.com/json-iterator/go v1.1.6

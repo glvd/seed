@@ -14,6 +14,7 @@ type check struct {
 }
 
 func (c *check) Run(context.Context) {
+	log.Info("check running")
 	pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
 		settings.Type = c.Type
 		return nil

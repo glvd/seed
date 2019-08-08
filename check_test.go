@@ -4,7 +4,7 @@ import "testing"
 
 // TestCheck ...
 func TestCheck(t *testing.T) {
-	seed := NewSeed(DatabaseOption("sqlite3", "d:\\cs.db"), Check("recursive"))
+	seed := NewSeed(DatabaseOption("sqlite3", "test.db"), Check("recursive"))
 	seed.Start()
 	seed.Wait()
 }

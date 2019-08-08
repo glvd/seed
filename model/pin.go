@@ -48,7 +48,7 @@ func updatePinVideoID(session *xorm.Session, p *Pin) (e error) {
 		return xerrors.New("nothing found")
 	}
 	if i == 1 {
-		p.VideoID = (*videos)[1].ID
+		p.VideoID = (*videos)[0].ID
 	} else if i > 1 {
 		p.VideoID = fmt.Sprintf("ids(%d)", i)
 	}

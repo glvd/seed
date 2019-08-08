@@ -11,6 +11,7 @@ require (
 	github.com/godcong/go-trait v0.0.0-20190528080809-9a857488365f
 	github.com/google/uuid v1.1.1
 	github.com/ipfs/go-ipfs-http-client v0.0.0-00010101000000-000000000000
+	github.com/ipfs/interface-go-ipfs-core v0.1.0
 	github.com/json-iterator/go v1.1.6
 	github.com/libp2p/go-libp2p-protocol v0.1.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0

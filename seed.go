@@ -147,16 +147,17 @@ func NewSeed(ops ...Options) *Seed {
 	}
 
 	if seed.API == nil {
-		addrApi, e := api.NewAddrApi("/ip4/127.0.0.1/tcp/5001")
+		addrAPI, e := api.NewAddrApi("/ip4/127.0.0.1/tcp/5001")
 		if e != nil {
 			return nil
 		}
-		seed.API = addrApi
+		seed.API = addrAPI
 	}
 
 	return seed
 }
 
+// PeerID ...
 type PeerID struct {
 	Addresses       []string `json:"Addresses"`
 	AgentVersion    string   `json:"AgentVersion"`
@@ -165,6 +166,7 @@ type PeerID struct {
 	PublicKey       string   `json:"PublicKey"`
 }
 
+// MyPeerID ...
 func (seed *Seed) MyPeerID() (pid *PeerID, e error) {
 	pid = new(PeerID)
 	e = seed.API.Request("id").Exec(context.Background(), pid)

@@ -15,6 +15,7 @@ type check struct {
 	Type string
 }
 
+// Run ...
 func (c *check) Run(context.Context) {
 	log.Info("check running")
 	pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
@@ -55,7 +56,7 @@ func (c *check) AfterRun(seed *Seed) {
 
 }
 
-// Process ...
+// Check ...
 func Check(tp string) Options {
 	check := &check{
 		Type: tp,

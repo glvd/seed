@@ -14,20 +14,18 @@ type check struct {
 }
 
 func (c *check) Run(context.Context) {
-	switch c.Type {
-	case "pin":
-		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
-			settings.Type = "recursive"
-			return nil
-		})
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		for _, p := range pins {
-			log.With("path", p.Path()).Info("pinned")
-		}
+	pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
+		settings.Type = c.Type
+		return nil
+	})
+	if e != nil {
+		log.Error(e)
+		return
 	}
+	for _, p := range pins {
+		log.With("path", p.Path()).Info("pinned")
+	}
+
 }
 
 // BeforeRun ...

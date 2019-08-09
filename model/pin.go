@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-xorm/xorm"
 	"github.com/ipfs/interface-go-ipfs-core/path"
-	"golang.org/x/xerrors"
 )
 
 // Pin ...
@@ -44,13 +43,13 @@ func updatePinVideoID(session *xorm.Session, p *Pin) (e error) {
 	if e != nil {
 		return e
 	}
-	if i <= 0 {
-		return xerrors.New("nothing found")
-	}
+
 	if i == 1 {
 		p.VideoID = (*videos)[0].ID
 	} else if i > 1 {
 		p.VideoID = fmt.Sprintf("ids(%d)", i)
+	} else {
+		p.VideoID = "dummy"
 	}
 	return AddOrUpdatePin(p)
 }

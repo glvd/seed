@@ -103,9 +103,14 @@ func DB() *xorm.Engine {
 	return db
 }
 
+// SQLite3DB ...
+func SQLite3DB(name string) string {
+	return fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", name)
+}
+
 // InitSQLite3 ...
 func InitSQLite3() (e error) {
-	eng, e := xorm.NewEngine("sqlite3", "seed.db")
+	eng, e := xorm.NewEngine("sqlite3", SQLite3DB("seed.db"))
 	if e != nil {
 		return e
 	}

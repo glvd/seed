@@ -31,26 +31,36 @@ func (c *check) Run(context.Context) {
 	log.Info("check running")
 	switch c.checkType {
 	case CheckTypePin:
-	}
-	pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
-		settings.Type = c.Type
-		return nil
-	})
-	if e != nil {
-		log.Error(e)
-		return
-	}
-	for _, path := range pins {
-		log.With("path", path.Path()).Info("pinned")
-		p := &model.Pin{
-			PinHash: model.PinHash(path.Path()),
-			PeerID:  []string{c.myID.ID},
-			VideoID: "",
-		}
-		e := p.UpdateVideo()
+		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
+			settings.Type = c.Type
+			return nil
+		})
 		if e != nil {
 			log.Error(e)
+			return
 		}
+		for _, path := range pins {
+			log.With("path", path.Path()).Info("pinned")
+			p := &model.Pin{
+				PinHash: model.PinHash(path.Path()),
+				PeerID:  []string{c.myID.ID},
+				VideoID: "",
+			}
+			e := p.UpdateVideo()
+			if e != nil {
+				log.Error(e)
+			}
+		}
+	case CheckTypeUnpin:
+		_, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
+			settings.Type = c.Type
+			return nil
+		})
+		if e != nil {
+			log.Error(e)
+			return
+		}
+
 	}
 
 }

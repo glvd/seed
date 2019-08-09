@@ -8,16 +8,30 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
 
+// CheckType ...
+type CheckType string
+
+// CheckTypePin ...
+const CheckTypePin CheckType = "pin"
+
+// CheckTypeUnpin ...
+const CheckTypeUnpin CheckType = "unpin"
+
 // check ...
 type check struct {
-	api  *httpapi.HttpApi
-	myID *PeerID
-	Type string
+	api       *httpapi.HttpApi
+	myID      *PeerID
+	Type      string
+	checkType CheckType
+	from      []string
 }
 
 // Run ...
 func (c *check) Run(context.Context) {
 	log.Info("check running")
+	switch c.checkType {
+	case CheckTypePin:
+	}
 	pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
 		settings.Type = c.Type
 		return nil
@@ -56,10 +70,29 @@ func (c *check) AfterRun(seed *Seed) {
 
 }
 
+// CheckArgs ...
+type CheckArgs func(c *check)
+
+// CheckTypeArg ...
+func CheckTypeArg(t string) CheckArgs {
+	return func(c *check) {
+		c.Type = t
+	}
+}
+
+// CheckFromArg ...
+func CheckFromArg(from ...string) CheckArgs {
+	return func(c *check) {
+		c.from = from
+	}
+}
+
 // Check ...
-func Check(tp string) Options {
-	check := &check{
-		Type: tp,
+func Check(args ...CheckArgs) Options {
+	check := new(check)
+
+	for _, argFn := range args {
+		argFn(check)
 	}
 	return checkOption(check)
 }

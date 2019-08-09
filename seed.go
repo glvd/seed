@@ -322,6 +322,17 @@ func ShellOption(s string) Options {
 	}
 }
 
+// APIOption ...
+func APIOption(s string) Options {
+	var e error
+	return func(seed *Seed) {
+		seed.API, e = api.NewAddrApi(s)
+		if e != nil {
+			log.Error(e)
+		}
+	}
+}
+
 // processOption ...
 func processOption(process *process) Options {
 	return func(seed *Seed) {

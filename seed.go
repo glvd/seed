@@ -76,6 +76,7 @@ type Seed struct {
 	Videos      map[string]*model.Video
 	Moves       map[string]string
 	MaxLimit    int
+	From        string
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc

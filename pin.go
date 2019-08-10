@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"sync"
 
 	shell "github.com/godcong/go-ipfs-restapi"
@@ -22,6 +23,7 @@ const (
 )
 
 type pin struct {
+	api        *httpapi.HttpApi
 	wg         *sync.WaitGroup
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
@@ -289,7 +291,30 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	case PinStatusSync:
-
+		i, e := model.DB().Where("machine_id like ?", p.from).Count(model.Pin{})
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		for start := 0; start < int(i); start += 50 {
+			pins, e := model.AllPin(model.DB().Where("machine_id like ?", p.from), 50, start)
+			if e != nil {
+				log.Error(e)
+				return
+			}
+			for _, ps := range *pins {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					e := p.pinHash(ps.PinHash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
+				}
+			}
+		}
 	}
 }
 

@@ -13,6 +13,7 @@ import (
 	shell "github.com/godcong/go-ipfs-restapi"
 	api "github.com/ipfs/go-ipfs-http-client"
 	jsoniter "github.com/json-iterator/go"
+	ma "github.com/multiformats/go-multiaddr"
 )
 
 // Options ...
@@ -147,8 +148,14 @@ func NewSeed(ops ...Options) *Seed {
 	}
 
 	if seed.API == nil {
-		addrAPI, e := api.NewAddrApi("/ip4/127.0.0.1/tcp/5001")
+		addr, e := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
 		if e != nil {
+			log.Error(e)
+			return nil
+		}
+		addrAPI, e := api.NewApi(addr)
+		if e != nil {
+			log.Error(e)
 			return nil
 		}
 		seed.API = addrAPI
@@ -326,7 +333,13 @@ func ShellOption(s string) Options {
 func APIOption(s string) Options {
 	var e error
 	return func(seed *Seed) {
-		seed.API, e = api.NewAddrApi(s)
+		var addr ma.Multiaddr
+		addr, e = ma.NewMultiaddr(s)
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		seed.API, e = api.NewApi(addr)
 		if e != nil {
 			log.Error(e)
 		}

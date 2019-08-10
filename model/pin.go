@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"golang.org/x/xerrors"
 	"strings"
 
 	"github.com/go-xorm/xorm"
@@ -18,6 +19,29 @@ type Pin struct {
 
 func init() {
 	RegisterTable(Pin{})
+}
+
+// AllUnfinished ...
+func AllPin(session *xorm.Session, limit int, start ...int) (pins *[]*Pin, e error) {
+	pins = new([]*Pin)
+	session = MustSession(session)
+	if limit > 0 {
+		session = session.Limit(limit, start...)
+	}
+	if err := session.Find(pins); err != nil {
+		return nil, err
+	}
+	return pins, nil
+}
+
+// FindUnfinished ...
+func FindPin(session *xorm.Session, ph string) (pin *Pin, e error) {
+	pin = new(Pin)
+	b, e := MustSession(session).Where("pin_hash = ?", ph).Get(pin)
+	if e != nil || !b {
+		return nil, xerrors.New("pin not found!")
+	}
+	return pin, nil
 }
 
 // PinHash ...

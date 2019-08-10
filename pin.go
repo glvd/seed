@@ -32,6 +32,7 @@ type pin struct {
 	list       []string
 	index      int
 	random     bool
+	from       string
 }
 
 // BeforeRun ...
@@ -45,7 +46,7 @@ func (p *pin) BeforeRun(seed *Seed) {
 	}
 
 	p.skipSource = seed.skipSource
-
+	p.from = seed.From
 }
 
 // AfterRun ...
@@ -76,6 +77,9 @@ const PinStatusVideo PinStatus = "video"
 
 // PinStatusPoster ...
 const PinStatusPoster PinStatus = "poster"
+
+// PinStatusPoster ...
+const PinStatusSync PinStatus = "sync"
 
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
@@ -284,6 +288,7 @@ func (p *pin) Run(ctx context.Context) {
 				}
 			}
 		}
+	case PinStatusSync:
 	}
 }
 

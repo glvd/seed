@@ -289,6 +289,7 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	case PinStatusSync:
+
 	}
 }
 

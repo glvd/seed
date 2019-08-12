@@ -93,13 +93,17 @@ func (c *check) Run(context.Context) {
 				if u == nil {
 					break CheckEnd
 				}
+				pinned := false
 				for _, path := range pins {
 					if u.Hash == model.PinHash(path.Path()) {
-						continue
+						pinned = true
 					}
 					//retUnf = append(retUnf, u)
+				}
+				if !pinned {
 					log.With("hash", u.Hash, "relate", u.Relate, "type", u.Type).Info("unpin")
 				}
+
 			}
 		}
 

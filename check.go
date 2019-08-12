@@ -78,6 +78,7 @@ func (c *check) Run(context.Context) {
 				log.Error(e)
 				return
 			}
+			log.Info(s.LastSQL())
 			for start := 0; start < int(i); start += 50 {
 				unfins, e := model.AllUnfinished(s, 50, start)
 				if e != nil {

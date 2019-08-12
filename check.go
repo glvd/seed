@@ -77,7 +77,7 @@ func (c *check) Run(context.Context) {
 				return
 			}
 			for start := 0; start < int(i); start += 50 {
-				unfins, e := model.AllUnfinished(s, 50, start)
+				unfins, e := model.AllUnfinished(s.Clone(), 50, start)
 				if e != nil {
 					log.Error(e)
 					return

@@ -115,6 +115,9 @@ func (c *check) BeforeRun(seed *Seed) {
 	if e != nil {
 		log.Error(e)
 	}
+	if c.Type == "" {
+		c.Type = "recursive"
+	}
 }
 
 // AfterRun ...

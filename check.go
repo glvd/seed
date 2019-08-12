@@ -52,13 +52,55 @@ func (c *check) Run(context.Context) {
 			}
 		}
 	case CheckTypeUnpin:
-		_, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
+		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
 			settings.Type = c.Type
 			return nil
 		})
 		if e != nil {
 			log.Error(e)
 			return
+		}
+		unf := make(chan *model.Unfinished)
+
+		go func(u chan<- *model.Unfinished) {
+			defer func() {
+				u <- nil
+			}()
+			i, e := model.DB().Count(model.Unfinished{})
+			if e != nil {
+				log.Error(e)
+				return
+			}
+			for start := 0; start < int(i); start += 50 {
+				unfins, e := model.AllUnfinished(nil, 50, start)
+				if e != nil {
+					log.Error(e)
+					return
+				}
+
+				log.Infof("pin(%d)", len(*unfins))
+				for i := range *unfins {
+					u <- (*unfins)[i]
+				}
+			}
+
+		}(unf)
+		//var retUnf []*model.Unfinished
+	CheckEnd:
+		for {
+			select {
+			case u := <-unf:
+				if u == nil {
+					break CheckEnd
+				}
+				for _, path := range pins {
+					if u.Hash == model.PinHash(path.Path()) {
+						continue
+					}
+					//retUnf = append(retUnf, u)
+					log.With("hash", u.Hash, "relate", u.Relate, "type", u.Type).Info("unpin")
+				}
+			}
 		}
 
 	}

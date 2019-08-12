@@ -126,7 +126,14 @@ func (c *check) AfterRun(seed *Seed) {
 type CheckArgs func(c *check)
 
 // CheckTypeArg ...
-func CheckTypeArg(t string) CheckArgs {
+func CheckTypeArg(t CheckType) CheckArgs {
+	return func(c *check) {
+		c.checkType = t
+	}
+}
+
+// CheckPinTypeArg ...
+func CheckPinTypeArg(t string) CheckArgs {
 	return func(c *check) {
 		c.Type = t
 	}

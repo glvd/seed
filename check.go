@@ -24,6 +24,7 @@ type check struct {
 	Type      string
 	checkType CheckType
 	from      []string
+	skipType  []string
 }
 
 // Run ...
@@ -66,13 +67,19 @@ func (c *check) Run(context.Context) {
 			defer func() {
 				u <- nil
 			}()
-			i, e := model.DB().Count(model.Unfinished{})
+			s := model.DB().NewSession()
+			if len(c.skipType) > 0 {
+				for idx := range c.skipType {
+					s = s.Or("type = ?", c.skipType[idx])
+				}
+			}
+			i, e := s.Clone().Count(model.Unfinished{})
 			if e != nil {
 				log.Error(e)
 				return
 			}
 			for start := 0; start < int(i); start += 50 {
-				unfins, e := model.AllUnfinished(nil, 50, start)
+				unfins, e := model.AllUnfinished(s, 50, start)
 				if e != nil {
 					log.Error(e)
 					return
@@ -131,6 +138,13 @@ func (c *check) AfterRun(seed *Seed) {
 
 // CheckArgs ...
 type CheckArgs func(c *check)
+
+// CheckSkipArg ...
+func CheckSkipArg(s []string) CheckArgs {
+	return func(c *check) {
+		c.skipType = s
+	}
+}
 
 // CheckTypeArg ...
 func CheckTypeArg(t CheckType) CheckArgs {

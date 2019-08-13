@@ -17,6 +17,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/multiformats/go-multiaddr v0.0.4
 	github.com/pelletier/go-toml v1.4.0
 	go.uber.org/atomic v1.4.0
 	go.uber.org/zap v1.10.0

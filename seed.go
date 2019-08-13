@@ -436,11 +436,7 @@ func Hash(v interface{}) string {
 }
 
 // SkipTypeVerify ...
-func SkipTypeVerify(tp string, v []interface{}) bool {
-	if v == nil {
-		return false
-	}
-
+func SkipTypeVerify(tp string, v ...interface{}) bool {
 	for i := range v {
 		if v1, b := (v[i]).(string); b {
 			if v1 == tp {

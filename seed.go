@@ -434,3 +434,19 @@ func Hash(v interface{}) string {
 	}
 	return fmt.Sprintf("%x", sha1.Sum([]byte(bytes)))
 }
+
+// SkipTypeVerify ...
+func SkipTypeVerify(tp string, v []interface{}) bool {
+	if v == nil {
+		return false
+	}
+
+	for i := range v {
+		if v1, b := (v[i]).(string); b {
+			if v1 == tp {
+				return true
+			}
+		}
+	}
+	return false
+}

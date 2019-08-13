@@ -2,8 +2,9 @@ package seed
 
 import (
 	"context"
-	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"sync"
+
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 
 	shell "github.com/godcong/go-ipfs-restapi"
 
@@ -27,6 +28,7 @@ type pin struct {
 	wg         *sync.WaitGroup
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
+	skipType   []interface{}
 	skipSource bool
 	state      PinStatus
 	flag       PinFlag
@@ -83,6 +85,21 @@ const PinStatusPoster PinStatus = "poster"
 // PinStatusSync ...
 const PinStatusSync PinStatus = "sync"
 
+// PinArgs ...
+type PinArgs func(c *pin)
+
+// PinSkipArg ...
+func PinSkipArg(s []string) PinArgs {
+	return func(p *pin) {
+		if s == nil {
+			return
+		}
+		for i := range s {
+			p.skipType = append(p.skipType, s[i])
+		}
+	}
+}
+
 // Pin ...
 func Pin(status PinStatus, list ...string) Options {
 	pin := &pin{
@@ -99,13 +116,17 @@ func (p *pin) Run(ctx context.Context) {
 	log.Info("pin running")
 	switch p.status {
 	case PinStatusAll:
-		i, e := model.DB().Count(model.Unfinished{})
+		s := model.DB().NewSession()
+		if len(p.skipType) > 0 {
+			s.NotIn("type", p.skipType...)
+		}
+		i, e := s.Count(model.Unfinished{})
 		if e != nil {
 			log.Error(e)
 			return
 		}
 		for start := 0; start < int(i); start += 50 {
-			unfins, e := model.AllUnfinished(nil, 50, start)
+			unfins, e := model.AllUnfinished(s.Clone(), 50, start)
 			if e != nil {
 				log.Error(e)
 				return
@@ -117,11 +138,6 @@ func (p *pin) Run(ctx context.Context) {
 				case <-ctx.Done():
 					return
 				default:
-					if p.skipSource && unf.Type == model.TypeVideo {
-						log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin skip")
-						continue
-					}
-
 					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
 					e := p.pinHash(unf.Hash)
 					if e != nil {
@@ -190,31 +206,6 @@ func (p *pin) Run(ctx context.Context) {
 				}
 			}
 		}
-	case PinStatusSliceOnly:
-		i, e := model.DB().Where("type = ?", model.TypeSlice).Count(model.Unfinished{})
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		for start := 0; start < int(i); start += 50 {
-			unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypeSlice), 50, start)
-			if e != nil {
-				log.Error(e)
-				return
-			}
-			for _, unfin := range *unfins {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					e := p.pinHash(unfin.Hash)
-					if e != nil {
-						log.Error(e)
-						return
-					}
-				}
-			}
-		}
 	case PinStatusVideo:
 		videos, e := model.AllVideos(nil, 0)
 		if e != nil {
@@ -223,7 +214,8 @@ func (p *pin) Run(ctx context.Context) {
 		}
 		for _, v := range *videos {
 			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("pin")
-			if v.PosterHash != "" {
+
+			if !SkipTypeVerify("poster", p.skipType) && v.PosterHash != "" {
 				e := p.pinHash(v.PosterHash)
 				if e != nil {
 					log.Error(e)
@@ -231,7 +223,7 @@ func (p *pin) Run(ctx context.Context) {
 				}
 			}
 
-			if v.ThumbHash != "" {
+			if !SkipTypeVerify("thumb", p.skipType) && v.ThumbHash != "" {
 				e := p.pinHash(v.ThumbHash)
 				if e != nil {
 					log.Error(e)
@@ -239,14 +231,14 @@ func (p *pin) Run(ctx context.Context) {
 				}
 			}
 
-			if !p.skipSource && v.SourceHash != "" {
+			if !SkipTypeVerify("source", p.skipType) && v.SourceHash != "" {
 				e := p.pinHash(v.SourceHash)
 				if e != nil {
 					log.Error(e)
 					return
 				}
 			}
-			if v.M3U8Hash != "" {
+			if !SkipTypeVerify("slice", p.skipType) && v.M3U8Hash != "" {
 				e := p.pinHash(v.M3U8Hash)
 				if e != nil {
 					log.Error(e)

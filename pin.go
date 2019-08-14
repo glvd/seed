@@ -97,14 +97,29 @@ func PinSkipArg(s []string) PinArgs {
 	}
 }
 
+// PinListArg ...
+func PinListArg(s ...string) PinArgs {
+	return func(p *pin) {
+		p.list = s
+	}
+}
+
+// PinStatusArg ...
+func PinStatusArg(s PinStatus) PinArgs {
+	return func(p *pin) {
+		p.status = s
+	}
+}
+
 // Pin ...
-func Pin(status PinStatus, list ...string) Options {
+func Pin(args ...PinArgs) Options {
 	pin := &pin{
-		status: status,
-		list:   list,
-		//wg:     &sync.WaitGroup{},
+		status: PinStatusAll,
 	}
 
+	for _, argFn := range args {
+		argFn(pin)
+	}
 	return pinOption(pin)
 }
 
@@ -243,41 +258,6 @@ func (p *pin) Run(ctx context.Context) {
 				}
 			}
 
-		}
-	case PinStatusPoster:
-		i, e := model.DB().Where("type = ?", model.TypePoster).Count(model.Unfinished{})
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		for start := 0; start < int(i); start += 50 {
-			unfins, e := model.AllUnfinished(model.DB().Where("type = ?", model.TypePoster), 50, start)
-			if e != nil {
-				log.Error(e)
-				return
-			}
-
-			log.Infof("pin(%d)", len(*unfins))
-			for _, unf := range *unfins {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
-					e := p.pinHash(unf.Hash)
-					if e != nil {
-						log.Error(e)
-						return
-					}
-					unf.Sync = true
-					p.unfinished[unf.Hash] = unf
-					e = model.AddOrUpdateUnfinished(unf)
-					if e != nil {
-						log.Error(e)
-						continue
-					}
-				}
-			}
 		}
 	case PinStatusSync:
 		s := model.DB().Where("machine_id like %?%", p.from)

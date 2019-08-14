@@ -132,7 +132,7 @@ func (p *pin) Run(ctx context.Context) {
 		if len(p.skipType) > 0 {
 			s.NotIn("type", p.skipType...)
 		}
-		i, e := s.Count(model.Unfinished{})
+		i, e := s.Clone().Count(model.Unfinished{})
 		if e != nil {
 			log.Error(e)
 			return
@@ -219,46 +219,54 @@ func (p *pin) Run(ctx context.Context) {
 			}
 		}
 	case PinStatusVideo:
-		videos, e := model.AllVideos(nil, 0)
+		i, e := model.DB().Count(model.Video{})
 		if e != nil {
 			log.Error(e)
 			return
 		}
-		for _, v := range *videos {
-			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("pin")
-
-			if !SkipTypeVerify("poster", p.skipType...) && v.PosterHash != "" {
-				e := p.pinHash(v.PosterHash)
-				if e != nil {
-					log.Error(e)
-					return
-				}
+		for start := 0; start < int(i); start += 50 {
+			videos, e := model.AllVideos(nil, 50, start)
+			if e != nil {
+				log.Error(e)
+				return
 			}
+			for _, v := range *videos {
+				log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("pin")
 
-			if !SkipTypeVerify("thumb", p.skipType...) && v.ThumbHash != "" {
-				e := p.pinHash(v.ThumbHash)
-				if e != nil {
-					log.Error(e)
-					return
+				if !SkipTypeVerify("poster", p.skipType...) && v.PosterHash != "" {
+					e := p.pinHash(v.PosterHash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
 				}
-			}
 
-			if !SkipTypeVerify("source", p.skipType...) && v.SourceHash != "" {
-				e := p.pinHash(v.SourceHash)
-				if e != nil {
-					log.Error(e)
-					return
+				if !SkipTypeVerify("thumb", p.skipType...) && v.ThumbHash != "" {
+					e := p.pinHash(v.ThumbHash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
 				}
-			}
-			if !SkipTypeVerify("slice", p.skipType...) && v.M3U8Hash != "" {
-				e := p.pinHash(v.M3U8Hash)
-				if e != nil {
-					log.Error(e)
-					return
-				}
-			}
 
+				if !SkipTypeVerify("source", p.skipType...) && v.SourceHash != "" {
+					e := p.pinHash(v.SourceHash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
+				}
+				if !SkipTypeVerify("slice", p.skipType...) && v.M3U8Hash != "" {
+					e := p.pinHash(v.M3U8Hash)
+					if e != nil {
+						log.Error(e)
+						return
+					}
+				}
+
+			}
 		}
+
 	case PinStatusSync:
 		s := model.DB().Where("machine_id like ?", "%"+p.from+"%")
 		i, e := s.Clone().Count(model.Pin{})

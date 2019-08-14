@@ -260,7 +260,7 @@ func (p *pin) Run(ctx context.Context) {
 
 		}
 	case PinStatusSync:
-		s := model.DB().Where("machine_id like %?%", p.from)
+		s := model.DB().Where("machine_id like ?", "%"+p.from+"%")
 		i, e := s.Clone().Count(model.Pin{})
 		if e != nil {
 			log.Error(e)

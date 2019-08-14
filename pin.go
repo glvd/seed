@@ -73,9 +73,6 @@ const PinStatusAssignHash PinStatus = "assignHash"
 // PinStatusAssignRelate ...
 const PinStatusAssignRelate PinStatus = "assignRelate"
 
-// PinStatusSliceOnly ...
-const PinStatusSliceOnly PinStatus = "sliceOnly"
-
 // PinStatusVideo ...
 const PinStatusVideo PinStatus = "video"
 

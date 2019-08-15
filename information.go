@@ -39,8 +39,8 @@ const InfoFlagBSON InfoFlag = "bson"
 // InfoFlagSQLite ...
 const InfoFlagSQLite InfoFlag = "sqlite3"
 
-// information ...
-type information struct {
+// Information ...
+type Information struct {
 	workspace  string
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
@@ -56,7 +56,7 @@ type information struct {
 
 // Information ...
 func NewInformation(path string, from InfoFlag, list ...string) Options {
-	info := &information{
+	info := &Information{
 		path: path,
 		from: from,
 		list: list,
@@ -65,7 +65,7 @@ func NewInformation(path string, from InfoFlag, list ...string) Options {
 }
 
 // BeforeRun ...
-func (info *information) BeforeRun(seed *Seed) {
+func (info *Information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace
 	info.videos = seed.Videos
 	info.unfinished = seed.Unfinished
@@ -76,7 +76,7 @@ func (info *information) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (info *information) AfterRun(seed *Seed) {
+func (info *Information) AfterRun(seed *Seed) {
 	seed.Videos = info.videos
 	seed.Moves = info.moves
 }
@@ -173,8 +173,8 @@ func checkFileNotExist(path string) bool {
 }
 
 // Run ...
-func (info *information) Run(ctx context.Context) {
-	log.Info("information running")
+func (info *Information) Run(ctx context.Context) {
+	log.Info("Information running")
 	var vs []*VideoSource
 	select {
 	case <-ctx.Done():
@@ -230,7 +230,7 @@ func (info *information) Run(ctx context.Context) {
 			return
 		}
 	}
-	log.With("total", len(vs)).Info("all information")
+	log.With("total", len(vs)).Info("all Information")
 	if vs == nil {
 		log.Info("no videos to process")
 		return

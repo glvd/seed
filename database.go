@@ -52,28 +52,27 @@ type write struct {
 	cb      WriteCallback
 	update  bool
 	session *xorm.Session
-	data    interface{}
 	model   model.Modeler
 }
 
 // UnfinishedWriter ...
-func sqlWriter(session *xorm.Session, v interface{}) SQLWriter {
+func sqlWriter(session *xorm.Session, m model.Modeler) SQLWriter {
 	return &write{
 		session: session,
-		data:    v,
+		model:   m,
 	}
 }
 
 // Insert ...
 func (w *write) InsertOrUpdate() (int64, error) {
 	if w.update {
-		_, e := w.cb(w.model)
+		id, e := w.cb(w.model)
 		if e != nil {
 			return 0, e
 		}
-		return w.session.ID(w.model.GetID()).Update(w.model)
+		return w.session.ID(id).Update(w.model)
 	}
-	return w.session.Insert(w.data)
+	return w.session.Insert(w.model)
 }
 
 // DatabaseArgs ...

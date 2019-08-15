@@ -37,3 +37,10 @@ func DatabaseShowSQLArg() DatabaseArgs {
 		db.eng.ShowSQL()
 	}
 }
+
+// DatabaseShowExecTimeArg ...
+func DatabaseShowExecTimeArg() DatabaseArgs {
+	return func(db *Database) {
+		db.eng.ShowExecTime()
+	}
+}

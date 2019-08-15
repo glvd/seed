@@ -20,7 +20,7 @@ type SQLUpdateAble interface {
 
 // SQLWriter ...
 type SQLWriter interface {
-	Insert() (int64, error)
+	InsertOrUpdate() (int64, error)
 }
 
 // SQLReader ...

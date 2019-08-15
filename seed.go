@@ -7,8 +7,6 @@ import (
 	"math"
 	"sync"
 
-	"github.com/go-xorm/xorm"
-
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
 	api "github.com/ipfs/go-ipfs-http-client"
@@ -66,25 +64,6 @@ const (
 	StepperMax
 )
 
-// Seeder ...
-type Seeder interface {
-	Start()
-	Wait()
-	Stop()
-	Err() error
-}
-
-//Writer write to target
-type Writer interface {
-	Insert(*xorm.Session, interface{})
-}
-
-//Reader read data
-type Reader interface {
-	FindOne(*xorm.Session, interface{}) error
-	FindAll(*xorm.Session, interface{}) error
-}
-
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell
@@ -102,7 +81,6 @@ type Seed struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	skipConvert bool
-	skipSource  bool
 	preAdd      bool
 	noSlice     bool
 	upScale     bool
@@ -147,13 +125,8 @@ func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
-//Optioner set option
-type Optioner interface {
-	Option() Options
-}
-
 // NewSeed ...
-func NewSeed(ops ...Options) *Seed {
+func NewSeed(ops ...Optioner) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())
 	seed := &Seed{
 		Unfinished: make(map[string]*model.Unfinished),
@@ -208,16 +181,9 @@ func (seed *Seed) MyPeerID() (pid *PeerID, e error) {
 }
 
 // Register ...
-func (seed *Seed) Register(ops ...Options) {
+func (seed *Seed) Register(ops ...Optioner) {
 	for _, op := range ops {
-		op(seed)
-	}
-}
-
-// AfterInit ...
-func (seed *Seed) AfterInit(ops ...AfterInitOptions) {
-	for _, op := range ops {
-		op(seed)
+		op.Option(seed)
 	}
 }
 
@@ -231,33 +197,6 @@ func SyncDatabase() AfterInitOptions {
 		if e != nil {
 			panic(e)
 		}
-	}
-}
-
-// ShowSQLOption ...
-func ShowSQLOption() AfterInitOptions {
-	return func(seed *Seed) {
-		if seed.maindb == nil {
-			panic("nil database")
-		}
-		seed.maindb.ShowSQL(true)
-	}
-}
-
-// ShowExecTimeOption ...
-func ShowExecTimeOption() AfterInitOptions {
-	return func(seed *Seed) {
-		if seed.maindb == nil {
-			panic("nil database")
-		}
-		seed.maindb.ShowExecTime(true)
-	}
-}
-
-//SkipSourceOption skip source add
-func SkipSourceOption() Options {
-	return func(seed *Seed) {
-		seed.skipSource = true
 	}
 }
 
@@ -296,23 +235,8 @@ func PreAddOption() Options {
 	}
 }
 
-// DatabaseFromPathOption ...
-func DatabaseFromPathOption(path string) Options {
-	return func(seed *Seed) {
-		db := model.LoadDatabaseConfig(path)
-		var e error
-		seed.maindb, e = model.InitDB(db)
-		if e != nil {
-			panic(e)
-		}
-		seed.maindb.ShowSQL(db.ShowSQL)
-		seed.maindb.ShowExecTime(db.ShowExecTime)
-		model.SetGlobalDB(seed.maindb)
-	}
-}
-
-// DatabaseOption ...
-func DatabaseOption(db *Database) Options {
+// databaseOption ...
+func databaseOption(db *Database) Options {
 	return func(seed *Seed) {
 		seed.maindb = db
 	}

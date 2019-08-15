@@ -55,7 +55,7 @@ type information struct {
 }
 
 // Information ...
-func Information(path string, from InfoFlag, list ...string) Options {
+func NewInformation(path string, from InfoFlag, list ...string) Options {
 	info := &information{
 		path: path,
 		from: from,

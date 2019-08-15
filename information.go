@@ -74,8 +74,6 @@ func NewInformation(args ...InfoArgs) *Information {
 	}
 
 	return info
-
-	// return InformationOption(info)
 }
 
 //Option set info option

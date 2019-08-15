@@ -27,3 +27,13 @@ func (db *Database) Sync() error {
 func (db *Database) RegisterSync(v interface{}) {
 	db.syncTable = append(db.syncTable, v)
 }
+
+// DatabaseArgs ...
+type DatabaseArgs func(*Database)
+
+// DatabaseShowSQLArg ...
+func DatabaseShowSQLArg() DatabaseArgs {
+	return func(db *Database) {
+		db.eng.ShowSQL()
+	}
+}

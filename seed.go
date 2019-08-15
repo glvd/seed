@@ -137,6 +137,10 @@ func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
+type Optioner interface {
+	Option() Options
+}
+
 // NewSeed ...
 func NewSeed(ops ...Options) *Seed {
 	ctx, cancel := context.WithCancel(context.Background())

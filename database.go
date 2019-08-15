@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 )
 
@@ -52,7 +53,7 @@ type write struct {
 	update  bool
 	session *xorm.Session
 	data    interface{}
-	able    SQLUpdateAble
+	model   model.Modeler
 }
 
 // UnfinishedWriter ...
@@ -66,11 +67,11 @@ func sqlWriter(session *xorm.Session, v interface{}) SQLWriter {
 // Insert ...
 func (w *write) InsertOrUpdate() (int64, error) {
 	if w.update {
-		_, e := w.cb(w.able)
+		_, e := w.cb(w.model)
 		if e != nil {
 			return 0, e
 		}
-		return w.session.ID(w.able.GetID()).Update(w.able)
+		return w.session.ID(w.model.GetID()).Update(w.model)
 	}
 	return w.session.Insert(w.data)
 }

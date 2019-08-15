@@ -77,6 +77,10 @@ func NewInformation(args ...InfoArgs) *Information {
 	// return InformationOption(info)
 }
 
+func (info *Information) Option() Options {
+	return informationOption(info)
+}
+
 // BeforeRun ...
 func (info *Information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace

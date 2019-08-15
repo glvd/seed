@@ -1,4 +1,4 @@
-package seed
+package seed_test
 
 import (
 	"math/rand"

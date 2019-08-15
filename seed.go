@@ -137,6 +137,7 @@ func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
+//Optioner set option
 type Optioner interface {
 	Option() Options
 }

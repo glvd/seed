@@ -2,6 +2,14 @@ package seed
 
 import "github.com/go-xorm/xorm"
 
-type database struct {
+// Database ...
+type Database struct {
 	eng *xorm.Engine
+}
+
+// NewDatabase ...
+func NewDatabase(eng *xorm.Engine) *Database {
+	db := new(Database)
+	db.eng = eng
+	return db
 }

@@ -16,11 +16,14 @@ type PinFlag string
 
 // PinFlagNone ...
 const (
+	// PinFlagNone ...
 	PinFlagNone PinFlag = "none"
 	//PinFlagPoster PinFlag = "poster"
 	PinFlagSource PinFlag = "source"
-	PinFlagSlice  PinFlag = "slice"
-	PinFlagAll    PinFlag = "all"
+	// PinFlagSlice ...
+	PinFlagSlice PinFlag = "slice"
+	// PinFlagAll ...
+	PinFlagAll PinFlag = "all"
 )
 
 type pin struct {

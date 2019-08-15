@@ -1,7 +1,6 @@
 package seed
 
 import (
-	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 )
 
@@ -23,8 +22,8 @@ func NewDatabase(eng *xorm.Engine) *Database {
 }
 
 // PushWriter ...
-func (db *Database) PushWriter(w SQLWriter) {
-	db.writer <- w
+func (db *Database) PushWriter(s *xorm.Session, v interface{}) {
+	db.writer <- sqlWriter(s, v)
 }
 
 // Sync ...
@@ -45,22 +44,22 @@ func (db *Database) Option(seed *Seed) {
 	databaseOption(db)(seed)
 }
 
-type unfinishedWriter struct {
-	session    *xorm.Session
-	unfinished *model.Unfinished
+type write struct {
+	session *xorm.Session
+	data    interface{}
 }
 
 // UnfinishedWriter ...
-func UnfinishedWriter(session *xorm.Session, u *model.Unfinished) SQLWriter {
-	return &unfinishedWriter{
-		session:    session,
-		unfinished: u,
+func sqlWriter(session *xorm.Session, v interface{}) SQLWriter {
+	return &write{
+		session: session,
+		data:    v,
 	}
 }
 
 // Insert ...
-func (w *unfinishedWriter) Insert() (int64, error) {
-	return w.session.Insert(w.unfinished)
+func (w *write) Insert() (int64, error) {
+	return w.session.Insert(w.data)
 }
 
 // DatabaseArgs ...

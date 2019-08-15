@@ -22,7 +22,7 @@ type InfoFlag string
 const InfoFlagNone InfoFlag = "none"
 
 // InfoFlagInfo ...
-const InfoFlagInfo InfoFlag = "Information"
+const InfoFlagInfo InfoFlag = "information"
 
 // InfoFlagUpdate ...
 const InfoFlagUpdate InfoFlag = "update"
@@ -39,8 +39,8 @@ const InfoFlagBSON InfoFlag = "bson"
 // InfoFlagSQLite ...
 const InfoFlagSQLite InfoFlag = "sqlite3"
 
-// Information ...
-type Information struct {
+// information ...
+type information struct {
 	workspace  string
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
@@ -54,35 +54,18 @@ type Information struct {
 	noCheck    bool
 }
 
-//InfoArgs set the args to information
-type InfoArgs func(*Information)
-
-//InfoPathArg set path to information
-func InfoPathArg(path string) InfoArgs {
-	return func(i *Information) {
-		i.path = path
+// Information ...
+func Information(path string, from InfoFlag, list ...string) Options {
+	info := &information{
+		path: path,
+		from: from,
+		list: list,
 	}
-}
-
-// NewInformation ...
-func NewInformation(args ...InfoArgs) *Information {
-	info := new(Information)
-	info.workspace, _ = os.Getwd()
-
-	for _, argFn := range args {
-		argFn(info)
-	}
-
-	return info
-}
-
-//Option set info option
-func (info *Information) Option() Options {
 	return informationOption(info)
 }
 
 // BeforeRun ...
-func (info *Information) BeforeRun(seed *Seed) {
+func (info *information) BeforeRun(seed *Seed) {
 	info.workspace = seed.Workspace
 	info.videos = seed.Videos
 	info.unfinished = seed.Unfinished
@@ -93,7 +76,7 @@ func (info *Information) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (info *Information) AfterRun(seed *Seed) {
+func (info *information) AfterRun(seed *Seed) {
 	seed.Videos = info.videos
 	seed.Moves = info.moves
 }
@@ -190,8 +173,8 @@ func checkFileNotExist(path string) bool {
 }
 
 // Run ...
-func (info *Information) Run(ctx context.Context) {
-	log.Info("Information running")
+func (info *information) Run(ctx context.Context) {
+	log.Info("information running")
 	var vs []*VideoSource
 	select {
 	case <-ctx.Done():
@@ -247,7 +230,7 @@ func (info *Information) Run(ctx context.Context) {
 			return
 		}
 	}
-	log.With("total", len(vs)).Info("all Information")
+	log.With("total", len(vs)).Info("all information")
 	if vs == nil {
 		log.Info("no videos to process")
 		return

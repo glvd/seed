@@ -44,7 +44,12 @@ func (db *Database) Option(seed *Seed) {
 	databaseOption(db)(seed)
 }
 
+// WriteCallback ...
+type WriteCallback func() (id interface{}, e error)
+
 type write struct {
+	cb      WriteCallback
+	update  bool
 	session *xorm.Session
 	data    interface{}
 }
@@ -59,6 +64,13 @@ func sqlWriter(session *xorm.Session, v interface{}) SQLWriter {
 
 // Insert ...
 func (w *write) Insert() (int64, error) {
+	if w.update {
+		id, e := w.cb()
+		if e != nil {
+			return 0, e
+		}
+		return w.session.ID(id).Update(w.data)
+	}
 	return w.session.Insert(w.data)
 }
 

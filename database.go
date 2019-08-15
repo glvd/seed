@@ -23,8 +23,14 @@ func NewDatabase(eng *xorm.Engine) *Database {
 }
 
 // PushWriter ...
-func (db *Database) PushWriter(s *xorm.Session, v interface{}) {
+func (db *Database) PushWriter(s *xorm.Session, v model.Modeler) {
 	db.writer <- sqlWriter(s, v)
+}
+
+func (db *Database) PushCallbackWriter(s *xorm.Session, v model.Modeler, callback WriteCallback) {
+	w := sqlWriter(s, v)
+	w.cb = callback
+	db.writer <- w
 }
 
 // Sync ...
@@ -56,7 +62,7 @@ type write struct {
 }
 
 // UnfinishedWriter ...
-func sqlWriter(session *xorm.Session, m model.Modeler) SQLWriter {
+func sqlWriter(session *xorm.Session, m model.Modeler) *write {
 	return &write{
 		session: session,
 		model:   m,

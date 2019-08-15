@@ -43,6 +43,26 @@ type Video struct {
 	Uncensored   bool     `json:"uncensored"`                  //有码,无码
 }
 
+// GetID ...
+func (v *Video) GetID() string {
+	return v.ID
+}
+
+// SetID ...
+func (v *Video) SetID(s string) {
+	v.ID = s
+}
+
+// GetVersion ...
+func (v *Video) GetVersion() int {
+	return v.Version
+}
+
+// SetVersion ...
+func (v *Video) SetVersion(i int) {
+	v.Version = i
+}
+
 func init() {
 	RegisterTable(Video{})
 }

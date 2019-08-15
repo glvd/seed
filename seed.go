@@ -89,7 +89,7 @@ type Reader interface {
 type Seed struct {
 	Shell       *shell.Shell
 	API         *api.HttpApi
-	maindb      *xorm.Engine
+	maindb      *Database
 	Workspace   string
 	Scale       int64
 	NoCheck     bool
@@ -227,7 +227,7 @@ func SyncDatabase() AfterInitOptions {
 		if seed.maindb == nil {
 			panic("nil database")
 		}
-		e := model.Sync(seed.maindb)
+		e := model.Sync(seed.maindb.eng)
 		if e != nil {
 			panic(e)
 		}
@@ -312,13 +312,9 @@ func DatabaseFromPathOption(path string) Options {
 }
 
 // DatabaseOption ...
-func DatabaseOption(db *model.DatabaseConfig) Options {
+func DatabaseOption(db *Database) Options {
 	return func(seed *Seed) {
-		var e error
-		seed.maindb, e = model.InitDB(db)
-		if e != nil {
-			panic(e)
-		}
+		seed.maindb = db
 	}
 }
 

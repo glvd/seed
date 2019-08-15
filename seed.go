@@ -64,6 +64,17 @@ type Seeder interface {
 	Err() error
 }
 
+//Writer write to target
+type Writer interface {
+	Insert(*xorm.Session, interface{})
+}
+
+//Reader read data
+type Reader interface {
+	FindOne(*xorm.Session, interface{}) error
+	FindAll(*xorm.Session, interface{}) error
+}
+
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell

@@ -22,7 +22,7 @@ type InfoFlag string
 const InfoFlagNone InfoFlag = "none"
 
 // InfoFlagInfo ...
-const InfoFlagInfo InfoFlag = "information"
+const InfoFlagInfo InfoFlag = "info"
 
 // InfoFlagUpdate ...
 const InfoFlagUpdate InfoFlag = "update"

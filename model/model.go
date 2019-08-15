@@ -15,6 +15,7 @@ import (
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
+	"golang.org/x/xerrors"
 )
 
 var globalDB *xorm.Engine
@@ -24,6 +25,14 @@ var log = trait.NewZapFileSugar()
 //SetGlobalDB set db
 func SetGlobalDB(eng *xorm.Engine) {
 	globalDB = eng
+}
+
+//DB get global db
+func DB() *xorm.Engine {
+	if globalDB != nil {
+		return globalDB
+	}
+	panic(xerrors.New("nil db"))
 }
 
 // Database ...

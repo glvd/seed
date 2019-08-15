@@ -17,8 +17,14 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
+var globalDB *xorm.Engine
 var syncTable = map[string]interface{}{}
 var log = trait.NewZapFileSugar()
+
+//SetGlobalDB set db
+func SetGlobalDB(eng *xorm.Engine) {
+	globalDB = eng
+}
 
 // Database ...
 type Database struct {

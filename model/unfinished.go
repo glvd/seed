@@ -37,7 +37,7 @@ type Unfinished struct {
 	Sharpness   string       `xorm:"default()" json:"sharpness"`    //清晰度
 	Caption     string       `xorm:"default()" json:"caption"`      //字幕
 	Encrypt     bool         `json:"encrypt"`                       //加密
-	Key         string       `xorm:"default()"json:"key"`           //秘钥
+	Key         string       `xorm:"default()" json:"key"`          //秘钥
 	M3U8        string       `xorm:"m3u8 default()" json:"m3u8"`    //M3U8名
 	SegmentFile string       `xorm:"default()" json:"segment_file"` //ts切片名
 	Sync        bool         `xorm:"notnull default(0)"`            //是否已同步

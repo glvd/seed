@@ -30,7 +30,6 @@ type process struct {
 	moves       map[string]string
 	scale       int64
 	skipConvert bool
-	skipSource  bool
 	skipExist   bool
 	noSlice     bool
 	preAdd      bool
@@ -45,7 +44,6 @@ func (p *process) BeforeRun(seed *Seed) {
 	p.preAdd = seed.preAdd
 	p.scale = seed.Scale
 	p.skipConvert = seed.skipConvert
-	p.skipSource = seed.skipSource
 	p.ignores = seed.ignores
 	p.skipExist = seed.skipExist
 

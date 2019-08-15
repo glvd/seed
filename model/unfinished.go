@@ -44,6 +44,26 @@ type Unfinished struct {
 	Object      *VideoObject `xorm:"json" json:"object,omitempty"`  //视频信息
 }
 
+// GetID ...
+func (unfin *Unfinished) GetID() string {
+	return unfin.ID
+}
+
+// SetID ...
+func (unfin *Unfinished) SetID(s string) {
+	unfin.ID = s
+}
+
+// GetVersion ...
+func (unfin *Unfinished) GetVersion() int {
+	return unfin.Version
+}
+
+// SetVersion ...
+func (unfin *Unfinished) SetVersion(i int) {
+	unfin.Version = i
+}
+
 func init() {
 	RegisterTable(Unfinished{})
 }

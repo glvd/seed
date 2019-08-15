@@ -64,7 +64,7 @@ func sqlWriter(session *xorm.Session, v interface{}) SQLWriter {
 }
 
 // Insert ...
-func (w *write) Insert() (int64, error) {
+func (w *write) InsertOrUpdate() (int64, error) {
 	if w.update {
 		_, e := w.cb(w.able)
 		if e != nil {

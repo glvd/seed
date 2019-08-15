@@ -10,6 +10,14 @@ type Seeder interface {
 	Err() error
 }
 
+// SQLUpdateAble ...
+type SQLUpdateAble interface {
+	GetID() string
+	SetID(string)
+	GetVersion() int
+	SetVersion(int)
+}
+
 // SQLWriter ...
 type SQLWriter interface {
 	Insert() (int64, error)

@@ -95,6 +95,15 @@ func RegisterTable(v interface{}) {
 	syncTable[tof] = v
 }
 
+// Tables ...
+func Tables() []interface{} {
+	var r []interface{}
+	for _, tb := range syncTable {
+		r = append(r, tb)
+	}
+	return r
+}
+
 // Sync ...
 func Sync(db *xorm.Engine) (e error) {
 	for idx, val := range syncTable {

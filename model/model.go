@@ -48,7 +48,7 @@ func DefaultDB() *Database {
 		Username: "root",
 		Password: "111111",
 		Schema:   "glvd",
-		Loc:      url.QueryEscape("Asia/Shanghai"),
+		Loc:      "Asia/Shanghai",
 		Charset:  "utf8mb4",
 		Prefix:   "",
 	}
@@ -61,10 +61,11 @@ func (d *Database) SetLocation(loc string) {
 
 // Location ...
 func (d *Database) Location() string {
-	if d.location != "" {
-		return d.location
+	if d.Loc != "" {
+		d.location = url.QueryEscape(d.Loc)
+		d.Loc = "" //clear the loc buf
 	}
-	return url.QueryEscape(d.Loc)
+	return d.location
 }
 
 // Source ...

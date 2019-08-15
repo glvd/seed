@@ -67,6 +67,7 @@ func InfoPathArg(path string) InfoArgs {
 // NewInformation ...
 func NewInformation(args ...InfoArgs) *Information {
 	info := new(Information)
+	info.workspace, _ = os.Getwd()
 
 	for _, argFn := range args {
 		argFn(info)
@@ -77,6 +78,7 @@ func NewInformation(args ...InfoArgs) *Information {
 	// return InformationOption(info)
 }
 
+//Option set info option
 func (info *Information) Option() Options {
 	return informationOption(info)
 }

@@ -15,12 +15,10 @@ import (
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
-	"go.uber.org/zap"
 )
 
-var db *xorm.Engine
 var syncTable = map[string]interface{}{}
-var log = trait.NewZapSugar(zap.String("package", "model"))
+var log = trait.NewZapFileSugar()
 
 // Database ...
 type Database struct {

@@ -8,7 +8,7 @@ require (
 	github.com/go-xorm/xorm v0.7.1
 	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190717070803-3a229b146550
 	github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0
-	github.com/godcong/go-trait v0.0.0-20190813100119-644e192a7cf3
+	github.com/godcong/go-trait v0.0.0-20190815074314-36e949cd13e4
 	github.com/google/uuid v1.1.1
 	github.com/ipfs/go-cid v0.0.2
 	github.com/ipfs/go-ipfs-http-client v0.0.3

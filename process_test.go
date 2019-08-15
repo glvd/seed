@@ -1,8 +1,9 @@
 package seed
 
 import (
-	"github.com/glvd/seed/model"
 	"testing"
+
+	"github.com/glvd/seed/model"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -12,7 +13,7 @@ func TestGetFiles(t *testing.T) {
 
 	unfin, _ := model.FindUnfinished(nil, "d0384c15ca0862e3d558e9d610219a4bc9433f74")
 
-	seed := NewSeed(IgnoreOption("d:\\videos\\tmp"), Process("D:\\videoall\\videos"), UnfinishedOption(unfin), Pin(PinStatusAll))
+	seed := NewSeed(IgnoreOption("d:\\videos\\tmp"), Process("D:\\videoall\\videos"), UnfinishedOption(unfin), Pin(PinStatusArg(PinStatusAll)))
 	seed.Workspace = "d:\\videos\\tmp"
 	//seed.ProcessPath ="d:\\videos"
 	seed.Start()

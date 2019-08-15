@@ -65,13 +65,16 @@ func InfoPathArg(path string) InfoArgs {
 }
 
 // NewInformation ...
-func NewInformation(path string, from InfoFlag, list ...string) Options {
-	info := &Information{
-		path: path,
-		from: from,
-		list: list,
+func NewInformation(args ...InfoArgs) *Information {
+	info := new(Information)
+
+	for _, argFn := range args {
+		argFn(info)
 	}
-	return InformationOption(info)
+
+	return info
+
+	// return InformationOption(info)
 }
 
 // BeforeRun ...

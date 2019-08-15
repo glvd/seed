@@ -313,7 +313,7 @@ func DatabaseOption(dbtype, dataSourceName string) Options {
 }
 
 // InformationOption ...
-func InformationOption(info *Information) Options {
+func informationOption(info *Information) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperInformation] = info
 	}

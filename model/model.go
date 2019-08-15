@@ -49,7 +49,7 @@ func DefaultDB() *Database {
 		Port:     "3306",
 		Username: "root",
 		Password: "111111",
-		Schema:   "yinhe",
+		Schema:   "glvd",
 		Loc:      url.QueryEscape("Asia/Shanghai"),
 		Charset:  "utf8mb4",
 		Prefix:   "",
@@ -93,49 +93,19 @@ func Sync(db *xorm.Engine) (e error) {
 	return nil
 }
 
-// DB ...
-func DB() *xorm.Engine {
-	if db == nil {
-		if err := InitSQLite3(); err != nil {
-			panic(err)
-		}
-	}
-	return db
-}
-
 // SQLite3DB ...
 func SQLite3DB(name string) string {
 	return fmt.Sprintf("file:%s?cache=shared&mode=rwc&_journal_mode=WAL", name)
 }
 
 // InitSQLite3 ...
-func InitSQLite3() (e error) {
-	eng, e := xorm.NewEngine("sqlite3", SQLite3DB("seed.db"))
+func InitSQLite3() (eng *xorm.Engine, e error) {
+	eng, e = xorm.NewEngine("sqlite3", SQLite3DB("seed.db"))
 	if e != nil {
-		return e
-	}
-	eng.ShowSQL(true)
-	eng.ShowExecTime(true)
-	//result, e := eng.Exec("PRAGMA journal_mode = OFF;")
-	//if e != nil {
-	//	return e
-	//}
-	//log.Info("result:", result)
-	for idx, val := range syncTable {
-		log.Info("syncing ", idx)
-		e := eng.Sync2(val)
-		if e != nil {
-			return e
-		}
+		return nil, e
 	}
 
-	db = eng
-	return nil
-}
-
-// InitMainDB ...
-func InitMainDB(eng *xorm.Engine) {
-	db = eng
+	return eng, nil
 }
 
 // InitDB ...

@@ -131,8 +131,8 @@ func InitDB(db *DatabaseConfig) (eng *xorm.Engine, e error) {
 	return eng, nil
 }
 
-// LoadToml ...
-func LoadDatabaseConfigConfig(path string) (db *DatabaseConfig) {
+//LoadDatabaseConfig ...
+func LoadDatabaseConfig(path string) (db *DatabaseConfig) {
 	db = DefaultDB()
 	tree, err := toml.LoadFile(path)
 	if err != nil {

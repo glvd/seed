@@ -163,6 +163,14 @@ type Model struct {
 	Version   int        `xorm:"version"`
 }
 
+// Modeler ...
+type Modeler interface {
+	GetID() string
+	SetID(string)
+	GetVersion() int
+	SetVersion(int)
+}
+
 // BeforeInsert ...
 func (m *Model) BeforeInsert() {
 	if m.ID == "" {

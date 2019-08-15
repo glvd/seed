@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/go-xorm/xorm"
 	"strings"
+
+	"github.com/go-xorm/xorm"
 )
 
 // Video ...
@@ -21,9 +22,9 @@ type Video struct {
 	Role         []string `xorm:"json" json:"role"`            //主演
 	Director     string   `json:"-"`                           //导演
 	Systematics  string   `json:"-"`                           //分级
-	Season       string   `json:"-,omitempty"`                 //季
-	TotalEpisode string   `json:"-,omitempty"`                 //总集数
-	Episode      string   `json:"-,omitempty"`                 //集数
+	Season       string   `json:"-"`                           //季
+	TotalEpisode string   `json:"-"`                           //总集数
+	Episode      string   `json:"-"`                           //集数
 	Producer     string   `json:"-"`                           //生产商
 	Publisher    string   `json:"-"`                           //发行商
 	Type         string   `json:"-"`                           //类型：film，FanDrama

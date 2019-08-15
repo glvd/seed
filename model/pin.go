@@ -2,8 +2,9 @@ package model
 
 import (
 	"fmt"
-	"golang.org/x/xerrors"
 	"strings"
+
+	"golang.org/x/xerrors"
 
 	"github.com/go-xorm/xorm"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -21,7 +22,7 @@ func init() {
 	RegisterTable(Pin{})
 }
 
-// AllUnfinished ...
+//AllPin find pins
 func AllPin(session *xorm.Session, limit int, start ...int) (pins *[]*Pin, e error) {
 	pins = new([]*Pin)
 	session = MustSession(session)
@@ -34,7 +35,7 @@ func AllPin(session *xorm.Session, limit int, start ...int) (pins *[]*Pin, e err
 	return pins, nil
 }
 
-// FindUnfinished ...
+//FindPin find one pin
 func FindPin(session *xorm.Session, ph string) (pin *Pin, e error) {
 	pin = new(Pin)
 	b, e := MustSession(session).Where("pin_hash = ?", ph).Get(pin)

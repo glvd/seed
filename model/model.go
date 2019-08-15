@@ -35,8 +35,8 @@ func DB() *xorm.Engine {
 	panic(xerrors.New("nil db"))
 }
 
-// Database ...
-type Database struct {
+// DatabaseConfig ...
+type DatabaseConfig struct {
 	ShowSQL      bool   `toml:"show_sql"`
 	ShowExecTime bool   `toml:"show_exec_time"`
 	UseCache     bool   `json:"use_cache"`
@@ -53,8 +53,8 @@ type Database struct {
 }
 
 // DefaultDB ...
-func DefaultDB() *Database {
-	return &Database{
+func DefaultDB() *DatabaseConfig {
+	return &DatabaseConfig{
 		ShowSQL:  true,
 		UseCache: true,
 		Type:     "mysql",
@@ -70,12 +70,12 @@ func DefaultDB() *Database {
 }
 
 // SetLocation ...
-func (d *Database) SetLocation(loc string) {
+func (d *DatabaseConfig) SetLocation(loc string) {
 	d.location = url.QueryEscape(loc)
 }
 
 // Location ...
-func (d *Database) Location() string {
+func (d *DatabaseConfig) Location() string {
 	if d.Loc != "" {
 		d.location = url.QueryEscape(d.Loc)
 		d.Loc = "" //clear the loc buf
@@ -84,7 +84,7 @@ func (d *Database) Location() string {
 }
 
 // Source ...
-func (d *Database) Source() string {
+func (d *DatabaseConfig) Source() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?loc=%s&charset=%s&parseTime=true",
 		d.Username, d.Password, d.Addr, d.Port, d.Schema, url.QueryEscape(d.location), d.Charset)
 }
@@ -113,8 +113,8 @@ func SQLite3DB(name string) string {
 }
 
 // InitSQLite3 ...
-func InitSQLite3() (eng *xorm.Engine, e error) {
-	eng, e = xorm.NewEngine("sqlite3", SQLite3DB("seed.db"))
+func InitSQLite3(name string) (eng *xorm.Engine, e error) {
+	eng, e = xorm.NewEngine("sqlite3", SQLite3DB(name))
 	if e != nil {
 		return nil, e
 	}
@@ -123,8 +123,8 @@ func InitSQLite3() (eng *xorm.Engine, e error) {
 }
 
 // InitDB ...
-func InitDB(db, source string) (eng *xorm.Engine, e error) {
-	eng, e = xorm.NewEngine(db, source)
+func InitDB(db *DatabaseConfig) (eng *xorm.Engine, e error) {
+	eng, e = xorm.NewEngine(db.Type, db.Source())
 	if e != nil {
 		return
 	}
@@ -132,7 +132,7 @@ func InitDB(db, source string) (eng *xorm.Engine, e error) {
 }
 
 // LoadToml ...
-func LoadToml(path string) (db *Database) {
+func LoadDatabaseConfigConfig(path string) (db *DatabaseConfig) {
 	db = DefaultDB()
 	tree, err := toml.LoadFile(path)
 	if err != nil {

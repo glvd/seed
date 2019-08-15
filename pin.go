@@ -32,7 +32,6 @@ type pin struct {
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
 	skipType   []interface{}
-	skipSource bool
 	state      PinStatus
 	flag       PinFlag
 	status     PinStatus
@@ -52,7 +51,6 @@ func (p *pin) BeforeRun(seed *Seed) {
 		p.shell = seed.Shell
 	}
 
-	p.skipSource = seed.skipSource
 	p.from = seed.From
 }
 

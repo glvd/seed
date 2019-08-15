@@ -22,3 +22,8 @@ func (db *Database) Sync() error {
 	}
 	return db.eng.Sync2(db.syncTable...)
 }
+
+// RegisterSync ...
+func (db *Database) RegisterSync(v interface{}) {
+	db.syncTable = append(db.syncTable, v)
+}

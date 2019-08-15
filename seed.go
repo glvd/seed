@@ -44,15 +44,25 @@ type Stepper int
 
 // StepperNone ...
 const (
+	// StepperNone ...
 	StepperNone Stepper = iota
+	// StepperInformation ...
 	StepperInformation
+	// StepperMoveInfo ...
 	StepperMoveInfo
+	// StepperProcess ...
 	StepperProcess
+	// StepperMoveproc ...
 	StepperMoveproc
+	// StepperTransfer ...
 	StepperTransfer
+	// StepperPin ...
 	StepperPin
+	// StepperCheck ...
 	StepperCheck
+	// StepperUpdate ...
 	StepperUpdate
+	// StepperMax ...
 	StepperMax
 )
 
@@ -289,27 +299,26 @@ func PreAddOption() Options {
 // DatabaseFromPathOption ...
 func DatabaseFromPathOption(path string) Options {
 	return func(seed *Seed) {
-		db := model.LoadToml(path)
+		db := model.LoadDatabaseConfig(path)
 		var e error
-		seed.maindb, e = model.InitDB(db.Type, db.Source())
+		seed.maindb, e = model.InitDB(db)
 		if e != nil {
 			panic(e)
 		}
 		seed.maindb.ShowSQL(db.ShowSQL)
 		seed.maindb.ShowExecTime(db.ShowExecTime)
-		model.InitMainDB(seed.maindb)
+		model.SetGlobalDB(seed.maindb)
 	}
 }
 
 // DatabaseOption ...
-func DatabaseOption(dbtype, dataSourceName string) Options {
+func DatabaseOption(db *model.DatabaseConfig) Options {
 	return func(seed *Seed) {
 		var e error
-		seed.maindb, e = model.InitDB(dbtype, dataSourceName)
+		seed.maindb, e = model.InitDB(db)
 		if e != nil {
 			panic(e)
 		}
-		model.InitMainDB(seed.maindb)
 	}
 }
 

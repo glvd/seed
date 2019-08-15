@@ -3,6 +3,7 @@ module github.com/glvd/seed
 go 1.12
 
 require (
+	github.com/cuonglm/gocmt v0.0.0-20190806024510-2db7ffb0dcb1 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190401154936-ce35bd87d4b3 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/go-xorm/xorm v0.7.1
@@ -20,6 +21,5 @@ require (
 	github.com/multiformats/go-multiaddr v0.0.4
 	github.com/pelletier/go-toml v1.4.0
 	go.uber.org/atomic v1.4.0
-	go.uber.org/zap v1.10.0
 	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 )

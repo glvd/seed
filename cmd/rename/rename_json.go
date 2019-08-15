@@ -49,8 +49,10 @@ func fixBson(s []byte) []byte {
 	return reg.ReplaceAll(s, []byte(" "))
 }
 
+// Role ...
 type Role []RoleElement
 
+// RoleElement ...
 type RoleElement struct {
 	Name       string `json:"name"`
 	Birthday   string `json:"birthday"`
@@ -66,21 +68,36 @@ type RoleElement struct {
 	Uncensored bool   `json:"uncensored"`
 }
 
+// Cup ...
 type Cup string
 
 const (
-	A     Cup = "A"
-	B     Cup = "B"
-	C     Cup = "C"
-	D     Cup = "D"
-	E     Cup = "E"
+	// A ...
+	A Cup = "A"
+	// B ...
+	B Cup = "B"
+	// C ...
+	C Cup = "C"
+	// D ...
+	D Cup = "D"
+	// E ...
+	E Cup = "E"
+	// Empty ...
 	Empty Cup = ""
-	F     Cup = "F"
-	G     Cup = "G"
-	H     Cup = "H"
-	I     Cup = "I"
-	J     Cup = "J"
-	K     Cup = "K"
-	M     Cup = "M"
-	O     Cup = "O"
+	// F ...
+	F Cup = "F"
+	// G ...
+	G Cup = "G"
+	// H ...
+	H Cup = "H"
+	// I ...
+	I Cup = "I"
+	// J ...
+	J Cup = "J"
+	// K ...
+	K Cup = "K"
+	// M ...
+	M Cup = "M"
+	// O ...
+	O Cup = "O"
 )

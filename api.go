@@ -59,11 +59,16 @@ type PeerID struct {
 	PublicKey       string   `json:"PublicKey"`
 }
 
-// MyPeerID ...
-func MyPeerID(api *API) *PeerID {
+// APIPeerID ...
+func APIPeerID(api *API) *PeerID {
 	pid := new(apiPeerID)
+	pid.done = make(chan bool)
 	go api.PushCallback(pid)
-	return pid.OnDone()
+	d := <-pid.done
+	if d {
+		return pid.id
+	}
+	return nil
 }
 
 type apiPeerID struct {
@@ -83,12 +88,11 @@ func (p *apiPeerID) Failed() {
 
 // OnDone ...
 func (p *apiPeerID) OnDone() *PeerID {
-	select {
-	case d := <-p.done:
-		if d {
-			return p.id
-		}
+	d := <-p.done
+	if d {
+		return p.id
 	}
+
 	return nil
 }
 
@@ -100,6 +104,14 @@ func (p *apiPeerID) Callback(api *httpapi.HttpApi) (e error) {
 		return e
 	}
 	return nil
+}
+
+// APIPin ...
+func APIPin(api *API, hash string) bool {
+	p := new(apiPin)
+	p.done = make(chan bool)
+	api.PushCallback(p)
+	return p.OnDone()
 }
 
 type apiPin struct {
@@ -114,15 +126,15 @@ func (a *apiPin) Callback(api *httpapi.HttpApi) error {
 
 // Done ...
 func (a *apiPin) Done() {
-
+	a.done <- true
 }
 
 // Failed ...
 func (a *apiPin) Failed() {
-
+	a.done <- false
 }
 
 // OnDone ...
-func (a *apiPin) OnDone() {
-
+func (a *apiPin) OnDone() bool {
+	return <-a.done
 }

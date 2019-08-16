@@ -30,12 +30,16 @@ func (api *API) PushCallback(cb APICallbackAble) {
 // Run ...
 func (api *API) Run(ctx context.Context) {
 	log.Info("api running")
+	var e error
 	for {
 		select {
 		case <-ctx.Done():
 			log.Info("api done")
 		case c := <-api.cb:
-			c.Callback(api.api)
+			e = c.Callback(api.api)
+			if e != nil {
+				log.Error(e)
+			}
 		}
 	}
 }

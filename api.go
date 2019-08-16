@@ -29,6 +29,8 @@ func (api *API) Run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			log.Info("api done")
+		case c := <-api.cb:
+			c.Callback(api.api)
 		}
 	}
 }

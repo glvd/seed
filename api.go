@@ -110,8 +110,8 @@ func (p *apiPeerID) Callback(api *httpapi.HttpApi) (e error) {
 func APIPin(api *API, hash string) bool {
 	p := new(apiPin)
 	p.done = make(chan bool)
-	api.PushCallback(p)
-	return p.OnDone()
+	go api.PushCallback(p)
+	return <-p.done
 }
 
 type apiPin struct {
@@ -132,9 +132,4 @@ func (a *apiPin) Done() {
 // Failed ...
 func (a *apiPin) Failed() {
 	a.done <- false
-}
-
-// OnDone ...
-func (a *apiPin) OnDone() bool {
-	return <-a.done
 }

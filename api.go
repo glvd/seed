@@ -19,7 +19,7 @@ func NewAPI() *API {
 
 // APICallbackAble ...
 type APICallbackAble interface {
-	Callback(api *httpapi.HttpApi)
+	Callback(api *httpapi.HttpApi) error
 }
 
 // PushCallback ...
@@ -38,4 +38,34 @@ func (api *API) Run(ctx context.Context) {
 			c.Callback(api.api)
 		}
 	}
+}
+
+// PeerID ...
+type PeerID struct {
+	Addresses       []string `json:"Addresses"`
+	AgentVersion    string   `json:"AgentVersion"`
+	ID              string   `json:"ID"`
+	ProtocolVersion string   `json:"ProtocolVersion"`
+	PublicKey       string   `json:"PublicKey"`
+}
+
+// MyPeerID ...
+func (api *API) MyPeerID() (pid *PeerID, e error) {
+	pid = new(PeerID)
+	e = api.api.Request("id").Exec(context.Background(), pid)
+	return
+}
+
+type peerID struct {
+	id *PeerID
+}
+
+// Callback ...
+func (p *peerID) Callback(api *httpapi.HttpApi) (e error) {
+	p.id = new(PeerID)
+	e = api.Request("id").Exec(context.Background(), p.id)
+	if e != nil {
+		return e
+	}
+	return nil
 }

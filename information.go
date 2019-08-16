@@ -54,10 +54,12 @@ type Information struct {
 	noCheck    bool
 }
 
+// Option ...
 func (info *Information) Option(seed *Seed) {
 	informationOption(info)(seed)
 }
 
+// NewInformation ...
 func NewInformation() *Information {
 	return new(Information)
 }
@@ -87,14 +89,14 @@ func fixBson(s []byte) []byte {
 func video(source *VideoSource) (video *model.Video) {
 
 	//always not null
-	alias := []string{}
+	alias := *new([]string)
 	aliasS := ""
 	if source.Alias != nil && len(source.Alias) > 0 {
 		alias = source.Alias
 		aliasS = alias[0]
 	}
 	//always not null
-	role := []string{}
+	role := *new([]string)
 	roleS := ""
 	if source.Role != nil && len(source.Role) > 0 {
 		role = source.Role

@@ -15,10 +15,15 @@ type Database struct {
 var _ Optioner = &Database{}
 
 // NewDatabase ...
-func NewDatabase(eng *xorm.Engine) *Database {
+func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
 	db.writer = make(chan SQLWriter, 10)
+
+	for _, argFn := range args {
+		argFn(db)
+	}
+
 	return db
 }
 
@@ -27,6 +32,7 @@ func (db *Database) PushWriter(s *xorm.Session, v model.Modeler) {
 	db.writer <- sqlWriter(s, v)
 }
 
+// PushCallbackWriter ...
 func (db *Database) PushCallbackWriter(s *xorm.Session, v model.Modeler, callback WriteCallback) {
 	w := sqlWriter(s, v)
 	w.cb = callback

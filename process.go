@@ -33,6 +33,7 @@ type process struct {
 	skipExist   bool
 	noSlice     bool
 	preAdd      bool
+	skipType    []interface{}
 }
 
 // BeforeRun ...
@@ -199,7 +200,7 @@ func (p *process) Run(ctx context.Context) {
 			log.Infof("%+v", format)
 			log.Info("adding:", file)
 
-			if p.skipSource {
+			if SkipTypeVerify("video", p.skipType...) {
 				if !unfin.IsExist() || !p.skipExist {
 					err := p.fileAdd(unfin, file)
 					if err != nil {

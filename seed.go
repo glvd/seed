@@ -67,7 +67,7 @@ const (
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell
-	API         *api.HttpApi
+	API         *API
 	maindb      *Database
 	Workspace   string
 	Scale       int64

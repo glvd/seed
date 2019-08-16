@@ -14,3 +14,7 @@ func NewAPI() *API {
 type APICallbackAble interface {
 	Callback(api *httpapi.HttpApi)
 }
+
+func (api *API) PushCallback(cb APICallbackAble) {
+	api.cb <- cb
+}

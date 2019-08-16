@@ -4,6 +4,7 @@ import (
 	"context"
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 )
 
 // API ...
@@ -60,28 +61,28 @@ type PeerID struct {
 
 // MyPeerID ...
 func MyPeerID(api *API) *PeerID {
-	pid := new(peerID)
+	pid := new(apiPeerID)
 	go api.PushCallback(pid)
 	return pid.OnDone()
 }
 
-type peerID struct {
+type apiPeerID struct {
 	id   *PeerID
 	done chan bool
 }
 
 // Done ...
-func (p *peerID) Done() {
+func (p *apiPeerID) Done() {
 	p.done <- true
 }
 
 // Failed ...
-func (p *peerID) Failed() {
+func (p *apiPeerID) Failed() {
 	p.done <- false
 }
 
 // OnDone ...
-func (p *peerID) OnDone() *PeerID {
+func (p *apiPeerID) OnDone() *PeerID {
 	select {
 	case d := <-p.done:
 		if d {
@@ -92,11 +93,36 @@ func (p *peerID) OnDone() *PeerID {
 }
 
 // Callback ...
-func (p *peerID) Callback(api *httpapi.HttpApi) (e error) {
+func (p *apiPeerID) Callback(api *httpapi.HttpApi) (e error) {
 	p.id = new(PeerID)
 	e = api.Request("id").Exec(context.Background(), p.id)
 	if e != nil {
 		return e
 	}
 	return nil
+}
+
+type apiPin struct {
+	hash string
+	done chan bool
+}
+
+// Callback ...
+func (a *apiPin) Callback(api *httpapi.HttpApi) error {
+	return api.Pin().Add(context.Background(), path.New(a.hash))
+}
+
+// Done ...
+func (a *apiPin) Done() {
+
+}
+
+// Failed ...
+func (a *apiPin) Failed() {
+
+}
+
+// OnDone ...
+func (a *apiPin) OnDone() {
+
 }

@@ -170,7 +170,7 @@ func CheckFromArg(from ...string) CheckArgs {
 	}
 }
 
-// Check ...
+// NewCheck ...
 func NewCheck(args ...CheckArgs) *Check {
 	check := new(Check)
 

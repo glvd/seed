@@ -21,7 +21,6 @@ func NewAPI() *API {
 type APICallbackAble interface {
 	Callback(api *httpapi.HttpApi) error
 	Done()
-	OnDone(func())
 	Failed()
 }
 
@@ -82,13 +81,14 @@ func (p *peerID) Failed() {
 }
 
 // OnDone ...
-func (p *peerID) OnDone(f func()) {
+func (p *peerID) OnDone() *PeerID {
 	select {
 	case d := <-p.done:
 		if d {
-			f()
+			return p.id
 		}
 	}
+	return nil
 }
 
 // Callback ...

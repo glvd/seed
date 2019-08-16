@@ -317,7 +317,7 @@ func transferToJSON(to string) (e error) {
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
 	if transfer.flag == InfoFlagSQLite {
-		fromDB, e := model.InitDB("sqlite3", transfer.path)
+		fromDB, e := model.InitSQLite3(transfer.path)
 		if e != nil {
 			log.Error(e)
 			return

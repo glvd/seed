@@ -61,7 +61,8 @@ func (api *API) MyPeerID() (pid *PeerID, e error) {
 }
 
 type peerID struct {
-	id *PeerID
+	id   *PeerID
+	done chan bool
 }
 
 // Callback ...

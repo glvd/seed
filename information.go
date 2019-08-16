@@ -54,14 +54,12 @@ type Information struct {
 	noCheck    bool
 }
 
-// Information ...
-func NewInformation(path string, from InfoFlag, list ...string) Options {
-	info := &Information{
-		path: path,
-		from: from,
-		list: list,
-	}
-	return informationOption(info)
+func (info *Information) Option(seed *Seed) {
+	informationOption(info)(seed)
+}
+
+func NewInformation() *Information {
+	return new(Information)
 }
 
 // BeforeRun ...

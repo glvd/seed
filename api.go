@@ -1,6 +1,10 @@
 package seed
 
-import httpapi "github.com/ipfs/go-ipfs-http-client"
+import (
+	"context"
+
+	httpapi "github.com/ipfs/go-ipfs-http-client"
+)
 
 type API struct {
 	api *httpapi.HttpApi
@@ -17,4 +21,14 @@ type APICallbackAble interface {
 
 func (api *API) PushCallback(cb APICallbackAble) {
 	api.cb <- cb
+}
+
+func (api *API) Run(ctx context.Context) {
+	log.Info("api running")
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info("api done")
+		}
+	}
 }

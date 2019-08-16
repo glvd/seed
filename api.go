@@ -59,10 +59,10 @@ type PeerID struct {
 }
 
 // MyPeerID ...
-func (api *API) MyPeerID() (pid *PeerID, e error) {
-	pid = new(PeerID)
-	e = api.api.Request("id").Exec(context.Background(), pid)
-	return
+func MyPeerID(api *API) *PeerID {
+	pid := new(peerID)
+	go api.PushCallback(pid)
+	return pid.OnDone()
 }
 
 type peerID struct {

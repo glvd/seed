@@ -6,15 +6,25 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glvd/seed"
+	"github.com/glvd/seed/model"
 	"github.com/godcong/go-trait"
 )
 
 // TestCheck ...
 func TestCheck(t *testing.T) {
-	seed := NewSeed(DatabaseOption("sqlite3", "test.db"), Check(CheckTypeArg("recursive")))
-	seed.AfterInit(SyncDatabase())
+	db, e := model.InitSQLite3("test.db")
+	if e != nil {
+		panic(e)
+	}
+	data := seed.NewDatabase(db, seed.DatabaseShowSQLArg())
+
+	check := seed.NewCheck(seed.CheckPinTypeArg("recursive"))
+
+	seed := seed.NewSeed(data, check)
 	seed.Start()
 	seed.Wait()
+
 }
 
 // TestSliceBenchmark ...

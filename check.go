@@ -17,8 +17,8 @@ const CheckTypePin CheckType = "pin"
 // CheckTypeUnpin ...
 const CheckTypeUnpin CheckType = "unpin"
 
-// check ...
-type check struct {
+// Check ...
+type Check struct {
 	api       *httpapi.HttpApi
 	myID      *PeerID
 	Type      string
@@ -27,9 +27,14 @@ type check struct {
 	skipType  []interface{}
 }
 
+// Option ...
+func (c *Check) Option(seed *Seed) {
+	checkOption(c)(seed)
+}
+
 // Run ...
-func (c *check) Run(context.Context) {
-	log.Info("check running")
+func (c *Check) Run(context.Context) {
+	log.Info("Check running")
 	switch c.checkType {
 	case CheckTypePin:
 		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
@@ -117,29 +122,24 @@ func (c *check) Run(context.Context) {
 }
 
 // BeforeRun ...
-func (c *check) BeforeRun(seed *Seed) {
-	var e error
-	c.api = seed.API
-	c.myID, e = seed.MyPeerID()
-	if e != nil {
-		log.Error(e)
-	}
+func (c *Check) BeforeRun(seed *Seed) {
+	c.myID = APIPeerID(seed.API)
 	if c.Type == "" {
 		c.Type = "recursive"
 	}
 }
 
 // AfterRun ...
-func (c *check) AfterRun(seed *Seed) {
+func (c *Check) AfterRun(seed *Seed) {
 
 }
 
 // CheckArgs ...
-type CheckArgs func(c *check)
+type CheckArgs func(c *Check)
 
 // CheckSkipArg ...
 func CheckSkipArg(s []string) CheckArgs {
-	return func(c *check) {
+	return func(c *Check) {
 		if s == nil {
 			return
 		}
@@ -151,36 +151,36 @@ func CheckSkipArg(s []string) CheckArgs {
 
 // CheckTypeArg ...
 func CheckTypeArg(t CheckType) CheckArgs {
-	return func(c *check) {
+	return func(c *Check) {
 		c.checkType = t
 	}
 }
 
 // CheckPinTypeArg ...
 func CheckPinTypeArg(t string) CheckArgs {
-	return func(c *check) {
+	return func(c *Check) {
 		c.Type = t
 	}
 }
 
 // CheckFromArg ...
 func CheckFromArg(from ...string) CheckArgs {
-	return func(c *check) {
+	return func(c *Check) {
 		c.from = from
 	}
 }
 
 // Check ...
-func Check(args ...CheckArgs) Options {
-	check := new(check)
+func NewCheck(args ...CheckArgs) *Check {
+	check := new(Check)
 
 	for _, argFn := range args {
 		argFn(check)
 	}
-	return checkOption(check)
+	return check
 }
 
-func checkOption(c *check) Options {
+func checkOption(c *Check) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperCheck] = c
 	}

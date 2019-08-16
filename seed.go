@@ -9,9 +9,7 @@ import (
 
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
-	api "github.com/ipfs/go-ipfs-http-client"
 	jsoniter "github.com/json-iterator/go"
-	ma "github.com/multiformats/go-multiaddr"
 )
 
 // Options ...
@@ -148,17 +146,7 @@ func NewSeed(ops ...Optioner) *Seed {
 	}
 
 	if seed.API == nil {
-		addr, e := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/5001")
-		if e != nil {
-			log.Error(e)
-			return nil
-		}
-		addrAPI, e := api.NewApi(addr)
-		if e != nil {
-			log.Error(e)
-			return nil
-		}
-		seed.API = addrAPI
+		seed.API = NewAPI("/ip4/127.0.0.1/tcp/5001")
 	}
 
 	return seed
@@ -261,18 +249,8 @@ func ShellOption(s string) Options {
 
 // APIOption ...
 func APIOption(s string) Options {
-	var e error
 	return func(seed *Seed) {
-		var addr ma.Multiaddr
-		addr, e = ma.NewMultiaddr(s)
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		seed.API, e = api.NewApi(addr)
-		if e != nil {
-			log.Error(e)
-		}
+		seed.API = NewAPI(s)
 	}
 }
 

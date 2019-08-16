@@ -138,11 +138,8 @@ func (c *Check) AfterRun(seed *Seed) {
 type CheckArgs func(c *Check)
 
 // CheckSkipArg ...
-func CheckSkipArg(s []string) CheckArgs {
+func CheckSkipArg(s ...string) CheckArgs {
 	return func(c *Check) {
-		if s == nil {
-			return
-		}
 		for i := range s {
 			c.skipType = append(c.skipType, s[i])
 		}

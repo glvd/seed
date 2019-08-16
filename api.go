@@ -20,6 +20,9 @@ func NewAPI() *API {
 // APICallbackAble ...
 type APICallbackAble interface {
 	Callback(api *httpapi.HttpApi) error
+	Done()
+	OnDone(func())
+	Failed()
 }
 
 // PushCallback ...
@@ -39,7 +42,10 @@ func (api *API) Run(ctx context.Context) {
 			e = c.Callback(api.api)
 			if e != nil {
 				log.Error(e)
+				c.Failed()
+				continue
 			}
+			c.Done()
 		}
 	}
 }
@@ -63,6 +69,26 @@ func (api *API) MyPeerID() (pid *PeerID, e error) {
 type peerID struct {
 	id   *PeerID
 	done chan bool
+}
+
+// Done ...
+func (p *peerID) Done() {
+	p.done <- true
+}
+
+// Failed ...
+func (p *peerID) Failed() {
+	p.done <- false
+}
+
+// OnDone ...
+func (p *peerID) OnDone(f func()) {
+	select {
+	case d := <-p.done:
+		if d {
+			f()
+		}
+	}
 }
 
 // Callback ...

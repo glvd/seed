@@ -5,6 +5,7 @@ import (
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/multiformats/go-multiaddr"
 )
 
 // API ...
@@ -14,8 +15,18 @@ type API struct {
 }
 
 // NewAPI ...
-func NewAPI() *API {
-	return new(API)
+func NewAPI(path string) *API {
+	a := new(API)
+	var e error
+	addr, e := multiaddr.NewMultiaddr(path)
+	if e != nil {
+		panic(e)
+	}
+	a.api, e = httpapi.NewApi(addr)
+	if e != nil {
+		panic(e)
+	}
+	return a
 }
 
 // APICallbackAble ...

@@ -107,13 +107,11 @@ func (seed *Seed) Start() {
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
-		for i, thread := range seed.thread {
-			log.With("index", i)
-			if thread != nil {
-				thread.BeforeRun(seed)
-				thread.Run(seed.ctx)
-				thread.AfterRun(seed)
-			}
+		for i := range seed.thread {
+			//log.With("index", i)
+			//thread.BeforeRun(seed)
+			seed.thread[i].Run(seed.ctx)
+			//thread.AfterRun(seed)
 		}
 	}()
 }

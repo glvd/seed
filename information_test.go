@@ -1,24 +1,31 @@
 package seed_test
 
-import "testing"
+import (
+	"github.com/glvd/seed"
+	"github.com/glvd/seed/model"
+	"testing"
+)
 
 // TestInformation ...
 func TestInformation(t *testing.T) {
-	seed := NewSeed(Information("D:\\videoall\\video.json", InfoFlagBSON), DatabaseOption("sqlite3", "t1.db"))
-	seed.Workspace = "D:\\videoall"
-	seed.AfterInit(SyncDatabase())
-	seed.Start()
+	info := seed.NewInformation()
+	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
+	s := seed.NewSeed(sdb, info)
+	s.Workspace = "D:\\videoall"
+	s.Start()
 
-	seed.Wait()
+	s.Wait()
 }
 
 // TestInformation2 ...
 func TestInformation2(t *testing.T) {
-	seed := NewSeed(Information("D:\\videoall\\video.json", InfoFlagBSON), DatabaseOption("sqlite3", "t1.db"), MoveInfo("D:\\videoall\\picSuccess"))
-	seed.Workspace = "D:\\videoall"
-	seed.AfterInit(SyncDatabase())
-	seed.MaxLimit = 5
-	seed.Start()
+	info := seed.NewInformation()
+	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 
-	seed.Wait()
+	s := seed.NewSeed(info, sdb)
+	s.Workspace = "D:\\videoall"
+	s.MaxLimit = 5
+	s.Start()
+
+	s.Wait()
 }

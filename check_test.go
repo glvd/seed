@@ -13,17 +13,13 @@ import (
 
 // TestCheck ...
 func TestCheck(t *testing.T) {
-	db, e := model.InitSQLite3("test.db")
-	if e != nil {
-		panic(e)
-	}
-	data := seed.NewDatabase(db, seed.DatabaseShowSQLArg())
+	data := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")), seed.DatabaseShowSQLArg())
 
 	check := seed.NewCheck(seed.CheckPinTypeArg("recursive"))
 
-	seed := seed.NewSeed(data, check)
-	seed.Start()
-	seed.Wait()
+	s := seed.NewSeed(data, check)
+	s.Start()
+	s.Wait()
 
 }
 

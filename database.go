@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"context"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 )
@@ -10,6 +11,30 @@ type Database struct {
 	eng       *xorm.Engine
 	syncTable []interface{}
 	writer    chan SQLWriter
+}
+
+func (db *Database) Run(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+		case v := <-db.writer:
+			_, e := v.InsertOrUpdate()
+			if e != nil {
+				log.Error(e)
+				v.Failed()
+				continue
+			}
+			v.Done()
+		}
+	}
+}
+
+func (db *Database) BeforeRun(seed *Seed) {
+	panic("implement me")
+}
+
+func (db *Database) AfterRun(seed *Seed) {
+	panic("implement me")
 }
 
 var _ Optioner = &Database{}
@@ -33,7 +58,7 @@ func (db *Database) PushWriter(s *xorm.Session, v model.Modeler) {
 }
 
 // PushCallbackWriter ...
-func (db *Database) PushCallbackWriter(s *xorm.Session, v model.Modeler, callback WriteCallback) {
+func (db *Database) PushCallbackWriter(s *xorm.Session, v model.Modeler, callback BeforeUpdate) {
 	w := sqlWriter(s, v)
 	w.cb = callback
 	db.writer <- w
@@ -57,14 +82,22 @@ func (db *Database) Option(seed *Seed) {
 	databaseOption(db)(seed)
 }
 
-// WriteCallback ...
-type WriteCallback func(session *xorm.Session, modeler model.Modeler) (id interface{}, e error)
+// BeforeUpdate ...
+type BeforeUpdate func(session *xorm.Session, modeler model.Modeler) (id interface{}, e error)
 
 type write struct {
-	cb      WriteCallback
+	cb      BeforeUpdate
 	update  bool
 	session *xorm.Session
 	model   model.Modeler
+}
+
+func (w *write) Done() {
+	panic("implement me")
+}
+
+func (w *write) Failed() {
+	panic("implement me")
 }
 
 // UnfinishedWriter ...

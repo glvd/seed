@@ -42,6 +42,8 @@ type Stepper int
 const (
 	// StepperNone ...
 	StepperNone Stepper = iota
+	//StepperDatabase ...
+	StepperDatabase
 	// StepperInformation ...
 	StepperInformation
 	// StepperMoveInfo ...
@@ -66,7 +68,6 @@ const (
 type Seed struct {
 	Shell       *shell.Shell
 	API         *API
-	maindb      *Database
 	Workspace   string
 	Scale       int64
 	NoCheck     bool
@@ -103,18 +104,17 @@ func (seed *Seed) Err() error {
 
 // Start ...
 func (seed *Seed) Start() {
-	seed.wg.Add(1)
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
 		for i := range seed.thread {
-			//log.With("index", i)
-			//thread.BeforeRun(seed)
-			go func(group *sync.WaitGroup) {
+			if seed.thread[i] == nil {
+				continue
+			}
+			go func(t Threader, group *sync.WaitGroup) {
 				defer group.Done()
-				seed.thread[i].Run(seed.ctx)
-			}(seed.wg)
-			//thread.AfterRun(seed)
+				t.Run(seed.ctx)
+			}(seed.thread[i], seed.wg)
 		}
 	}()
 }
@@ -149,19 +149,6 @@ func NewSeed(ops ...Optioner) *Seed {
 func (seed *Seed) Register(ops ...Optioner) {
 	for _, op := range ops {
 		op.Option(seed)
-	}
-}
-
-// SyncDatabase ...
-func SyncDatabase() AfterInitOptions {
-	return func(seed *Seed) {
-		if seed.maindb == nil {
-			panic("nil database")
-		}
-		e := model.Sync(seed.maindb.eng)
-		if e != nil {
-			panic(e)
-		}
 	}
 }
 
@@ -203,7 +190,7 @@ func PreAddOption() Options {
 // databaseOption ...
 func databaseOption(db *Database) Options {
 	return func(seed *Seed) {
-		seed.maindb = db
+		seed.thread[StepperDatabase] = db
 	}
 }
 

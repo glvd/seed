@@ -110,7 +110,10 @@ func (seed *Seed) Start() {
 		for i := range seed.thread {
 			//log.With("index", i)
 			//thread.BeforeRun(seed)
-			seed.thread[i].Run(seed.ctx)
+			go func(group *sync.WaitGroup) {
+				defer group.Done()
+				seed.thread[i].Run(seed.ctx)
+			}(seed.wg)
 			//thread.AfterRun(seed)
 		}
 	}()

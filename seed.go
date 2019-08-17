@@ -123,32 +123,24 @@ func (seed *Seed) Wait() {
 	seed.wg.Wait()
 }
 
-// NewSeed ...
-func NewSeed(ops ...Optioner) *Seed {
-	ctx, cancel := context.WithCancel(context.Background())
-	seed := &Seed{
+func defaultSeed() *Seed {
+	return &Seed{
 		Unfinished: make(map[string]*model.Unfinished),
 		Videos:     make(map[string]*model.Video),
 		Moves:      make(map[string]string),
 		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
-		ctx:        ctx,
-		cancel:     cancel,
-		threads:    0,
+		threads:    3,
 		thread:     make([]Threader, StepperMax),
 		ignores:    make(map[string][]byte),
 	}
+}
 
+// NewSeed ...
+func NewSeed(ops ...Optioner) *Seed {
+	seed := defaultSeed()
+	seed.ctx, seed.cancel = context.WithCancel(context.Background())
 	seed.Register(ops...)
-
-	if seed.Shell == nil {
-		seed.Shell = shell.NewShell("localhost:5001")
-	}
-
-	if seed.API == nil {
-		seed.API = NewAPI("/ip4/127.0.0.1/tcp/5001")
-	}
-
 	return seed
 }
 

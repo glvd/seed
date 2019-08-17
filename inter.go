@@ -21,6 +21,8 @@ type SQLUpdateAble interface {
 // SQLWriter ...
 type SQLWriter interface {
 	InsertOrUpdate() (int64, error)
+	Done()
+	Failed()
 }
 
 // SQLReader ...

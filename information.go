@@ -15,42 +15,27 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// InfoFlag ...
-type InfoFlag string
+// InfoType ...
+type InfoType string
 
-// InfoFlagNone ...
-const InfoFlagNone InfoFlag = "none"
+// InfoTypeNone ...
+const InfoTypeNone InfoType = "none"
 
-// InfoFlagInfo ...
-const InfoFlagInfo InfoFlag = "info"
+// InfoTypeJSON ...
+const InfoTypeJSON InfoType = "json"
 
-// InfoFlagUpdate ...
-const InfoFlagUpdate InfoFlag = "update"
-
-// InfoFlagMysql ...
-const InfoFlagMysql InfoFlag = "mysql"
-
-// InfoFlagJSON ...
-const InfoFlagJSON InfoFlag = "json"
-
-// InfoFlagBSON ...
-const InfoFlagBSON InfoFlag = "bson"
-
-// InfoFlagSQLite ...
-const InfoFlagSQLite InfoFlag = "sqlite3"
+// InfoTypeBSON ...
+const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
 	seed      *Seed
 	workspace string
-	from      InfoFlag
+	infoType  InfoType
 	Path      string
-	thread    int
-	list      []string
-	videos    map[string]*model.Video
-	moves     map[string]string
-	maxLimit  int
-	noCheck   bool
+	ProcList  []string
+	Start     int
+	Limit     int
 }
 
 // Option ...
@@ -167,140 +152,120 @@ func checkFileNotExist(path string) bool {
 func (info *Information) Run(ctx context.Context) {
 	log.Info("Information running")
 	var vs []*VideoSource
+	isDefault := true
 	select {
 	case <-ctx.Done():
 	default:
-		switch info.from {
-		case InfoFlagBSON:
+		switch info.infoType {
+		case InfoTypeBSON:
+			isDefault = false
 			b, e := ioutil.ReadFile(info.Path)
 			if e != nil {
-				return
+				panic(e)
 			}
 			fixed := fixBson(b)
 			reader := bytes.NewBuffer(fixed)
 			e = LoadFrom(&vs, reader)
 			if e != nil {
-				log.Error(e)
-				return
+				panic(e)
 			}
-		case InfoFlagJSON:
+		case InfoTypeJSON:
+			isDefault = false
 			b, e := ioutil.ReadFile(info.Path)
 			if e != nil {
-				return
+				panic(e)
 			}
 			reader := bytes.NewBuffer(b)
 			e = LoadFrom(&vs, reader)
 			if e != nil {
-				log.Error(e)
-				return
+				panic(e)
 			}
-		case InfoFlagSQLite:
-			if info.list == nil {
-				videos, e := model.AllVideos(nil, 0)
-				if e != nil {
-					log.Error(e)
-					return
-				}
-				for _, video := range *videos {
-					info.videos[video.Bangumi] = video
-				}
-				return
-			}
-
-			for _, name := range info.list {
-				video, e := model.FindVideo(nil, name)
-				if e != nil {
-					log.Error(e)
-					continue
-				}
-				info.videos[video.Bangumi] = video
-			}
-			//all work was done
-			return
+		default:
 		}
 	}
-	log.With("total", len(vs)).Info("all Information")
-	if vs == nil {
-		log.Info("no videos to process")
-		return
-	}
-	log.Info("list", info.list)
-	vs = filterList(vs, info.list)
-	max := len(vs)
-	if max > info.maxLimit && info.maxLimit != 0 {
-		max = info.maxLimit
-	}
-	log.With("size", len(vs), "max", max).Info("video source")
-	skipIPFS := atomic.NewBool(false)
-	v1 := make(chan *model.Video)
-	moves := make(chan map[string]string)
-	go func(v1 chan<- *model.Video, moves chan<- map[string]string) {
-		runner := max
-		m := make(map[string]string)
-		defer func() {
-			log.With("moves", m).Info("defer")
-			moves <- m
-		}()
-		for i, s := range vs {
-			if runner <= 0 {
-				log.Info("break")
-				return
-			}
-			v := video(s)
-			var added bool
-			if !skipIPFS.Load() {
-				added = false
-				if s.Poster != "" {
-					v.PosterHash = s.Poster
-				} else {
-					if s.PosterPath != "" {
-						s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-						if checkFileNotExist(s.PosterPath) {
-							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
+	var output *model.Video
+	if !isDefault {
+		if vs == nil {
+			log.Info("nil video source")
+			return
+		}
+		log.With("filter", info.ProcList).Info("filter list")
+		vs = filterProcList(vs, info.ProcList)
+		max := len(vs)
+		if max > info.Limit && info.Limit != 0 {
+			max = info.Limit
+		}
+		log.With("size", len(vs), "max", max).Info("video source")
+		failedSkip := atomic.NewBool(false)
+		go func(v1 chan<- *model.Video) {
+
+			runner := max
+			m := make(map[string]string)
+			defer func() {
+				log.With("moves", m).Info("defer")
+				moves <- m
+			}()
+			for i, s := range vs {
+				if runner <= 0 {
+					log.Info("break")
+					return
+				}
+				v := video(s)
+				var added bool
+				if !failedSkip.Load() {
+					added = false
+					if s.Poster != "" {
+						v.PosterHash = s.Poster
+					} else {
+						if s.PosterPath != "" {
+							s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
+							if checkFileNotExist(s.PosterPath) {
+								log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
+							} else {
+								added = true
+								poster, e := addPosterHash(info.seed, s)
+								if e != nil {
+									log.Error(e)
+									failedSkip.Store(true)
+								} else {
+									v.PosterHash = poster.Hash
+									m[s.PosterPath] = poster.Hash
+								}
+							}
+						}
+					}
+
+					if s.Thumb != "" {
+						s.Thumb = filepath.Join(info.workspace, s.Thumb)
+						if checkFileNotExist(s.Thumb) {
+							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
 						} else {
 							added = true
-							poster, e := addPosterHash(info.seed, s)
+							thumb, e := addThumbHash(info.seed, s)
 							if e != nil {
 								log.Error(e)
-								skipIPFS.Store(true)
+								failedSkip.Store(true)
 							} else {
-								v.PosterHash = poster.Hash
-								m[s.PosterPath] = poster.Hash
+								v.ThumbHash = thumb.Hash
+								m[s.Thumb] = thumb.Hash
 							}
 						}
 					}
 				}
-
-				if s.Thumb != "" {
-					s.Thumb = filepath.Join(info.workspace, s.Thumb)
-					if checkFileNotExist(s.Thumb) {
-						log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
-					} else {
-						added = true
-						thumb, e := addThumbHash(info.seed, s)
-						if e != nil {
-							log.Error(e)
-							skipIPFS.Store(true)
-						} else {
-							v.ThumbHash = thumb.Hash
-							m[s.Thumb] = thumb.Hash
-						}
-					}
+				if added || info.noCheck {
+					log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
+					runner--
+					v1 <- v
 				}
-			}
-			if added || info.noCheck {
-				log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
-				runner--
-				v1 <- v
-			}
 
-		}
-		for ; runner > 0; runner-- {
-			v1 <- nil
-		}
-		log.Info("end")
-	}(v1, moves)
+			}
+			for ; runner > 0; runner-- {
+				v1 <- nil
+			}
+			log.Info("end")
+		}(v1, moves)
 
+	}
 	for ; max > 0; max-- {
 		select {
 		case v := <-v1:
@@ -374,12 +339,12 @@ func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, 
 	return nil, xerrors.New("no poster")
 }
 
-func filterList(sources []*VideoSource, list []string) (vs []*VideoSource) {
-	if list == nil || len(list) <= 0 {
-		return sources
+func filterProcList(sources []*VideoSource, filterList []string) (vs []*VideoSource) {
+	if filterList == nil || len(filterList) == 0 {
+		return source
 	}
 	for _, source := range sources {
-		for _, v := range list {
+		for _, v := range filterList {
 			if source.Bangumi == v {
 				vs = append(vs, source)
 			}

@@ -73,11 +73,11 @@ func FindVideo(session *xorm.Session, ban string) (video *Video, e error) {
 	ban = strings.ReplaceAll(ban, "-", "")
 	ban = strings.ReplaceAll(ban, "_", "")
 	ban = strings.ToUpper(ban)
-	_, e = DB().Where("find_no = ?", ban).Get(video)
+	_, e = session.Where("find_no = ?", ban).Get(video)
 	return
 }
 
-// TopList ...
+// Top ...
 func Top(session *xorm.Session, limit int, start ...int) (videos *[]*Video, e error) {
 	return AllVideos(MustSession(session).OrderBy("visit desc"), limit, start...)
 }
@@ -96,14 +96,14 @@ func AllVideos(session *xorm.Session, limit int, start ...int) (videos *[]*Video
 }
 
 // DeepFind ...
-func DeepFind(s string, videos *[]*Video) (e error) {
+func DeepFind(session *xorm.Session, s string, videos *[]*Video) (e error) {
 	s1 := strings.ReplaceAll(s, "-", "")
 	s1 = strings.ReplaceAll(s1, "_", "")
 	s1 = strings.ToUpper(s1)
-	e = DB().Where("find_no = ?", s1).OrderBy("season,episode asc").Find(videos)
+	e = session.Clone().Where("find_no = ?", s1).OrderBy("season,episode asc").Find(videos)
 	if e != nil || len(*videos) <= 0 {
 		like := "%" + strings.ToUpper(s) + "%"
-		e = DB().Where("find_no like ? ", like).
+		e = session.Clone().Where("find_no like ? ", like).
 			Or("intro like ?", like).
 			Or("role like ?", like).
 			OrderBy("season,episode asc").
@@ -119,11 +119,11 @@ func parseStr(s *string, d string) {
 }
 
 // AddOrUpdateVideo ...
-func AddOrUpdateVideo(video *Video) (e error) {
+func AddOrUpdateVideo(session *xorm.Session, video *Video) (e error) {
 	var tmp Video
 	var found bool
 	if video.ID != "" {
-		found, e = DB().ID(video.ID).Get(&tmp)
+		found, e = session.Clone().ID(video.ID).Get(&tmp)
 	} else {
 		//if video.Sharpness != "" {
 		//	found, e = DB().Where("bangumi = ?", video.Bangumi).
@@ -133,7 +133,7 @@ func AddOrUpdateVideo(video *Video) (e error) {
 		//		Where("sharpness = ?", video.Sharpness).
 		//		Get(&tmp)
 		//}else{
-		found, e = DB().Where("bangumi = ?", video.Bangumi).
+		found, e = session.Clone().Where("bangumi = ?", video.Bangumi).
 			//TODO:which was only one?
 			Where("season = ?", video.Season).
 			Where("episode = ?", video.Episode).
@@ -152,18 +152,18 @@ func AddOrUpdateVideo(video *Video) (e error) {
 		parseStr(&video.SourceHash, tmp.SourceHash)
 		parseStr(&video.PosterHash, tmp.PosterHash)
 		parseStr(&video.ThumbHash, tmp.ThumbHash)
-		i, e := DB().ID(video.ID).Update(video)
+		i, e := session.Clone().ID(video.ID).Update(video)
 		log.Infof("updated(%d): %+v", i, tmp)
 		return e
 	}
-	_, e = DB().InsertOne(video)
+	_, e = session.Clone().InsertOne(video)
 	return
 }
 
 // Visited ...
-func Visited(video *Video) (err error) {
+func Visited(session *xorm.Session, video *Video) (err error) {
 	video.Visit++
-	if _, err := DB().Where("bangumi = ?", video.Bangumi).Cols("visit").Update(video); err != nil {
+	if _, err := session.Clone().Where("bangumi = ?", video.Bangumi).Cols("visit").Update(video); err != nil {
 		return err
 	}
 	return nil

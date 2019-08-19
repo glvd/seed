@@ -16,25 +16,11 @@ import (
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
-	"golang.org/x/xerrors"
 )
 
-var globalDB *xorm.Engine
+//var globalDB *xorm.Engine
 var syncTable = map[string]interface{}{}
 var log = trait.NewZapFileSugar()
-
-//SetGlobalDB set db
-func SetGlobalDB(eng *xorm.Engine) {
-	globalDB = eng
-}
-
-//DB get global db
-func DB() *xorm.Engine {
-	if globalDB != nil {
-		return globalDB
-	}
-	panic(xerrors.New("nil db"))
-}
 
 // DatabaseConfig ...
 type DatabaseConfig struct {
@@ -207,7 +193,7 @@ func (m *Model) BeforeInsert() {
 // MustSession ...
 func MustSession(session *xorm.Session) *xorm.Session {
 	if session == nil {
-		return DB().NewSession()
+		panic("nil session")
 	}
 	return session
 }

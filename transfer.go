@@ -38,7 +38,7 @@ const (
 
 type TransferFlag string
 
-const TransferFlagSqlite3 TransferFlag = "sqlite3"
+const TransferFlagSQLite3 TransferFlag = "sqlite3"
 
 // transfer ...
 type transfer struct {
@@ -319,7 +319,7 @@ func transferToJSON(to string) (e error) {
 
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
-	if transfer.flag == InfoFlagSQLite {
+	if transfer.flag == InfoFlagSQLite3 {
 		fromDB, e := model.InitSQLite3(transfer.path)
 		if e != nil {
 			log.Error(e)

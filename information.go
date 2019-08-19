@@ -211,7 +211,6 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								info.seed.Database.PushCallback()
 								poster, e := addPosterHash(info.seed.Database, source, "hash")
 								if e != nil {
 									log.Error(e)
@@ -271,11 +270,10 @@ func addPosterHash(db *Database, source *VideoSource, hash string) (unf *model.U
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = hash
-
-		e = model.AddOrUpdateUnfinished(unfinPoster)
-		if e != nil {
-			return nil, e
-		}
+		db.PushCallback(func(database *Database) (e error) {
+			e = model.AddOrUpdateUnfinished(database.eng.NewSession(), unfinPoster)
+			return
+		})
 		return unfinPoster, nil
 	}
 	return nil, xerrors.New("no poster")

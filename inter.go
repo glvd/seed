@@ -18,6 +18,9 @@ type SQLUpdateAble interface {
 	SetVersion(int)
 }
 
+// DatabaseCallback ...
+type DatabaseCallback func(database *Database) (e error)
+
 // SQLWriter ...
 type SQLWriter interface {
 	InsertOrUpdate() (int64, error)

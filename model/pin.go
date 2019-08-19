@@ -54,14 +54,10 @@ func PinHash(path path.Resolved) string {
 	return ""
 }
 
-// UpdateVideo ...
-func (p *Pin) UpdateVideo() (e error) {
-	return updatePinVideoID(DB().NewSession(), p)
-}
-
-func updatePinVideoID(session *xorm.Session, p *Pin) (e error) {
+// UpdatePinVideoID ...
+func UpdatePinVideoID(session *xorm.Session, p *Pin) (e error) {
 	videos := new([]Video)
-	i, e := session.Table(&Video{}).Where("m3u8_hash = ?", p.PinHash).
+	i, e := session.Clone().Table(&Video{}).Where("m3u8_hash = ?", p.PinHash).
 		Or("source_hash = ?", p.PinHash).
 		Or("thumb_hash = ?", p.PinHash).
 		Or("poster_hash = ?", p.PinHash).FindAndCount(videos)
@@ -76,17 +72,17 @@ func updatePinVideoID(session *xorm.Session, p *Pin) (e error) {
 	} else {
 		p.VideoID = "dummy"
 	}
-	return AddOrUpdatePin(p)
+	return AddOrUpdatePin(session.Clone(), p)
 }
 
 // AddOrUpdatePin ...
-func AddOrUpdatePin(p *Pin) (e error) {
+func AddOrUpdatePin(session *xorm.Session, p *Pin) (e error) {
 	tmp := new(Pin)
 	var found bool
 	if p.ID != "" {
-		found, e = DB().ID(p.ID).Get(tmp)
+		found, e = session.Clone().ID(p.ID).Get(tmp)
 	} else {
-		found, e = DB().Where("pin_hash = ?", p.PinHash).Get(tmp)
+		found, e = session.Clone().Where("pin_hash = ?", p.PinHash).Get(tmp)
 	}
 	if e != nil {
 		return e
@@ -108,19 +104,19 @@ func AddOrUpdatePin(p *Pin) (e error) {
 			}
 		}
 		p.PeerID = ids
-		_, e = DB().ID(p.ID).Update(p)
+		_, e = session.Clone().ID(p.ID).Update(p)
 		return
 	}
-	_, e = DB().InsertOne(p)
+	_, e = session.Clone().InsertOne(p)
 	return
 }
 
 // IsExist ...
-func (p *Pin) IsExist() bool {
-	i, e := DB().Table(&Pin{}).Where("pin_hash = ?", p.PinHash).Count()
-	log.With("pin_hash", p.PinHash, "num", i).Info("check exist")
-	if e != nil || i <= 0 {
-		return false
-	}
-	return true
-}
+//func (p *Pin) IsExist() bool {
+//	i, e := DB().Table(&Pin{}).Where("pin_hash = ?", p.PinHash).Count()
+//	log.With("pin_hash", p.PinHash, "num", i).Info("check exist")
+//	if e != nil || i <= 0 {
+//		return false
+//	}
+//	return true
+//}

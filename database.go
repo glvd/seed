@@ -56,14 +56,14 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	return db
 }
 
-// PushWriter ...
-func (db *Database) PushWriter(s *xorm.Session, v model.Modeler) {
-	db.writer <- sqlWriter(s, v)
+// Push ...
+func (db *Database) Push(v model.Modeler) {
+	db.writer <- sqlWriter(db.eng.NewSession(), v)
 }
 
-// PushCallbackWriter ...
-func (db *Database) PushCallbackWriter(s *xorm.Session, v model.Modeler, callback BeforeUpdate) {
-	w := sqlWriter(s, v)
+// PushCallback ...
+func (db *Database) PushCallback(v model.Modeler, callback BeforeUpdate) {
+	w := sqlWriter(db.eng.NewSession(), v)
 	w.cb = callback
 	db.writer <- w
 }

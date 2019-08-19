@@ -101,6 +101,16 @@ func (seed *Seed) SetArgs(args map[string]interface{}) {
 	seed.args = args
 }
 
+// AddArg ...
+func (seed *Seed) AddArg(key string, value interface{}) {
+	seed.args[key] = value
+}
+
+// GetArg ...
+func (seed *Seed) GetArg(key string) interface{} {
+	return seed.args[key]
+}
+
 // Stop ...
 func (seed *Seed) Stop() {
 	if seed.cancel != nil {

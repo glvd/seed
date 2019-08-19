@@ -111,6 +111,18 @@ func (seed *Seed) GetArg(key string) interface{} {
 	return seed.args[key]
 }
 
+// GetStringArg ...
+func (seed *Seed) GetStringArg(key string) (v string) {
+	v, _ = seed.args[key].(string)
+	return
+}
+
+// GetBoolArg ...
+func (seed *Seed) GetBoolArg(key string) (v bool) {
+	v, _ = seed.args[key].(bool)
+	return
+}
+
 // Stop ...
 func (seed *Seed) Stop() {
 	if seed.cancel != nil {

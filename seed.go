@@ -76,6 +76,7 @@ type Seed struct {
 	Moves       map[string]string
 	MaxLimit    int
 	From        string
+	args        map[string]interface{}
 	wg          *sync.WaitGroup
 	ctx         context.Context
 	cancel      context.CancelFunc
@@ -88,6 +89,16 @@ type Seed struct {
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool
+}
+
+// Args ...
+func (seed *Seed) Args() map[string]interface{} {
+	return seed.args
+}
+
+// SetArgs ...
+func (seed *Seed) SetArgs(args map[string]interface{}) {
+	seed.args = args
 }
 
 // Stop ...

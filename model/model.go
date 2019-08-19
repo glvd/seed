@@ -131,6 +131,7 @@ func InitSQLite3(name string) (eng *xorm.Engine, e error) {
 	return eng, nil
 }
 
+// MustDatabase ...
 func MustDatabase(engine *xorm.Engine, err error) *xorm.Engine {
 	if err != nil {
 		panic(err)

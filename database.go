@@ -13,6 +13,7 @@ type Database struct {
 	writer    chan SQLWriter
 }
 
+// Run ...
 func (db *Database) Run(ctx context.Context) {
 	for {
 		select {
@@ -29,10 +30,12 @@ func (db *Database) Run(ctx context.Context) {
 	}
 }
 
+// BeforeRun ...
 func (db *Database) BeforeRun(seed *Seed) {
 	panic("implement me")
 }
 
+// AfterRun ...
 func (db *Database) AfterRun(seed *Seed) {
 	panic("implement me")
 }
@@ -92,10 +95,12 @@ type write struct {
 	model   model.Modeler
 }
 
+// Done ...
 func (w *write) Done() {
 	panic("implement me")
 }
 
+// Failed ...
 func (w *write) Failed() {
 	panic("implement me")
 }

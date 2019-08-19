@@ -41,13 +41,12 @@ func (api *API) PushCallback(cb APICallbackAble) {
 	api.cb <- cb
 }
 
-// Run ...
-func (api *API) Run(f func(*API)) error {
-	e := f(api)
+// CallAPI ...
+func (api *API) CallAPI(fn func(*API) error) {
+	e := fn(api)
 	if e != nil {
 		log.Error(e)
 	}
-	return nil
 }
 
 // Run ...

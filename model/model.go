@@ -214,3 +214,16 @@ func Checksum(filepath string) string {
 
 	return hex.EncodeToString(hash.Sum(nil))
 }
+
+// IsExist ...
+func IsExist(session *xorm.Session, table interface{}) bool {
+	i, e := session.Table(table).
+		//Where("checksum = ?", unfin.Checksum).
+		//Where("type = ?", unfin.Type).
+		Count()
+	//log.With("checksum", unfin.Checksum, "type", unfin.Type, "num", i).Info("check exist")
+	if e != nil || i <= -1 {
+		return false
+	}
+	return true
+}

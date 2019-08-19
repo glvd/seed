@@ -36,9 +36,14 @@ const (
 	TransferStatusDelete TransferStatus = "delete"
 )
 
+// TransferFlag ...
 type TransferFlag string
 
+// TransferFlagSQLite3 ...
 const TransferFlagSQLite3 TransferFlag = "sqlite3"
+
+// TransferFlagJSON ...
+const TransferFlagJSON TransferFlag = "json"
 
 // transfer ...
 type transfer struct {
@@ -48,6 +53,7 @@ type transfer struct {
 	workspace  string
 	status     TransferStatus
 	path       string
+	flag       TransferFlag
 	reader     io.Reader
 }
 
@@ -319,7 +325,7 @@ func transferToJSON(to string) (e error) {
 
 // Run ...
 func (transfer *transfer) Run(ctx context.Context) {
-	if transfer.flag == InfoFlagSQLite3 {
+	if transfer.flag == TransferFlagSQLite3 {
 		fromDB, e := model.InitSQLite3(transfer.path)
 		if e != nil {
 			log.Error(e)
@@ -348,7 +354,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 				return
 			}
 		}
-	} else if transfer.flag == InfoFlagJSON {
+	} else if transfer.flag == TransferFlagJSON {
 		switch transfer.status {
 		case TransferStatusToJSON:
 			if err := transferToJSON(transfer.path); err != nil {

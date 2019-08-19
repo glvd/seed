@@ -69,6 +69,7 @@ type Seed struct {
 	Shell       *shell.Shell
 	API         *API
 	Move        *Move
+	Database    *Database
 	Workspace   string
 	Scale       int64
 	NoCheck     bool

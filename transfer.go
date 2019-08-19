@@ -22,8 +22,8 @@ type TransferStatus string
 const (
 	// TransferStatusNone ...
 	TransferStatusNone TransferStatus = "none"
-	// TransferFlagVerify ...
-	TransferFlagVerify TransferStatus = "verify"
+	// TransferStatusVerify ...
+	TransferStatusVerify TransferStatus = "verify"
 	// TransferStatusToJSON ...
 	TransferStatusToJSON TransferStatus = "json"
 	// TransferStatusFromOther ...
@@ -35,6 +35,10 @@ const (
 	// TransferStatusDelete ...
 	TransferStatusDelete TransferStatus = "delete"
 )
+
+type TransferFlag string
+
+const TransferFlagSqlite3 TransferFlag = "sqlite3"
 
 // transfer ...
 type transfer struct {
@@ -70,10 +74,10 @@ func TransferOption(t *transfer) Options {
 }
 
 // Transfer ...
-func Transfer(path string, from InfoFlag, status TransferStatus) Options {
+func Transfer(path string, from TransferFlag, status TransferStatus) Options {
 	t := &transfer{
-		path:   path,
-		flag:   from,
+		path: path,
+		// flag:   from,
 		status: status,
 	}
 	return TransferOption(t)

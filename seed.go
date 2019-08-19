@@ -128,6 +128,14 @@ func (seed *Seed) GetBoolArg(key string) (v bool) {
 	return
 }
 
+// GetNumberArg ...
+func (seed *Seed) GetNumberArg(key string) (v int64) {
+	if arg, b := seed.GetArg(key); b {
+		v, _ = arg.(int64)
+	}
+	return
+}
+
 // Stop ...
 func (seed *Seed) Stop() {
 	if seed.cancel != nil {

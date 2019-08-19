@@ -11,22 +11,21 @@ import (
 type Database struct {
 	eng       *xorm.Engine
 	syncTable []interface{}
-	writer    chan SQLWriter
+	cb        chan DatabaseCallback
 }
 
 // Run ...
 func (db *Database) Run(ctx context.Context) {
+	var e error
 	for {
 		select {
 		case <-ctx.Done():
-		case v := <-db.writer:
-			_, e := v.InsertOrUpdate()
+			return
+		case v := <-db.cb:
+			e = v(db)
 			if e != nil {
 				log.Error(e)
-				v.Failed()
-				continue
 			}
-			v.Done()
 		}
 	}
 }
@@ -47,7 +46,7 @@ var _ Optioner = &Database{}
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
-	db.writer = make(chan SQLWriter, 10)
+	db.cb = make(chan DatabaseCallback, 10)
 
 	for _, argFn := range args {
 		argFn(db)
@@ -56,16 +55,11 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	return db
 }
 
-// Push ...
-func (db *Database) Push(v model.Modeler) {
-	db.writer <- sqlWriter(db.eng.NewSession(), v)
-}
-
 // PushCallback ...
-func (db *Database) PushCallback(v model.Modeler, callback BeforeUpdate) {
-	w := sqlWriter(db.eng.NewSession(), v)
-	w.cb = callback
-	db.writer <- w
+func (db *Database) PushCallback(cb DatabaseCallback) {
+	go func(database *Database, databaseCallback DatabaseCallback) {
+		database.cb <- databaseCallback
+	}(db, cb)
 }
 
 // Sync ...
@@ -94,16 +88,6 @@ type write struct {
 	update  bool
 	session *xorm.Session
 	model   model.Modeler
-}
-
-// Done ...
-func (w *write) Done() {
-	panic("implement me")
-}
-
-// Failed ...
-func (w *write) Failed() {
-	panic("implement me")
 }
 
 // UnfinishedWriter ...

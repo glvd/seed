@@ -92,13 +92,13 @@ func FindUnfinished(session *xorm.Session, checksum string) (unfin *Unfinished, 
 }
 
 // AddOrUpdateUnfinished ...
-func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
+func AddOrUpdateUnfinished(session *xorm.Session, unfin *Unfinished) (e error) {
 	tmp := new(Unfinished)
 	var found bool
 	if unfin.ID != "" {
-		found, e = DB().ID(unfin.ID).Get(tmp)
+		found, e = session.Clone().ID(unfin.ID).Get(tmp)
 	} else {
-		found, e = DB().Where("checksum = ?", unfin.Checksum).
+		found, e = session.Clone().Where("checksum = ?", unfin.Checksum).
 			Where("type = ?", unfin.Type).Get(tmp)
 	}
 	if e != nil {
@@ -109,11 +109,11 @@ func AddOrUpdateUnfinished(unfin *Unfinished) (e error) {
 		if unfin.Type == TypeSlice || unfin.Type == TypeVideo {
 			unfin.Version = tmp.Version
 			unfin.ID = tmp.ID
-			_, e = DB().ID(unfin.ID).Update(unfin)
+			_, e = session.Clone().ID(unfin.ID).Update(unfin)
 		}
 		return
 	}
-	_, e = DB().InsertOne(unfin)
+	_, e = session.Clone().InsertOne(unfin)
 	return
 }
 

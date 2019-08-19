@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/glvd/seed/model"
-	shell "github.com/godcong/go-ipfs-restapi"
 	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
@@ -29,13 +28,13 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	seed     *Seed
-	infoType InfoType
-	Path     string
-	ProcList []string
-	Start    int
-	Limit    int
-	video    chan *model.Video
+	seed         *Seed
+	infoType     InfoType
+	Path         string
+	ResourcePath string
+	ProcList     []string
+	Start        int
+	video        chan *model.Video
 }
 
 // Option ...
@@ -160,37 +159,32 @@ func (info *Information) Run(ctx context.Context) {
 	log.Info("Information running")
 	var vs []*VideoSource
 	isDefault := true
-	select {
-	case <-ctx.Done():
-	default:
-		switch info.infoType {
-		case InfoTypeBSON:
-			isDefault = false
-			b, e := ioutil.ReadFile(info.Path)
-			if e != nil {
-				panic(e)
-			}
-			fixed := fixBson(b)
-			reader := bytes.NewBuffer(fixed)
-			e = LoadFrom(&vs, reader)
-			if e != nil {
-				panic(e)
-			}
-		case InfoTypeJSON:
-			isDefault = false
-			b, e := ioutil.ReadFile(info.Path)
-			if e != nil {
-				panic(e)
-			}
-			reader := bytes.NewBuffer(b)
-			e = LoadFrom(&vs, reader)
-			if e != nil {
-				panic(e)
-			}
-		default:
+	switch info.infoType {
+	case InfoTypeBSON:
+		isDefault = false
+		b, e := ioutil.ReadFile(info.Path)
+		if e != nil {
+			panic(e)
 		}
+		fixed := fixBson(b)
+		reader := bytes.NewBuffer(fixed)
+		e = LoadFrom(&vs, reader)
+		if e != nil {
+			panic(e)
+		}
+	case InfoTypeJSON:
+		isDefault = false
+		b, e := ioutil.ReadFile(info.Path)
+		if e != nil {
+			panic(e)
+		}
+		reader := bytes.NewBuffer(b)
+		e = LoadFrom(&vs, reader)
+		if e != nil {
+			panic(e)
+		}
+	default:
 	}
-	var output *model.Video
 	if !isDefault {
 		if vs == nil {
 			log.Info("nil video source")
@@ -199,109 +193,66 @@ func (info *Information) Run(ctx context.Context) {
 		log.With("filter", info.ProcList).Info("filter list")
 		vs = filterProcList(vs, info.ProcList)
 		failedSkip := atomic.NewBool(false)
-		go func(vs []*VideoSource, v1 chan<- *model.Video) {
-			max := len(vs)
-			m := make(map[string]string)
-			for i, s := range vs {
-				if runner <= 0 {
-					log.Info("break")
-					return
-				}
-				v := video(s)
-				var added bool
+		maxLimit := len(vs)
+		m := make(map[string]string)
+		for i := info.Start; i < maxLimit; i++ {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				source := vs[i]
+				v := video(source)
 				if !failedSkip.Load() {
-					added = false
-					if s.Poster != "" {
-						v.PosterHash = s.Poster
+					if source.Poster != "" {
+						v.PosterHash = source.Poster
 					} else {
-						if s.PosterPath != "" {
-							s.PosterPath = filepath.Join(info.workspace, s.PosterPath)
-							if checkFileNotExist(s.PosterPath) {
-								log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
+						if source.PosterPath != "" {
+							source.PosterPath = filepath.Join(info.ResourcePath, source.PosterPath)
+							if checkFileNotExist(source.PosterPath) {
+								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								added = true
-								poster, e := addPosterHash(info.seed, s)
+								poster, e := addPosterHash(info.seed.Database, source, "hash")
 								if e != nil {
 									log.Error(e)
 									failedSkip.Store(true)
 								} else {
 									v.PosterHash = poster.Hash
-									m[s.PosterPath] = poster.Hash
+									m[source.PosterPath] = poster.Hash
 								}
 							}
 						}
 					}
 
-					if s.Thumb != "" {
-						s.Thumb = filepath.Join(info.workspace, s.Thumb)
-						if checkFileNotExist(s.Thumb) {
-							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
+					if source.Thumb != "" {
+						source.Thumb = filepath.Join(info.ResourcePath, source.Thumb)
+						if checkFileNotExist(source.Thumb) {
+							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							added = true
-							thumb, e := addThumbHash(info.seed, s)
+							thumb, e := addThumbHash(info.seed.Database, source, "hash")
 							if e != nil {
 								log.Error(e)
 								failedSkip.Store(true)
 							} else {
 								v.ThumbHash = thumb.Hash
-								m[s.Thumb] = thumb.Hash
+								m[source.Thumb] = thumb.Hash
 							}
 						}
 					}
 				}
-				if added || info.noCheck {
-					log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("added")
-					runner--
-					v1 <- v
-				}
-
-			}
-			for ; runner > 0; runner-- {
-				v1 <- nil
-			}
-			log.Info("end")
-		}(vs, output)
-
-	}
-	for ; max > 0; max-- {
-		select {
-		case v := <-v1:
-			log.With("max", max, "data", v).Info("add video")
-			if v == nil {
-				continue
-			}
-			info.videos[v.Bangumi] = v
-			e := model.AddOrUpdateVideo(v)
-			if e != nil {
-				log.Error(e)
-				continue
 			}
 		}
+		log.Info("info end")
 	}
 
-	info.moves = <-moves
-	log.With("detail", info.moves).Info("move")
 	return
 }
 
-func addThumbHash(seed *Seed, source *VideoSource) (*model.Unfinished, error) {
+func addThumbHash(db *Database, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
-		abs, e := filepath.Abs(source.Thumb)
-		if e != nil {
-			return nil, e
-		}
-		seed.API.CallAPI(func(api *API) error {
-			api.api.Unixfs().Add(context.Background())
-		})
-		object, e := shell.AddFile(abs)
-		if e != nil {
-			return nil, e
-		}
-
-		unfinThumb.Hash = object.Hash
+		unfinThumb.Hash = hash
 		e = model.AddOrUpdateUnfinished(unfinThumb)
 		if e != nil {
 			return nil, e
@@ -312,21 +263,13 @@ func addThumbHash(seed *Seed, source *VideoSource) (*model.Unfinished, error) {
 	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
+func addPosterHash(db *Database, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi
 
 	if source.PosterPath != "" {
-		abs, e := filepath.Abs(source.PosterPath)
-		if e != nil {
-			return nil, e
-		}
-		object, e := shell.AddFile(abs)
-		if e != nil {
-			return nil, e
-		}
-		unfinPoster.Hash = object.Hash
+		unfinPoster.Hash = hash
 		e = model.AddOrUpdateUnfinished(unfinPoster)
 		if e != nil {
 			return nil, e
@@ -338,7 +281,7 @@ func addPosterHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, 
 
 func filterProcList(sources []*VideoSource, filterList []string) (vs []*VideoSource) {
 	if filterList == nil || len(filterList) == 0 {
-		return source
+		return sources
 	}
 	for _, source := range sources {
 		for _, v := range filterList {

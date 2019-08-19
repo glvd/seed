@@ -41,17 +41,16 @@ const InfoFlagSQLite InfoFlag = "sqlite3"
 
 // Information ...
 type Information struct {
-	workspace  string
-	shell      *shell.Shell
-	unfinished map[string]*model.Unfinished
-	from       InfoFlag
-	path       string
-	thread     int
-	list       []string
-	videos     map[string]*model.Video
-	moves      map[string]string
-	maxLimit   int
-	noCheck    bool
+	seed      *Seed
+	workspace string
+	from      InfoFlag
+	Path      string
+	thread    int
+	list      []string
+	videos    map[string]*model.Video
+	moves     map[string]string
+	maxLimit  int
+	noCheck   bool
 }
 
 // Option ...
@@ -66,19 +65,11 @@ func NewInformation() *Information {
 
 // BeforeRun ...
 func (info *Information) BeforeRun(seed *Seed) {
-	info.workspace = seed.Workspace
-	info.videos = seed.Videos
-	info.unfinished = seed.Unfinished
-	info.shell = seed.Shell
-	info.moves = seed.Moves
-	info.maxLimit = seed.MaxLimit
-	info.noCheck = seed.NoCheck
+	info.seed = seed
 }
 
 // AfterRun ...
 func (info *Information) AfterRun(seed *Seed) {
-	seed.Videos = info.videos
-	seed.Moves = info.moves
 }
 
 func fixBson(s []byte) []byte {
@@ -181,7 +172,7 @@ func (info *Information) Run(ctx context.Context) {
 	default:
 		switch info.from {
 		case InfoFlagBSON:
-			b, e := ioutil.ReadFile(info.path)
+			b, e := ioutil.ReadFile(info.Path)
 			if e != nil {
 				return
 			}
@@ -193,7 +184,7 @@ func (info *Information) Run(ctx context.Context) {
 				return
 			}
 		case InfoFlagJSON:
-			b, e := ioutil.ReadFile(info.path)
+			b, e := ioutil.ReadFile(info.Path)
 			if e != nil {
 				return
 			}
@@ -203,8 +194,6 @@ func (info *Information) Run(ctx context.Context) {
 				log.Error(e)
 				return
 			}
-		case InfoFlagMysql:
-			fallthrough
 		case InfoFlagSQLite:
 			if info.list == nil {
 				videos, e := model.AllVideos(nil, 0)
@@ -270,7 +259,7 @@ func (info *Information) Run(ctx context.Context) {
 							log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("poster not found")
 						} else {
 							added = true
-							poster, e := addPosterHash(info.shell, s)
+							poster, e := addPosterHash(info.seed, s)
 							if e != nil {
 								log.Error(e)
 								skipIPFS.Store(true)
@@ -288,7 +277,7 @@ func (info *Information) Run(ctx context.Context) {
 						log.With("run", runner, "index", i, "bangumi", s.Bangumi).Info("thumb not found")
 					} else {
 						added = true
-						thumb, e := addThumbHash(info.shell, s)
+						thumb, e := addThumbHash(info.seed, s)
 						if e != nil {
 							log.Error(e)
 							skipIPFS.Store(true)
@@ -333,7 +322,7 @@ func (info *Information) Run(ctx context.Context) {
 	return
 }
 
-func addThumbHash(shell *shell.Shell, source *VideoSource) (*model.Unfinished, error) {
+func addThumbHash(seed *Seed, source *VideoSource) (*model.Unfinished, error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi

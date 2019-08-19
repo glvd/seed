@@ -29,13 +29,12 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	seed      *Seed
-	workspace string
-	infoType  InfoType
-	Path      string
-	ProcList  []string
-	Start     int
-	Limit     int
+	seed     *Seed
+	infoType InfoType
+	Path     string
+	ProcList []string
+	Start    int
+	Limit    int
 }
 
 // Option ...
@@ -191,15 +190,9 @@ func (info *Information) Run(ctx context.Context) {
 		}
 		log.With("filter", info.ProcList).Info("filter list")
 		vs = filterProcList(vs, info.ProcList)
-		max := len(vs)
-		if max > info.Limit && info.Limit != 0 {
-			max = info.Limit
-		}
-		log.With("size", len(vs), "max", max).Info("video source")
 		failedSkip := atomic.NewBool(false)
-		go func(v1 chan<- *model.Video) {
-
-			runner := max
+		go func(vs []*VideoSource, v1 chan<- *model.Video) {
+			max := len(vs)
 			m := make(map[string]string)
 			defer func() {
 				log.With("moves", m).Info("defer")
@@ -263,7 +256,7 @@ func (info *Information) Run(ctx context.Context) {
 				v1 <- nil
 			}
 			log.Info("end")
-		}(v1, moves)
+		}(vs, output)
 
 	}
 	for ; max > 0; max-- {

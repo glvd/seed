@@ -68,6 +68,7 @@ const (
 type Seed struct {
 	Shell       *shell.Shell
 	API         *API
+	Move        *Move
 	Workspace   string
 	Scale       int64
 	NoCheck     bool

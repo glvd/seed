@@ -6,23 +6,29 @@ import (
 	"path/filepath"
 )
 
-type move struct {
+// Move ...
+type Move struct {
 	to    string
-	moves map[string]string
+	Moves map[string]string
+}
+
+// NewMove ...
+func NewMove() *Move {
+	return &Move{}
 }
 
 // Run ...
-func (m *move) Run(context.Context) {
+func (m *Move) Run(context.Context) {
 	var e error
 	s, e := filepath.Abs(m.to)
 	if e != nil {
 		return
 	}
-	for v, hash := range m.moves {
+	for v, hash := range m.Moves {
 		//_, name := filepath.Split(v)
 		to := hash + filepath.Ext(v)
 		path := filepath.Join(s, to)
-		log.With("from", v, "to", to).Info("move")
+		log.With("from", v, "to", to).Info("Move")
 		e = os.Rename(v, path)
 		if e != nil {
 			log.Error(e, path)
@@ -32,33 +38,34 @@ func (m *move) Run(context.Context) {
 }
 
 // BeforeRun ...
-func (m *move) BeforeRun(seed *Seed) {
-	m.moves = seed.Moves
+func (m *Move) BeforeRun(seed *Seed) {
+	m.Moves = seed.Moves
 }
 
 // AfterRun ...
-func (m *move) AfterRun(seed *Seed) {
+func (m *Move) AfterRun(seed *Seed) {
 	seed.Moves = make(map[string]string)
 }
 
 // MoveInfo ...
 func MoveInfo(path string) Options {
-	info := &move{
+	info := &Move{
 		to: path,
 	}
-	return moveOption(StepperMoveInfo, info)
+	return MoveOption(StepperMoveInfo, info)
 }
 
 // MoveProc ...
 func MoveProc(path string) Options {
-	proc := &move{
+	proc := &Move{
 		to: path,
 	}
-	return moveOption(StepperMoveproc, proc)
+	return MoveOption(StepperMoveproc, proc)
 }
 
-func moveOption(m Stepper, move *move) Options {
+// MoveOption ...
+func MoveOption(m Stepper, Move *Move) Options {
 	return func(seed *Seed) {
-		seed.thread[m] = move
+		seed.thread[m] = Move
 	}
 }

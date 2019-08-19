@@ -47,6 +47,7 @@ const TransferFlagJSON TransferFlag = "json"
 
 // transfer ...
 type transfer struct {
+	db         *Database
 	shell      *shell.Shell
 	unfinished map[string]*model.Unfinished
 	videos     map[string]*model.Video

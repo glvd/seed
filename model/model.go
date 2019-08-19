@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/go-xorm/xorm"
@@ -89,10 +90,27 @@ func (d *DatabaseConfig) Source() string {
 		d.Username, d.Password, d.Addr, d.Port, d.Schema, url.QueryEscape(d.location), d.Charset)
 }
 
+var (
+	tableMu       sync.RWMutex
+	tableRegister = make(map[string]interface{})
+)
+
+// Register ...
+func Register(name string, table interface{}) {
+	tableMu.Lock()
+	defer tableMu.Unlock()
+	if table == nil {
+		panic("table: Register table is nil")
+	}
+	if _, dup := tableRegister[name]; dup {
+		panic("table: Register called twice for table " + name)
+	}
+	tableRegister[name] = table
+}
+
 // RegisterTable ...
 func RegisterTable(v interface{}) {
-	tof := reflect.TypeOf(v).Name()
-	syncTable[tof] = v
+	Register(reflect.TypeOf(v).Name(), v)
 }
 
 // Tables ...

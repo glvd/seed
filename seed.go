@@ -291,8 +291,6 @@ type Extend struct {
 	Message string `json:"message"`
 }
 
-// VideoSource ...
-
 // Hash ...
 func Hash(v interface{}) string {
 	bytes, e := jsoniter.Marshal(v)

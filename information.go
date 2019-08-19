@@ -331,7 +331,9 @@ func addThumbHash(seed *Seed, source *VideoSource) (*model.Unfinished, error) {
 		if e != nil {
 			return nil, e
 		}
-
+		seed.API.CallAPI(func(api *API) error {
+			api.api.Unixfs().Add(context.Background())
+		})
 		object, e := shell.AddFile(abs)
 		if e != nil {
 			return nil, e

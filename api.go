@@ -29,11 +29,15 @@ func NewAPI(path string) *API {
 	return a
 }
 
+// APICallbackStatusAble ...
+type APICallbackStatusAble interface {
+	Done()
+	Failed()
+}
+
 // APICallbackAble ...
 type APICallbackAble interface {
 	Callback(api *httpapi.HttpApi) error
-	Done()
-	Failed()
 }
 
 // PushCallback ...
@@ -41,8 +45,8 @@ func (api *API) PushCallback(cb APICallbackAble) {
 	api.cb <- cb
 }
 
-// CallAPI ...
-func (api *API) CallAPI(fn func(*API) error) {
+// PushRun ...
+func (api *API) PushRun(fn func(*API) error) {
 	e := fn(api)
 	if e != nil {
 		log.Error(e)

@@ -42,6 +42,15 @@ func (api *API) PushCallback(cb APICallbackAble) {
 }
 
 // Run ...
+func (api *API) Run(f func(*API)) error {
+	e := f(api)
+	if e != nil {
+		log.Error(e)
+	}
+	return nil
+}
+
+// Run ...
 func (api *API) Run(ctx context.Context) {
 	log.Info("api running")
 	var e error

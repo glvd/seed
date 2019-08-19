@@ -107,19 +107,24 @@ func (seed *Seed) AddArg(key string, value interface{}) {
 }
 
 // GetArg ...
-func (seed *Seed) GetArg(key string) interface{} {
-	return seed.args[key]
+func (seed *Seed) GetArg(key string) (v interface{}, b bool) {
+	v, b = seed.args[key]
+	return
 }
 
 // GetStringArg ...
 func (seed *Seed) GetStringArg(key string) (v string) {
-	v, _ = seed.args[key].(string)
+	if arg, b := seed.GetArg(key); b {
+		v, _ = arg.(string)
+	}
 	return
 }
 
 // GetBoolArg ...
 func (seed *Seed) GetBoolArg(key string) (v bool) {
-	v, _ = seed.args[key].(bool)
+	if arg, b := seed.GetArg(key); b {
+		v, _ = arg.(bool)
+	}
 	return
 }
 

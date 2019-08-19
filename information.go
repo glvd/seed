@@ -35,6 +35,7 @@ type Information struct {
 	ProcList []string
 	Start    int
 	Limit    int
+	video    chan *model.Video
 }
 
 // Option ...
@@ -44,7 +45,14 @@ func (info *Information) Option(seed *Seed) {
 
 // NewInformation ...
 func NewInformation() *Information {
-	return new(Information)
+	info := new(Information)
+	info.video = make(chan *model.Video, 3)
+	return info
+}
+
+// OutputInfomation ...
+func (info *Information) OutputInfomation() <-chan *model.Video {
+	return info.video
 }
 
 // BeforeRun ...
@@ -194,10 +202,6 @@ func (info *Information) Run(ctx context.Context) {
 		go func(vs []*VideoSource, v1 chan<- *model.Video) {
 			max := len(vs)
 			m := make(map[string]string)
-			defer func() {
-				log.With("moves", m).Info("defer")
-				moves <- m
-			}()
 			for i, s := range vs {
 				if runner <= 0 {
 					log.Info("break")

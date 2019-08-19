@@ -39,7 +39,6 @@ func (m *Move) Run(context.Context) {
 
 // BeforeRun ...
 func (m *Move) BeforeRun(seed *Seed) {
-	m.Moves = seed.Moves
 }
 
 // AfterRun ...

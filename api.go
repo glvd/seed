@@ -11,7 +11,7 @@ import (
 // API ...
 type API struct {
 	api *httpapi.HttpApi
-	cb  chan APICallbackAble
+	cb  chan interface{}
 }
 
 // NewAPI ...
@@ -62,13 +62,20 @@ func (api *API) Run(ctx context.Context) {
 		case <-ctx.Done():
 			log.Info("api done")
 		case c := <-api.cb:
-			e = c.Callback(api.api)
-			if e != nil {
-				log.Error(e)
-				c.Failed()
-				continue
+			if v, b := c.(APICallbackAble); b {
+				e = v.Callback(api.api)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
 			}
-			c.Done()
+			if v, b := c.(APICallbackStatusAble); b {
+				if e != nil {
+					v.Failed()
+					continue
+				}
+				v.Done()
+			}
 		}
 	}
 }

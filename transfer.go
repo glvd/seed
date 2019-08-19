@@ -42,7 +42,6 @@ type transfer struct {
 	unfinished map[string]*model.Unfinished
 	videos     map[string]*model.Video
 	workspace  string
-	flag       InfoFlag
 	status     TransferStatus
 	path       string
 	reader     io.Reader

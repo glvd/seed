@@ -22,7 +22,7 @@ func (db *Database) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case v := <-db.cb:
-			e = v(db)
+			e = v(db, db.eng)
 			if e != nil {
 				log.Error(e)
 			}
@@ -32,12 +32,10 @@ func (db *Database) Run(ctx context.Context) {
 
 // BeforeRun ...
 func (db *Database) BeforeRun(seed *Seed) {
-	panic("implement me")
 }
 
 // AfterRun ...
 func (db *Database) AfterRun(seed *Seed) {
-	panic("implement me")
 }
 
 var _ Optioner = &Database{}

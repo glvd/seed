@@ -10,15 +10,6 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
 
-// CheckType ...
-type CheckType string
-
-// CheckTypePin ...
-const CheckTypePin CheckType = "pin"
-
-// CheckTypeUnpin ...
-const CheckTypeUnpin CheckType = "unpin"
-
 // Check ...
 type Check struct {
 	*Seed
@@ -97,10 +88,10 @@ func (c *Check) Run(ctx context.Context) {
 				unfins, e := model.AllUnfinished(session.Clone(), 50, start)
 				if e != nil {
 					log.Error(e)
-					return
+					return e
 				}
 
-				log.Infof("pin(%d)", len(*unfins))
+				log.Infof("Pin(%d)", len(*unfins))
 				for i := range *unfins {
 					unf <- (*unfins)[i]
 				}

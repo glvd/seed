@@ -5,6 +5,7 @@ import (
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
+	"golang.org/x/xerrors"
 )
 
 // Database ...
@@ -54,10 +55,13 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 }
 
 // PushCallback ...
-func (db *Database) PushCallback(cb DatabaseCallback) {
-	go func(database *Database, databaseCallback DatabaseCallback) {
-		database.cb <- databaseCallback
-	}(db, cb)
+func (db *Database) PushCallback(cb interface{}) (e error) {
+	if v, b := cb.(DatabaseCallback); b {
+		go func(database *Database, databaseCallback DatabaseCallback) {
+			database.cb <- databaseCallback
+		}(db, v)
+	}
+	return xerrors.New("not database callback")
 }
 
 // Sync ...

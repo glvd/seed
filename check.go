@@ -20,6 +20,11 @@ type Check struct {
 	skipType  []interface{}
 }
 
+// Push ...
+func (c *Check) Push(interface{}) error {
+	return nil
+}
+
 // Option ...
 func (c *Check) Option(seed *Seed) {
 	checkOption(c)(seed)
@@ -29,7 +34,7 @@ func (c *Check) Option(seed *Seed) {
 func (c *Check) Run(ctx context.Context) {
 	log.Info("Check running")
 	cPin := make(chan iface.Pin)
-	c.API.PushRun(func(api *API, api2 *httpapi.HttpApi) (e error) {
+	e := c.Seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
@@ -46,6 +51,9 @@ func (c *Check) Run(ctx context.Context) {
 
 		return nil
 	})
+	if e != nil {
+		return
+	}
 	switch c.checkType {
 	case CheckTypePin:
 	PinList:
@@ -63,16 +71,19 @@ func (c *Check) Run(ctx context.Context) {
 					PeerID:  []string{c.myID.ID},
 					VideoID: "",
 				}
-				c.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+				e := c.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 					return model.UpdatePinVideoID(eng.NewSession(), p)
 				})
+				if e != nil {
+					return
+				}
 
 			}
 		}
 
 	case CheckTypeUnpin:
 		unf := make(chan *model.Unfinished)
-		c.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+		c.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 			defer func() {
 				unf <- nil
 			}()
@@ -132,7 +143,7 @@ func (c *Check) Run(ctx context.Context) {
 
 // BeforeRun ...
 func (c *Check) BeforeRun(seed *Seed) {
-	c.myID = APIPeerID(seed.API)
+	c.myID = APIPeerID(seed)
 	if c.Type == "" {
 		c.Type = "recursive"
 	}

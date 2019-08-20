@@ -12,6 +12,11 @@ type Move struct {
 	Moves map[string]string
 }
 
+// Push ...
+func (m *Move) Push(interface{}) error {
+	return nil
+}
+
 // NewMove ...
 func NewMove() *Move {
 	return &Move{}

@@ -58,6 +58,11 @@ type transfer struct {
 	reader     io.Reader
 }
 
+// Push ...
+func (transfer transfer) Push(interface{}) error {
+	return nil
+}
+
 // BeforeRun ...
 func (transfer *transfer) BeforeRun(seed *Seed) {
 	transfer.shell = seed.Shell
@@ -110,7 +115,7 @@ func insertOldToUnfinished(ban string, obj *old.Object) error {
 		Sync:        false,
 		Object:      ObjectFromOld(obj),
 	}
-	return model.AddOrUpdateUnfinished(unf)
+	return model.AddOrUpdateUnfinished(nil, unf)
 
 }
 
@@ -181,7 +186,7 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 		if strings.TrimSpace(vd.M3U8Hash) == "" && obj.Link != nil {
 			log.With("hash:", obj.Link.Hash, "bangumi", v.Bangumi).Info("info")
 			vd.M3U8Hash = obj.Link.Hash
-			e = model.AddOrUpdateVideo(vd)
+			e = model.AddOrUpdateVideo(nil, vd)
 			if e != nil {
 				log.With("bangumi", v.Bangumi).Error(e)
 				continue
@@ -224,7 +229,7 @@ func copyUnfinished(from *xorm.Engine) (e error) {
 			}
 			unfin.ID = ""
 			unfin.Version = 0
-			e := model.AddOrUpdateUnfinished(unfin)
+			e := model.AddOrUpdateUnfinished(nil, unfin)
 			log.With("checksum", unfin.Checksum, "type", unfin.Type, "relate", unfin.Relate, "error", e).Info("copy")
 			if e != nil {
 				return e
@@ -265,7 +270,7 @@ func transferFromOther(engine *xorm.Engine) (e error) {
 			video.TotalEpisode = from.TotalEpisode
 		}
 
-		e = model.AddOrUpdateVideo(video)
+		e = model.AddOrUpdateVideo(nil, video)
 		if e != nil {
 			log.With("bangumi", from.Bangumi).Error(e)
 			continue
@@ -281,7 +286,7 @@ func transferUpdate(engine *xorm.Engine) (e error) {
 		return
 	}
 	for _, from := range *fromList {
-		video, e := model.FindVideo(model.DB().Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
+		video, e := model.FindVideo(engine.Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
 		if e != nil {
 			log.Error(e)
 			continue
@@ -296,7 +301,7 @@ func transferUpdate(engine *xorm.Engine) (e error) {
 		} else {
 
 		}
-		e = model.AddOrUpdateVideo(video)
+		e = model.AddOrUpdateVideo(nil, video)
 		if e != nil {
 			log.With("bangumi", video.Bangumi, "index", video.Episode).Error(e)
 			continue
@@ -305,8 +310,8 @@ func transferUpdate(engine *xorm.Engine) (e error) {
 	return e
 }
 
-func transferToJSON(to string) (e error) {
-	videos, e := model.AllVideos(model.DB().Where("m3u8_hash <> ?", ""), 0)
+func transferToJSON(engine *xorm.Engine, to string) (e error) {
+	videos, e := model.AllVideos(engine.Where("m3u8_hash <> ?", ""), 0)
 	if e != nil {
 		return e
 	}
@@ -358,7 +363,7 @@ func (transfer *transfer) Run(ctx context.Context) {
 	} else if transfer.flag == TransferFlagJSON {
 		switch transfer.status {
 		case TransferStatusToJSON:
-			if err := transferToJSON(transfer.path); err != nil {
+			if err := transferToJSON(nil, transfer.path); err != nil {
 				return
 			}
 		}
@@ -374,7 +379,7 @@ func LoadFrom(vs *[]*VideoSource, reader io.Reader) (e error) {
 
 // TransferTo ...
 func TransferTo(eng *xorm.Engine, limit int) (e error) {
-	i, e := model.DB().Count(&model.Video{})
+	i, e := eng.Count(&model.Video{})
 	if e != nil || i <= 0 {
 		return e
 	}
@@ -383,7 +388,7 @@ func TransferTo(eng *xorm.Engine, limit int) (e error) {
 	}
 	for x := 0; x <= int(i); x += limit {
 		var videos []*model.Video
-		if e = model.DB().Limit(limit, x).Find(&videos); e != nil {
+		if e = eng.Limit(limit, x).Find(&videos); e != nil {
 			return xerrors.Errorf("transfer error with:%d,%+v", x, e)
 		}
 		for _, v := range videos {

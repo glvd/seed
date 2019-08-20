@@ -154,14 +154,16 @@ func (p *apiPeerID) Callback(api *API, api2 *httpapi.HttpApi) (e error) {
 }
 
 // APIPin ...
-func APIPin(seed *Seed, hash string) {
+func APIPin(seed *Seed, hash string) (e error) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
-	seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) error {
+	e = seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) error {
 		defer wg.Done()
-		return api2.Pin().Add(context.Background(), path.New(hash))
+		e = api2.Pin().Add(context.Background(), path.New(hash))
+		return e
 	})
 	wg.Wait()
+	return e
 }
 
 type apiPin struct {

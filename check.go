@@ -21,7 +21,6 @@ const CheckTypeUnpin CheckType = "unpin"
 // Check ...
 type Check struct {
 	*Seed
-	api       *httpapi.HttpApi
 	myID      *PeerID
 	Type      string
 	checkType CheckType
@@ -35,18 +34,20 @@ func (c *Check) Option(seed *Seed) {
 }
 
 // Run ...
-func (c *Check) Run(context.Context) {
+func (c *Check) Run(ctx context.Context) {
 	log.Info("Check running")
 	switch c.checkType {
 	case CheckTypePin:
-		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {
-			settings.Type = c.Type
-			return nil
+		c.API.PushRun(func(api *API, api2 *httpapi.HttpApi) error {
+			pins, e := api2.Pin().Ls(ctx, func(settings *options.PinLsSettings) error {
+				settings.Type = c.Type
+				return nil
+			})
+			if e != nil {
+				return e
+			}
+
 		})
-		if e != nil {
-			log.Error(e)
-			return
-		}
 		for _, path := range pins {
 			log.With("path", path.Path()).Info("pinned")
 			p := &model.Pin{

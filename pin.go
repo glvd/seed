@@ -2,11 +2,12 @@ package seed
 
 import (
 	"context"
-	"sync"
 
-	httpapi "github.com/ipfs/go-ipfs-http-client"
-
+	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
+	iface "github.com/ipfs/interface-go-ipfs-core"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 
 	"github.com/glvd/seed/model"
 )
@@ -26,15 +27,18 @@ const (
 	PinFlagAll PinFlag = "all"
 )
 
-type pin struct {
-	api        *httpapi.HttpApi
-	wg         *sync.WaitGroup
+// Pin ...
+type Pin struct {
+	*Seed
+	PinType    PinType
+	CheckType  CheckType
+	SkipType   []interface{}
+	Type       string
+	PinStatus  PinStatus
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
-	skipType   []interface{}
 	state      PinStatus
 	flag       PinFlag
-	status     PinStatus
 	list       []string
 	index      int
 	random     bool
@@ -42,20 +46,12 @@ type pin struct {
 }
 
 // BeforeRun ...
-func (p *pin) BeforeRun(seed *Seed) {
-	p.unfinished = seed.Unfinished
-	if p.unfinished == nil {
-		p.unfinished = make(map[string]*model.Unfinished)
-	}
-	if p.shell == nil {
-		p.shell = seed.Shell
-	}
-
-	p.from = seed.From
+func (p *Pin) BeforeRun(seed *Seed) {
+	p.Seed = seed
 }
 
 // AfterRun ...
-func (p *pin) AfterRun(seed *Seed) {
+func (p *Pin) AfterRun(seed *Seed) {
 	return
 }
 
@@ -83,39 +79,57 @@ const PinStatusPoster PinStatus = "poster"
 // PinStatusSync ...
 const PinStatusSync PinStatus = "sync"
 
+// PinType ...
+type PinType string
+
+// PinTypeCheck ...
+const PinTypeCheck PinType = "check"
+
+// PinTypeAdd ...
+const PinTypeAdd PinType = "add"
+
+// CheckType ...
+type CheckType string
+
+// CheckTypePin ...
+const CheckTypePin CheckType = "Pin"
+
+// CheckTypeUnpin ...
+const CheckTypeUnpin CheckType = "unpin"
+
 // PinArgs ...
-type PinArgs func(c *pin)
+type PinArgs func(c *Pin)
 
 // PinSkipArg ...
 func PinSkipArg(s []string) PinArgs {
-	return func(p *pin) {
+	return func(p *Pin) {
 		if s == nil {
 			return
 		}
 		for i := range s {
-			p.skipType = append(p.skipType, s[i])
+			p.SkipType = append(p.SkipType, s[i])
 		}
 	}
 }
 
 // PinListArg ...
 func PinListArg(s ...string) PinArgs {
-	return func(p *pin) {
+	return func(p *Pin) {
 		p.list = s
 	}
 }
 
 // PinStatusArg ...
 func PinStatusArg(s PinStatus) PinArgs {
-	return func(p *pin) {
-		p.status = s
+	return func(p *Pin) {
+		p.PinStatus = s
 	}
 }
 
-// Pin ...
-func Pin(args ...PinArgs) Options {
-	pin := &pin{
-		status: PinStatusAll,
+// NewPin ...
+func NewPin(args ...PinArgs) Options {
+	pin := &Pin{
+		PinStatus: PinStatusAll,
 	}
 
 	for _, argFn := range args {
@@ -124,14 +138,47 @@ func Pin(args ...PinArgs) Options {
 	return pinOption(pin)
 }
 
+func listPin(ctx context.Context, api *API, t string) <-chan iface.Pin {
+	cPin := make(chan iface.Pin)
+	api.PushRun(func(api *API, api2 *httpapi.HttpApi) (e error) {
+		defer func() {
+			cPin <- nil
+		}()
+		pins, e := api2.Pin().Ls(ctx, func(settings *options.PinLsSettings) error {
+			settings.Type = t
+			return nil
+		})
+		if e != nil {
+			return e
+		}
+		for _, p := range pins {
+			cPin <- p
+		}
+
+		return nil
+	})
+	return cPin
+}
+
+func unfinishedList(ctx context.Context, engine *xorm.Engine) <-chan *model.Unfinished {
+
+}
+
 // Run ...
-func (p *pin) Run(ctx context.Context) {
-	log.Info("pin running")
-	switch p.status {
+func (p *Pin) Run(ctx context.Context) {
+	log.Info("Pin running")
+	switch p.PinType {
+	case PinTypeAdd:
+		pin := listPin(ctx, p.API, p.Type)
+	case PinTypeCheck:
+		pin := listPin(ctx, p.API, p.Type)
+	}
+
+	switch p.PinStatus {
 	case PinStatusAll:
 		s := model.DB().NewSession()
-		if len(p.skipType) > 0 {
-			s.NotIn("type", p.skipType...)
+		if len(p.SkipType) > 0 {
+			s.NotIn("type", p.SkipType...)
 		}
 		i, e := s.Clone().Count(model.Unfinished{})
 		if e != nil {
@@ -145,13 +192,13 @@ func (p *pin) Run(ctx context.Context) {
 				return
 			}
 
-			log.Infof("pin(%d)", len(*unfins))
+			log.Infof("Pin(%d)", len(*unfins))
 			for _, unf := range *unfins {
 				select {
 				case <-ctx.Done():
 					return
 				default:
-					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
+					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("Pin")
 					e := p.pinHash(unf.Hash)
 					if e != nil {
 						log.Error(e)
@@ -173,7 +220,7 @@ func (p *pin) Run(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			default:
-				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("pin")
+				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("Pin")
 				e := p.pinHash(hash)
 				if e != nil {
 					log.Error(e)
@@ -232,9 +279,9 @@ func (p *pin) Run(ctx context.Context) {
 				return
 			}
 			for _, v := range *videos {
-				log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("pin")
+				log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("Pin")
 
-				if !SkipTypeVerify("poster", p.skipType...) && v.PosterHash != "" {
+				if !SkipTypeVerify("poster", p.SkipType...) && v.PosterHash != "" {
 					e := p.pinHash(v.PosterHash)
 					if e != nil {
 						log.Error(e)
@@ -242,7 +289,7 @@ func (p *pin) Run(ctx context.Context) {
 					}
 				}
 
-				if !SkipTypeVerify("thumb", p.skipType...) && v.ThumbHash != "" {
+				if !SkipTypeVerify("thumb", p.SkipType...) && v.ThumbHash != "" {
 					e := p.pinHash(v.ThumbHash)
 					if e != nil {
 						log.Error(e)
@@ -250,14 +297,14 @@ func (p *pin) Run(ctx context.Context) {
 					}
 				}
 
-				if !SkipTypeVerify("source", p.skipType...) && v.SourceHash != "" {
+				if !SkipTypeVerify("source", p.SkipType...) && v.SourceHash != "" {
 					e := p.pinHash(v.SourceHash)
 					if e != nil {
 						log.Error(e)
 						return
 					}
 				}
-				if !SkipTypeVerify("slice", p.skipType...) && v.M3U8Hash != "" {
+				if !SkipTypeVerify("slice", p.SkipType...) && v.M3U8Hash != "" {
 					e := p.pinHash(v.M3U8Hash)
 					if e != nil {
 						log.Error(e)
@@ -297,7 +344,7 @@ func (p *pin) Run(ctx context.Context) {
 	}
 }
 
-func (p *pin) pinHash(hash string) (e error) {
+func (p *Pin) pinHash(hash string) (e error) {
 	log.Info("pinning:", hash)
 	e = p.shell.Pin(hash)
 	if e != nil {

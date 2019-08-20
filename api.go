@@ -133,9 +133,9 @@ func (p *apiPeerID) OnDone() *PeerID {
 }
 
 // Callback ...
-func (p *apiPeerID) Callback(api *httpapi.HttpApi) (e error) {
+func (p *apiPeerID) Callback(api *API, api2 *httpapi.HttpApi) (e error) {
 	p.id = new(PeerID)
-	e = api.Request("id").Exec(context.Background(), p.id)
+	e = api2.Request("id").Exec(context.Background(), p.id)
 	if e != nil {
 		return e
 	}
@@ -156,8 +156,8 @@ type apiPin struct {
 }
 
 // Callback ...
-func (a *apiPin) Callback(api *httpapi.HttpApi) error {
-	return api.Pin().Add(context.Background(), path.New(a.hash))
+func (a *apiPin) Callback(api *API, api2 *httpapi.HttpApi) error {
+	return api2.Pin().Add(context.Background(), path.New(a.hash))
 }
 
 // Done ...

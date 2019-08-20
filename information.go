@@ -57,7 +57,7 @@ func (info *Information) OutputInfomation() <-chan *model.Video {
 
 // BeforeRun ...
 func (info *Information) BeforeRun(seed *Seed) {
-	info.Seed = seed
+	info.seed = seed
 }
 
 // AfterRun ...

@@ -29,7 +29,7 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	*Seed
+	seed         *Seed
 	infoType     InfoType
 	Path         string
 	ResourcePath string

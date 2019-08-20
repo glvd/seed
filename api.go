@@ -37,8 +37,11 @@ type APICallbackStatusAble interface {
 
 // APICallbackAble ...
 type APICallbackAble interface {
-	Callback(api *httpapi.HttpApi) error
+	Callback(*API, *httpapi.HttpApi) error
 }
+
+// CallbackFunc ...
+type CallbackFunc func(*API, *httpapi.HttpApi) error
 
 // PushCallback ...
 func (api *API) PushCallback(cb APICallbackAble) {
@@ -46,8 +49,8 @@ func (api *API) PushCallback(cb APICallbackAble) {
 }
 
 // PushRun ...
-func (api *API) PushRun(fn func(*API) error) {
-	e := fn(api)
+func (api *API) PushRun(callbackFunc CallbackFunc) {
+	e := callbackFunc(api, api.api)
 	if e != nil {
 		log.Error(e)
 	}

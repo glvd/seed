@@ -46,7 +46,7 @@ func (c *Check) Run(ctx context.Context) {
 			if e != nil {
 				return e
 			}
-
+			return pins
 		})
 		for _, path := range pins {
 			log.With("path", path.Path()).Info("pinned")

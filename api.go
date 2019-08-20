@@ -43,6 +43,10 @@ type APICallbackAble interface {
 // CallbackFunc ...
 type CallbackFunc func(*API, *httpapi.HttpApi) error
 
+type cb struct {
+	fn CallbackFunc
+}
+
 // PushCallback ...
 func (api *API) PushCallback(cb APICallbackAble) {
 	api.cb <- cb
@@ -50,9 +54,8 @@ func (api *API) PushCallback(cb APICallbackAble) {
 
 // PushRun ...
 func (api *API) PushRun(callbackFunc CallbackFunc) {
-	e := callbackFunc(api, api.api)
-	if e != nil {
-		log.Error(e)
+	api.cb <- &cb{
+		fn: callbackFunc,
 	}
 }
 
@@ -66,7 +69,7 @@ func (api *API) Run(ctx context.Context) {
 			log.Info("api done")
 		case c := <-api.cb:
 			if v, b := c.(APICallbackAble); b {
-				e = v.Callback(api.api)
+				e = v.Callback(api, api.api)
 				if e != nil {
 					log.Error(e)
 					continue

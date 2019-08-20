@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/glvd/seed/model"
+	"github.com/go-xorm/xorm"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
@@ -53,10 +54,9 @@ func (c *Check) Run(context.Context) {
 				PeerID:  []string{c.myID.ID},
 				VideoID: "",
 			}
-			e := model.UpdateVideo()
-			if e != nil {
-				log.Error(e)
-			}
+			c.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+				return model.UpdatePinVideoID(eng.NewSession(), p)
+			})
 		}
 	case CheckTypeUnpin:
 		pins, e := c.api.Pin().Ls(context.Background(), func(settings *options.PinLsSettings) error {

@@ -2,8 +2,6 @@ package seed
 
 import (
 	"context"
-
-	cmd "github.com/godcong/go-ffmpeg-cmd"
 )
 
 // Slice ...

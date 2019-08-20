@@ -256,10 +256,7 @@ func addThumbHash(db *Database, source *VideoSource, hash string) (unf *model.Un
 		unfinThumb.Hash = hash
 		db.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
 			e = model.AddOrUpdateUnfinished(eng.NewSession(), unfinThumb)
-			if e != nil {
-				return e
-			}
-			return nil
+			return
 		})
 		return unfinThumb, nil
 	}
@@ -274,8 +271,8 @@ func addPosterHash(db *Database, source *VideoSource, hash string) (unf *model.U
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = hash
-		db.PushCallback(func(database *Database) (e error) {
-			e = model.AddOrUpdateUnfinished(database.eng.NewSession(), unfinPoster)
+		db.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+			e = model.AddOrUpdateUnfinished(eng.NewSession(), unfinPoster)
 			return
 		})
 		return unfinPoster, nil

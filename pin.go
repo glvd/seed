@@ -45,6 +45,11 @@ type Pin struct {
 	from       string
 }
 
+// Push ...
+func (p *Pin) Push(interface{}) error {
+	return nil
+}
+
 // BeforeRun ...
 func (p *Pin) BeforeRun(seed *Seed) {
 	p.Seed = seed

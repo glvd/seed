@@ -19,7 +19,7 @@ type SQLUpdateAble interface {
 }
 
 // DatabaseCallback ...
-type DatabaseCallback func(database *Database) (e error)
+type DatabaseCallback func(database *Database, eng *xorm.Engine) (e error)
 
 // SQLWriter ...
 type SQLWriter interface {

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/glvd/seed/model"
+	"github.com/go-xorm/xorm"
 	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
@@ -253,10 +254,13 @@ func addThumbHash(db *Database, source *VideoSource, hash string) (unf *model.Un
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		unfinThumb.Hash = hash
-		e = model.AddOrUpdateUnfinished(unfinThumb)
-		if e != nil {
-			return nil, e
-		}
+		db.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+			e = model.AddOrUpdateUnfinished(eng.NewSession(), unfinThumb)
+			if e != nil {
+				return e
+			}
+			return nil
+		})
 		return unfinThumb, nil
 	}
 

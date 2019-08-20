@@ -19,6 +19,7 @@ const CheckTypeUnpin CheckType = "unpin"
 
 // Check ...
 type Check struct {
+	*Seed
 	api       *httpapi.HttpApi
 	myID      *PeerID
 	Type      string
@@ -52,7 +53,7 @@ func (c *Check) Run(context.Context) {
 				PeerID:  []string{c.myID.ID},
 				VideoID: "",
 			}
-			e := p.UpdateVideo()
+			e := model.UpdateVideo()
 			if e != nil {
 				log.Error(e)
 			}

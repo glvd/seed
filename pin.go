@@ -138,14 +138,14 @@ func NewPin(args ...PinArgs) Options {
 	return pinOption(pin)
 }
 
-func listPin(ctx context.Context, api *API, t string) <-chan iface.Pin {
+func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 	cPin := make(chan iface.Pin)
-	api.PushRun(func(api *API, api2 *httpapi.HttpApi) (e error) {
+	p.API.PushRun(func(api *API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
 		pins, e := api2.Pin().Ls(ctx, func(settings *options.PinLsSettings) error {
-			settings.Type = t
+			settings.Type = p.Type
 			return nil
 		})
 		if e != nil {
@@ -160,8 +160,33 @@ func listPin(ctx context.Context, api *API, t string) <-chan iface.Pin {
 	return cPin
 }
 
-func unfinishedList(ctx context.Context, engine *xorm.Engine) <-chan *model.Unfinished {
+func unfinishedList(ctx context.Context, p *Pin) <-chan *model.Unfinished {
+	u := make(chan *model.Unfinished)
+	defer func() {
+		u <- nil
+	}()
+	p.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+		session := eng.NewSession()
+		if len(p.SkipType) > 0 {
+			session = session.NotIn("type", p.SkipType...)
+		}
+		i, e := session.Clone().Count(model.Unfinished{})
+		if e != nil {
+			return e
+		}
+		for start := 0; start < int(i); start += 50 {
+			unfinishs, e := model.AllUnfinished(session.Clone(), 50, start)
+			if e != nil {
+				return e
+			}
+			for i := range *unfinishs {
+				u <- (*unfinishs)[i]
+			}
+		}
+		return nil
+	})
 
+	return u
 }
 
 // Run ...

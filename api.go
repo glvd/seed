@@ -49,14 +49,16 @@ type cb struct {
 
 // PushCallback ...
 func (api *API) PushCallback(cb APICallbackAble) {
-	api.cb <- cb
+	go func(able APICallbackAble) {
+		api.cb <- able
+	}(cb)
 }
 
 // PushRun ...
 func (api *API) PushRun(callbackFunc CallbackFunc) {
-	api.cb <- &cb{
-		fn: callbackFunc,
-	}
+	go func(fn CallbackFunc) {
+		api.cb <- &cb{fn: fn}
+	}(callbackFunc)
 }
 
 // Run ...

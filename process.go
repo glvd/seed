@@ -10,6 +10,7 @@ import (
 	"unicode"
 
 	cmd "github.com/godcong/go-ffmpeg-cmd"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
@@ -22,6 +23,7 @@ func dummy(process *process) (e error) {
 
 // process ...
 type process struct {
+	Seed        *Seed
 	workspace   string
 	path        string
 	shell       *shell.Shell
@@ -73,6 +75,12 @@ func scale(scale int64) int {
 	}
 }
 
+func addSliceHash(db *Database, source *VideoSource, format *cmd.StreamFormat, file string) {
+	p.Seed.API.PushRun(func(api *API, api2 *httpapi.HttpApi) error {
+		api2.Unixfs().Add(ctx)
+	})
+}
+
 func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	var sa *cmd.SplitArgs
 	s := p.scale
@@ -91,6 +99,7 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 		return err
 	}
 	log.Infof("%+v", sa)
+
 	dirs, err := p.shell.AddDir(sa.Output)
 	if err != nil {
 		return err

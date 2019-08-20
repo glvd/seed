@@ -35,7 +35,7 @@ type Information struct {
 	ResourcePath string
 	ProcList     []string
 	Start        int
-	video        chan *model.Video
+	vcb          chan InformationVideoCallback
 }
 
 // Option ...
@@ -46,13 +46,20 @@ func (info *Information) Option(seed *Seed) {
 // NewInformation ...
 func NewInformation() *Information {
 	info := new(Information)
-	info.video = make(chan *model.Video, 3)
 	return info
 }
 
-// OutputInfomation ...
-func (info *Information) OutputInfomation() <-chan *model.Video {
-	return info.video
+// InformationVideoCallback ...
+type InformationVideoCallback func(information *Information, v *model.Video)
+
+// PushCallback ...
+func (info *Information) PushCallback(cb interface{}) error {
+	if v, b := cb.(InformationVideoCallback); b {
+		go func(callback InformationVideoCallback) {
+			info.vcb <- callback
+		}(v)
+	}
+	return xerrors.New("not information callback")
 }
 
 // BeforeRun ...
@@ -212,7 +219,7 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								poster, e := addPosterHash(info.Database, source, "hash")
+								poster, e := addPosterHash(info.seed.Database, source, "hash")
 								if e != nil {
 									log.Error(e)
 									failedSkip.Store(true)
@@ -229,7 +236,7 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							thumb, e := addThumbHash(info.Database, source, "hash")
+							thumb, e := addThumbHash(info.seed.Database, source, "hash")
 							if e != nil {
 								log.Error(e)
 								failedSkip.Store(true)
@@ -241,7 +248,7 @@ func (info *Information) Run(ctx context.Context) {
 					}
 				}
 
-				info.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+				info.seed.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
 					return model.AddOrUpdateVideo(eng.NewSession(), v)
 				})
 			}

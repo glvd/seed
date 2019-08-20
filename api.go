@@ -6,6 +6,7 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiformats/go-multiaddr"
+	"golang.org/x/xerrors"
 )
 
 // API ...
@@ -35,6 +36,9 @@ type APICallbackStatusAble interface {
 	Failed()
 }
 
+// APICallback ...
+type APICallback func(*API, *httpapi.HttpApi) error
+
 // APICallbackAble ...
 type APICallbackAble interface {
 	Callback(*API, *httpapi.HttpApi) error
@@ -43,15 +47,20 @@ type APICallbackAble interface {
 // CallbackFunc ...
 type CallbackFunc func(*API, *httpapi.HttpApi) error
 
-type cb struct {
-	fn CallbackFunc
+type apiCallback struct {
+	fn APICallback
 }
 
 // PushCallback ...
-func (api *API) PushCallback(cb APICallbackAble) {
-	go func(able APICallbackAble) {
-		api.cb <- able
-	}(cb)
+func (api *API) PushCallback(cb interface{}) (e error) {
+	if v, b := cb.(APICallback); b {
+		go func(able APICallback) {
+			api.cb <- &apiCallback{
+				fn: able,
+			}
+		}(v)
+	}
+	return xerrors.New("not api callback")
 }
 
 // PushRun ...

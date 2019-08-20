@@ -9,20 +9,18 @@ import (
 	"strings"
 	"unicode"
 
-	cmd "github.com/godcong/go-ffmpeg-cmd"
-	httpapi "github.com/ipfs/go-ipfs-http-client"
-
 	"github.com/glvd/seed/model"
+	cmd "github.com/godcong/go-ffmpeg-cmd"
 	shell "github.com/godcong/go-ipfs-restapi"
 )
 
-func dummy(process *process) (e error) {
+func dummy(process *Process) (e error) {
 	log.Info("dummy called")
 	return
 }
 
-// process ...
-type process struct {
+// Process ...
+type Process struct {
 	Seed        *Seed
 	workspace   string
 	path        string
@@ -38,8 +36,13 @@ type process struct {
 	skipType    []interface{}
 }
 
+// Push ...
+func (p *Process) Push(interface{}) error {
+	panic("implement me")
+}
+
 // BeforeRun ...
-func (p *process) BeforeRun(seed *Seed) {
+func (p *Process) BeforeRun(seed *Seed) {
 	p.unfinished = seed.Unfinished
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
@@ -53,17 +56,20 @@ func (p *process) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (p *process) AfterRun(seed *Seed) {
+func (p *Process) AfterRun(seed *Seed) {
 	seed.Unfinished = p.unfinished
 	seed.Moves = p.moves
 }
 
-// Process ...
-func Process(path string) Options {
-	process := &process{
-		path: path,
-	}
-	return processOption(process)
+// NewProcess ...
+func NewProcess() *Process {
+	process := &Process{}
+	return process
+}
+
+// Option ...
+func (p *Process) Option(seed *Seed) {
+	processOption(p)(seed)
 }
 
 func scale(scale int64) int {
@@ -75,13 +81,7 @@ func scale(scale int64) int {
 	}
 }
 
-func addSliceHash(db *Database, source *VideoSource, format *cmd.StreamFormat, file string) {
-	p.Seed.API.PushRun(func(api *API, api2 *httpapi.HttpApi) error {
-		api2.Unixfs().Add(ctx)
-	})
-}
-
-func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
+func (p *Process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	var sa *cmd.SplitArgs
 	s := p.scale
 	if s != 0 {
@@ -109,10 +109,10 @@ func (p *process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 	if last != nil {
 		unfin.Hash = last.Hash
 	}
-	return model.AddOrUpdateUnfinished(unfin)
+	return model.AddOrUpdateUnfinished(nil, unfin)
 }
 
-func (p *process) fileAdd(unfin *model.Unfinished, file string) (err error) {
+func (p *Process) fileAdd(unfin *model.Unfinished, file string) (err error) {
 	object, err := p.shell.AddFile(file)
 	if err != nil {
 		log.Error(err)
@@ -120,7 +120,7 @@ func (p *process) fileAdd(unfin *model.Unfinished, file string) (err error) {
 	}
 	unfin.Hash = object.Hash
 	unfin.Object.Link = model.ObjectToVideoLink(object)
-	return model.AddOrUpdateUnfinished(unfin)
+	return model.AddOrUpdateUnfinished(nil, unfin)
 }
 
 func onlyName(name string) string {
@@ -178,7 +178,7 @@ func LastSlice(s, sep string) string {
 }
 
 // Run ...
-func (p *process) Run(ctx context.Context) {
+func (p *Process) Run(ctx context.Context) {
 	files := p.getFiles(p.path)
 	log.Info(files)
 	var unfin *model.Unfinished
@@ -210,7 +210,7 @@ func (p *process) Run(ctx context.Context) {
 			log.Info("adding:", file)
 
 			if SkipTypeVerify("video", p.skipType...) {
-				if !unfin.IsExist() || !p.skipExist {
+				if !model.IsExist(nil, unfin) || !p.skipExist {
 					err := p.fileAdd(unfin, file)
 					if err != nil {
 						log.With("add file", file).Error(err)
@@ -224,7 +224,7 @@ func (p *process) Run(ctx context.Context) {
 			if unfin.Type == model.TypeVideo && !p.skip(format) {
 				unfinSlice := unfin.Clone()
 				unfinSlice.Type = model.TypeSlice
-				if !unfinSlice.IsExist() || !p.skipExist {
+				if !model.IsExist(nil, unfinSlice) || !p.skipExist {
 					if p.noSlice {
 						continue
 					}
@@ -261,7 +261,7 @@ func PathMD5(s ...string) string {
 }
 
 // CheckIgnore ...
-func (p *process) CheckIgnore(name string) (b bool) {
+func (p *Process) CheckIgnore(name string) (b bool) {
 	if p.ignores == nil {
 		return false
 	}
@@ -270,7 +270,7 @@ func (p *process) CheckIgnore(name string) (b bool) {
 	return
 }
 
-func (p *process) getFiles(ws string) (files []string) {
+func (p *Process) getFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
 		return nil
@@ -301,7 +301,7 @@ func (p *process) getFiles(ws string) (files []string) {
 	return append(files, ws)
 }
 
-func (p *process) skip(format *cmd.StreamFormat) bool {
+func (p *Process) skip(format *cmd.StreamFormat) bool {
 	if !p.skipConvert {
 		log.Info("noskip")
 		return p.skipConvert

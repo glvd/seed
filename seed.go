@@ -23,47 +23,6 @@ type Thread struct {
 	wg sync.WaitGroup
 }
 
-// Threader ...
-type Threader interface {
-	Runnable
-	BeforeRun(seed *Seed)
-	AfterRun(seed *Seed)
-}
-
-// Runnable ...
-type Runnable interface {
-	Run(context.Context)
-}
-
-// Stepper ...
-type Stepper int
-
-// StepperNone ...
-const (
-	// StepperNone ...
-	StepperNone Stepper = iota
-	//StepperDatabase ...
-	StepperDatabase
-	// StepperInformation ...
-	StepperInformation
-	// StepperMoveInfo ...
-	StepperMoveInfo
-	// StepperProcess ...
-	StepperProcess
-	// StepperMoveproc ...
-	StepperMoveproc
-	// StepperTransfer ...
-	StepperTransfer
-	// StepperPin ...
-	StepperPin
-	// StepperCheck ...
-	StepperCheck
-	// StepperUpdate ...
-	StepperUpdate
-	// StepperMax ...
-	StepperMax
-)
-
 // Seed ...
 type Seed struct {
 	Shell       *shell.Shell
@@ -87,10 +46,15 @@ type Seed struct {
 	noSlice     bool
 	upScale     bool
 	threads     int
-	thread      []Threader
+	thread      map[Stepper]Threader
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool
+}
+
+// PushTo ...
+func (seed *Seed) PushTo(stepper Stepper, v interface{}) (e error) {
+	return seed.thread[stepper].Push(v)
 }
 
 // Args ...
@@ -180,7 +144,7 @@ func defaultSeed() *Seed {
 		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
 		threads:    3,
-		thread:     make([]Threader, StepperMax),
+		thread:     make(map[Stepper]Threader, StepperMax),
 		ignores:    make(map[string][]byte),
 	}
 }

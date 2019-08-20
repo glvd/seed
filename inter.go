@@ -1,12 +1,17 @@
 package seed
 
-import "github.com/go-xorm/xorm"
+import (
+	"context"
+
+	"github.com/go-xorm/xorm"
+)
 
 // Seeder ...
 type Seeder interface {
 	Start()
 	Wait()
 	Stop()
+	PushTo(stepper Stepper, v interface{}) error
 	Err() error
 }
 
@@ -42,4 +47,53 @@ type Initer interface {
 //Optioner set option
 type Optioner interface {
 	Option(seed *Seed)
+}
+
+// Stepper ...
+type Stepper int
+
+// StepperNone ...
+const (
+	// StepperNone ...
+	StepperNone Stepper = iota
+	//StepperAPI ...
+	StepperAPI
+	//StepperDatabase ...
+	StepperDatabase
+	// StepperInformation ...
+	StepperInformation
+	// StepperMoveInfo ...
+	StepperMoveInfo
+	// StepperProcess ...
+	StepperProcess
+	// StepperMoveproc ...
+	StepperMoveproc
+	// StepperTransfer ...
+	StepperTransfer
+	// StepperPin ...
+	StepperPin
+	// StepperCheck ...
+	StepperCheck
+	// StepperUpdate ...
+	StepperUpdate
+	// StepperMax ...
+	StepperMax
+)
+
+// Threader ...
+type Threader interface {
+	Runnable
+	Pusher
+	BeforeRun(seed *Seed)
+	AfterRun(seed *Seed)
+}
+
+// Runnable ...
+type Runnable interface {
+	Run(context.Context)
+}
+
+// Pusher ...
+type Pusher interface {
+	Push(interface{}) error
 }

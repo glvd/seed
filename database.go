@@ -10,9 +10,15 @@ import (
 
 // Database ...
 type Database struct {
+	Seed      *Seed
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCallback
+}
+
+// Push ...
+func (db *Database) Push(v interface{}) error {
+	return db.pushDatabaseCallback(v)
 }
 
 // Run ...
@@ -55,7 +61,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 }
 
 // PushCallback ...
-func (db *Database) PushCallback(cb interface{}) (e error) {
+func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
 	if v, b := cb.(DatabaseCallback); b {
 		go func(database *Database, databaseCallback DatabaseCallback) {
 			database.cb <- databaseCallback

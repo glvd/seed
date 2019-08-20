@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"sync"
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -11,8 +12,23 @@ import (
 
 // API ...
 type API struct {
-	api *httpapi.HttpApi
-	cb  chan interface{}
+	Seed *Seed
+	api  *httpapi.HttpApi
+	cb   chan APICallback
+}
+
+// Push ...
+func (api *API) Push(v interface{}) error {
+	return api.pushAPICallback(v)
+}
+
+// BeforeRun ...
+func (api *API) BeforeRun(seed *Seed) {
+	api.Seed = seed
+}
+
+// AfterRun ...
+func (api *API) AfterRun(seed *Seed) {
 }
 
 // NewAPI ...
@@ -52,22 +68,13 @@ type apiCallback struct {
 }
 
 // PushCallback ...
-func (api *API) PushCallback(cb interface{}) (e error) {
+func (api *API) pushAPICallback(cb interface{}) (e error) {
 	if v, b := cb.(APICallback); b {
-		go func(able APICallback) {
-			api.cb <- &apiCallback{
-				fn: able,
-			}
+		go func(a APICallback) {
+			api.cb <- a
 		}(v)
 	}
 	return xerrors.New("not api callback")
-}
-
-// PushRun ...
-func (api *API) PushRun(callbackFunc CallbackFunc) {
-	go func(fn CallbackFunc) {
-		api.cb <- &cb{fn: fn}
-	}(callbackFunc)
 }
 
 // Run ...
@@ -77,21 +84,11 @@ func (api *API) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Info("api done")
+			return
 		case c := <-api.cb:
-			if v, b := c.(APICallbackAble); b {
-				e = v.Callback(api, api.api)
-				if e != nil {
-					log.Error(e)
-					continue
-				}
-			}
-			if v, b := c.(APICallbackStatusAble); b {
-				if e != nil {
-					v.Failed()
-					continue
-				}
-				v.Done()
+			e = c(api, api.api)
+			if e != nil {
+				log.Error(e)
 			}
 		}
 	}
@@ -107,10 +104,13 @@ type PeerID struct {
 }
 
 // APIPeerID ...
-func APIPeerID(api *API) *PeerID {
+func APIPeerID(seed *Seed) *PeerID {
 	pid := new(apiPeerID)
 	pid.done = make(chan bool)
-	go api.PushCallback(pid)
+	e := seed.PushTo(StepperAPI, pid)
+	if e != nil {
+		return nil
+	}
 	d := <-pid.done
 	if d {
 		return pid.id
@@ -154,11 +154,14 @@ func (p *apiPeerID) Callback(api *API, api2 *httpapi.HttpApi) (e error) {
 }
 
 // APIPin ...
-func APIPin(api *API, hash string) bool {
-	p := new(apiPin)
-	p.done = make(chan bool)
-	go api.PushCallback(p)
-	return <-p.done
+func APIPin(seed *Seed, hash string) {
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) error {
+		defer wg.Done()
+		return api2.Pin().Add(context.Background(), path.New(hash))
+	})
+	wg.Wait()
 }
 
 type apiPin struct {

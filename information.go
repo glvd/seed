@@ -38,6 +38,11 @@ type Information struct {
 	vcb          chan InformationVideoCallback
 }
 
+// Push ...
+func (info *Information) Push(v interface{}) error {
+	return info.pushVideoCallback(v)
+}
+
 // Option ...
 func (info *Information) Option(seed *Seed) {
 	informationOption(info)(seed)
@@ -53,7 +58,7 @@ func NewInformation() *Information {
 type InformationVideoCallback func(information *Information, v *model.Video)
 
 // PushCallback ...
-func (info *Information) PushCallback(cb interface{}) error {
+func (info *Information) pushVideoCallback(cb interface{}) error {
 	if v, b := cb.(InformationVideoCallback); b {
 		go func(callback InformationVideoCallback) {
 			info.vcb <- callback
@@ -219,7 +224,7 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								poster, e := addPosterHash(info.seed.Database, source, "hash")
+								poster, e := addPosterHash(info.seed, source, "hash")
 								if e != nil {
 									log.Error(e)
 									failedSkip.Store(true)
@@ -236,7 +241,7 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							thumb, e := addThumbHash(info.seed.Database, source, "hash")
+							thumb, e := addThumbHash(info.seed, source, "hash")
 							if e != nil {
 								log.Error(e)
 								failedSkip.Store(true)
@@ -248,7 +253,7 @@ func (info *Information) Run(ctx context.Context) {
 					}
 				}
 
-				info.seed.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+				info.seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 					return model.AddOrUpdateVideo(eng.NewSession(), v)
 				})
 			}
@@ -259,31 +264,37 @@ func (info *Information) Run(ctx context.Context) {
 	return
 }
 
-func addThumbHash(db *Database, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addThumbHash(seed *Seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		unfinThumb.Hash = hash
-		db.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+		e = seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), unfinThumb)
 		})
+		if e != nil {
+			return nil, e
+		}
 		return unfinThumb, nil
 	}
 
 	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(db *Database, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addPosterHash(seed *Seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = hash
-		db.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+		e = seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), unfinPoster)
 		})
+		if e != nil {
+			return nil, e
+		}
 		return unfinPoster, nil
 	}
 	return nil, xerrors.New("no poster")

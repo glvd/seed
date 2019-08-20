@@ -29,7 +29,7 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	seed         *Seed
+	*Seed
 	infoType     InfoType
 	Path         string
 	ResourcePath string
@@ -57,7 +57,7 @@ func (info *Information) OutputInfomation() <-chan *model.Video {
 
 // BeforeRun ...
 func (info *Information) BeforeRun(seed *Seed) {
-	info.seed = seed
+	info.Seed = seed
 }
 
 // AfterRun ...
@@ -212,7 +212,7 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								poster, e := addPosterHash(info.seed.Database, source, "hash")
+								poster, e := addPosterHash(info.Database, source, "hash")
 								if e != nil {
 									log.Error(e)
 									failedSkip.Store(true)
@@ -229,7 +229,7 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							thumb, e := addThumbHash(info.seed.Database, source, "hash")
+							thumb, e := addThumbHash(info.Database, source, "hash")
 							if e != nil {
 								log.Error(e)
 								failedSkip.Store(true)
@@ -240,6 +240,10 @@ func (info *Information) Run(ctx context.Context) {
 						}
 					}
 				}
+
+				info.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+					return model.AddOrUpdateVideo(eng.NewSession(), v)
+				})
 			}
 		}
 		log.Info("info end")
@@ -276,6 +280,10 @@ func addPosterHash(db *Database, source *VideoSource, hash string) (unf *model.U
 		return unfinPoster, nil
 	}
 	return nil, xerrors.New("no poster")
+}
+
+func addVideo(db *Database, video *model.Video) {
+
 }
 
 func filterProcList(sources []*VideoSource, filterList []string) (vs []*VideoSource) {

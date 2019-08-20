@@ -201,60 +201,15 @@ func (p *Pin) Run(ctx context.Context) {
 
 	switch p.PinStatus {
 	case PinStatusAll:
-		s := model.DB().NewSession()
-		if len(p.SkipType) > 0 {
-			s.NotIn("type", p.SkipType...)
-		}
-		i, e := s.Clone().Count(model.Unfinished{})
-		if e != nil {
-			log.Error(e)
-			return
-		}
-		for start := 0; start < int(i); start += 50 {
-			unfins, e := model.AllUnfinished(s.Clone(), 50, start)
-			if e != nil {
-				log.Error(e)
-				return
-			}
-
-			log.Infof("Pin(%d)", len(*unfins))
-			for _, unf := range *unfins {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("Pin")
-					e := p.pinHash(unf.Hash)
-					if e != nil {
-						log.Error(e)
-						return
-					}
-					unf.Sync = true
-					p.unfinished[unf.Hash] = unf
-					e = model.AddOrUpdateUnfinished(unf)
-					if e != nil {
-						log.Error(e)
-						continue
-					}
-				}
-			}
-		}
-	case PinStatusUnfinished:
-		for hash, unf := range p.unfinished {
+		u := unfinishedList(ctx, p)
+		for {
 			select {
 			case <-ctx.Done():
 				return
-			default:
-				log.With("type", unf.Type, "hash", unf.Hash, "sharpness", unf.Sharpness, "relate", unf.Relate).Info("Pin")
-				e := p.pinHash(hash)
-				if e != nil {
-					log.Error(e)
-					return
-				}
-				p.unfinished[hash].Sync = true
-				e = model.AddOrUpdateUnfinished(p.unfinished[hash])
-				if e != nil {
-					continue
+			case uf := <-u:
+				log.With("type", uf.Type, "hash", uf.Hash, "sharpness", uf.Sharpness, "relate", uf.Relate).Info("Pin")
+				if !APIPin(p.API, uf.Hash) {
+					log.With("hash", uf.Hash).Error("not pinned")
 				}
 			}
 		}

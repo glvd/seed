@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/glvd/seed/model"
+	"github.com/go-xorm/xorm"
 )
 
 // UpdateContent ...
@@ -47,6 +48,11 @@ type update struct {
 	content    UpdateContent
 }
 
+// Push ...
+func (u *update) Push(interface{}) error {
+	return nil
+}
+
 // Update ...
 func Update(method UpdateMethod, content UpdateContent) Options {
 	update := &update{
@@ -79,7 +85,7 @@ func parseInfo(video *model.Video, unfin *model.Unfinished) {
 	}
 }
 
-func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
+func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
 	//var vs []*model.Video
 	switch content {
 	case UpdateContentAll:
@@ -88,7 +94,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 	case UpdateContentHash:
 		log.With("bangumi", video.Bangumi).Info("update hash")
 		unfins := new([]*model.Unfinished)
-		i, e := model.DB().Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"-%").FindAndCount(unfins)
+		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"-%").FindAndCount(unfins)
 		if e != nil {
 			return nil, e
 		}
@@ -135,7 +141,7 @@ func doContent(video *model.Video, content UpdateContent) (vs []*model.Video, e 
 		log.With("bangumi", video.Bangumi).Info("update info")
 		unfins := new([]*model.Unfinished)
 
-		i, e := model.DB().Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
+		i, e := engine.Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
 		if e != nil {
 			return nil, e
 		}
@@ -171,29 +177,30 @@ func (u *update) Run(context.Context) {
 	go func(vc chan<- *model.Video) {
 		switch u.method {
 		case UpdateMethodAll:
-			i, e := model.DB().Count(&model.Video{})
-			if e != nil {
-				return
-			}
-			for j := int64(0); j < i; j += 50 {
-				videos, e := model.AllVideos(nil, 50, int(j))
-				if e != nil {
-					return
-				}
-				for _, video := range *videos {
-					vs, e := doContent(video, u.content)
-					if e != nil {
-						continue
-					}
-					//u.videos[video.Bangumi] = video
-					for _, v := range vs {
-						if v == nil {
-							continue
-						}
-						vc <- v
-					}
-				}
-			}
+
+			//i, e := model.DB().Count(&model.Video{})
+			//if e != nil {
+			//	return
+			//}
+			//for j := int64(0); j < i; j += 50 {
+			//	videos, e := model.AllVideos(nil, 50, int(j))
+			//	if e != nil {
+			//		return
+			//	}
+			//	for _, video := range *videos {
+			//		vs, e := doContent(video, u.content)
+			//		if e != nil {
+			//			continue
+			//		}
+			//		//u.videos[video.Bangumi] = video
+			//		for _, v := range vs {
+			//			if v == nil {
+			//				continue
+			//			}
+			//			vc <- v
+			//		}
+			//	}
+			//}
 		case UpdateMethodUnfinished:
 			for _, unfin := range u.unfinished {
 
@@ -211,7 +218,7 @@ func (u *update) Run(context.Context) {
 						continue
 					}
 				}
-				vs, e := doContent(video, u.content)
+				vs, e := doContent(nil, video, u.content)
 				if e != nil {
 					log.With("id", unfin.ID).Error(e)
 					continue
@@ -225,7 +232,7 @@ func (u *update) Run(context.Context) {
 			}
 		case UpdateMethodVideo:
 			for _, video := range u.videos {
-				vs, e := doContent(video, u.content)
+				vs, e := doContent(nil, video, u.content)
 				if e != nil {
 					log.With("video", video.Bangumi).Error(e)
 					continue
@@ -248,7 +255,7 @@ func (u *update) Run(context.Context) {
 				goto END
 			}
 			log.With("bangumi", v.Bangumi, "m3u8_hash", v.M3U8Hash).Info("update")
-			e := model.AddOrUpdateVideo(v)
+			e := model.AddOrUpdateVideo(nil, v)
 			if e != nil {
 				log.Error(e)
 				continue

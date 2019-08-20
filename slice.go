@@ -16,8 +16,6 @@ type Slice struct {
 // Run ...
 func (s *Slice) Run(context.Context) {
 
-	var sa *cmd.SplitArgs
-
 }
 
 // BeforeRun ...

@@ -140,7 +140,7 @@ func NewPin(args ...PinArgs) Options {
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 	cPin := make(chan iface.Pin)
-	p.Seed.API.PushRun(func(api *API, api2 *httpapi.HttpApi) (e error) {
+	e := p.Seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
@@ -157,6 +157,9 @@ func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 
 		return nil
 	})
+	if e != nil {
+		return nil
+	}
 	return cPin
 }
 
@@ -165,7 +168,7 @@ func unfinishedList(ctx context.Context, p *Pin) <-chan *model.Unfinished {
 	defer func() {
 		u <- nil
 	}()
-	p.Seed.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+	p.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		if len(p.SkipType) > 0 {
 			session = session.NotIn("type", p.SkipType...)
@@ -194,7 +197,7 @@ func videoList(ctx context.Context, p *Pin) chan<- *model.Video {
 		video <- nil
 	}()
 
-	p.Seed.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
+	p.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		i, e := session.Clone().Count(model.Video{})
 		if e != nil {
@@ -234,8 +237,8 @@ func (p *Pin) Run(ctx context.Context) {
 				return
 			case uf := <-u:
 				log.With("type", uf.Type, "hash", uf.Hash, "sharpness", uf.Sharpness, "relate", uf.Relate).Info("Pin")
-				if !APIPin(p.Seed.API, uf.Hash) {
-					log.With("hash", uf.Hash).Error("not pinned")
+				if e := APIPin(p.Seed, uf.Hash); e != nil {
+					log.With("hash", uf.Hash).Error(e, " not pinned")
 				}
 			}
 		}

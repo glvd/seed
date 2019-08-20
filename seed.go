@@ -247,7 +247,7 @@ func APIOption(s string) Options {
 }
 
 // processOption ...
-func processOption(process *process) Options {
+func processOption(process *Process) Options {
 	return func(seed *Seed) {
 		seed.thread[StepperProcess] = process
 	}

@@ -36,4 +36,8 @@ func TestInformation2(t *testing.T) {
 	s.Start()
 	fmt.Println("waiting end")
 	s.Wait()
+	fmt.Println("waiting db end")
+	sdb.Done()
+	fmt.Println("db end")
+
 }

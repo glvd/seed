@@ -16,21 +16,21 @@ type Database struct {
 	cb        chan DatabaseCaller
 }
 
-var _ DatabaseCaller = &call{}
+var _ DatabaseCaller = &databaseCall{}
 
-type call struct {
+type databaseCall struct {
 	v  interface{}
 	cb DatabaseCallbackFunc
 }
 
 // Call ...
-func (c *call) Call(database *Database, eng *xorm.Engine) (e error) {
+func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
 	return c.cb(database, eng, c.v)
 }
 
 // DatabaseCallback ...
 func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) DatabaseCaller {
-	return &call{
+	return &databaseCall{
 		v:  v,
 		cb: cb,
 	}
@@ -42,6 +42,7 @@ func (db *Database) Push(v interface{}) error {
 		go func() {
 			db.cb <- nil
 		}()
+		return nil
 	}
 	return db.pushDatabaseCallback(v)
 }
@@ -61,6 +62,7 @@ func (db *Database) Run(ctx context.Context) {
 			return
 		case v := <-db.cb:
 			if v == nil {
+				log.Info("db end")
 				return
 			}
 			e = v.Call(db, db.eng)
@@ -83,7 +85,7 @@ func (db *Database) AfterRun(seed Seeder) {
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
-	db.cb = make(chan DatabaseCaller, 10)
+	db.cb = make(chan DatabaseCaller)
 
 	for _, argFn := range args {
 		argFn(db)

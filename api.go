@@ -17,6 +17,17 @@ type API struct {
 	cb  chan APICaller
 }
 
+// Option ...
+func (api *API) Option(s Seeder) {
+	apiOption(api)(s)
+}
+
+func apiOption(api *API) Options {
+	return func(seeder Seeder) {
+		seeder.SetThread(StepperAPI, api)
+	}
+}
+
 // Push ...
 func (api *API) Push(v interface{}) error {
 	return api.pushAPICallback(v)

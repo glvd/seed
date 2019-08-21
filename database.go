@@ -96,6 +96,7 @@ func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
 		go func(database *Database, dc DatabaseCaller) {
 			database.cb <- dc
 		}(db, v)
+		return nil
 	}
 	return xerrors.New("not database callback")
 }

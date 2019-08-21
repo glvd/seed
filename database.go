@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -19,9 +20,9 @@ type Database struct {
 
 // Done ...
 func (db *Database) Done() <-chan bool {
-	go func() {
-		db.cb <- nil
-	}()
+	//go func() {
+	//	db.cb <- nil
+	//}()
 	return db.done
 }
 
@@ -73,8 +74,12 @@ DatabaseEnd:
 			if e != nil {
 				log.Error(e)
 			}
+		case <-time.After(3 * time.Second):
+			log.Info("time out")
+			break DatabaseEnd
 		}
 	}
+	close(db.cb)
 	db.done <- true
 }
 
@@ -90,7 +95,7 @@ func (db *Database) AfterRun(seed Seeder) {
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
-	db.cb = make(chan DatabaseCaller)
+	db.cb = make(chan DatabaseCaller, 10)
 	db.done = make(chan bool)
 	for _, argFn := range args {
 		argFn(db)
@@ -102,9 +107,9 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 // PushCallback ...
 func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
 	if v, b := cb.(DatabaseCaller); b {
-		go func(database *Database, dc DatabaseCaller) {
-			database.cb <- dc
-		}(db, v)
+		//go func(database *Database, dc DatabaseCaller) {
+		db.cb <- v
+		//}(db, v)
 		return nil
 	}
 	return xerrors.New("not database callback")

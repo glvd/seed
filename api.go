@@ -63,7 +63,7 @@ func NewAPI(path string) *API {
 	if e != nil {
 		panic(e)
 	}
-	a.cb = make(chan APICaller)
+	a.cb = make(chan APICaller, 10)
 	a.done = make(chan bool)
 	return a
 }
@@ -74,9 +74,9 @@ type CallbackFunc func(*API, *httpapi.HttpApi) error
 // PushCallback ...
 func (api *API) pushAPICallback(cb interface{}) (e error) {
 	if v, b := cb.(APICaller); b {
-		go func(c APICaller) {
-			api.cb <- c
-		}(v)
+		//go func(c APICaller) {
+		api.cb <- v
+		//}(v)
 		return
 	}
 	return xerrors.New("not api callback")
@@ -102,6 +102,7 @@ APIEnd:
 			}
 		}
 	}
+	close(api.cb)
 	api.done <- true
 }
 

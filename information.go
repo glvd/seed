@@ -257,12 +257,18 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							thumb, e := addThumbHash(info.Seeder, source, "hash")
+							e := info.PushTo(StepperAPI, APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+								source := v.(*VideoSource)
+								_, e = addThumbHash(info.Seeder, source, source.Thumb)
+								if e != nil {
+									failedSkip.Store(true)
+									return e
+								}
+								return nil
+							}))
 							if e != nil {
 								log.Error(e)
-								failedSkip.Store(true)
-							} else {
-								v.ThumbHash = thumb.Hash
+								continue
 							}
 						}
 					}

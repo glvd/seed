@@ -1,6 +1,7 @@
 package seed_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/glvd/seed"
@@ -33,6 +34,6 @@ func TestInformation2(t *testing.T) {
 	s := seed.NewSeed(info, sdb, api)
 
 	s.Start()
-
+	fmt.Println("waiting end")
 	s.Wait()
 }

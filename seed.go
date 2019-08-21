@@ -66,7 +66,7 @@ func (s *seed) SetThread(stepper Stepper, threader Threader) {
 
 // SetBaseThread ...
 func (s *seed) SetBaseThread(stepper Stepper, threader BaseThreader) {
-	s.base[stepper] = nil
+	s.base[stepper] = threader
 	s.thread[stepper] = threader
 }
 
@@ -177,6 +177,7 @@ func (s *seed) Start() {
 				t.Run(s.ctx)
 				t.AfterRun(s)
 			}(s.thread[i], s)
+			continue
 		}
 		s.wg.Add(1)
 		go func(t Threader, s *seed) {
@@ -190,6 +191,8 @@ func (s *seed) Start() {
 // Wait ...
 func (s *seed) Wait() {
 	s.wg.Wait()
+
+	log.Info("waiting base")
 	s.Done()
 }
 
@@ -201,6 +204,7 @@ func defaultSeed() *seed {
 		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
 		thread:     make(map[Stepper]Threader, StepperMax),
+		base:       make(map[Stepper]Base, StepperMax),
 		ignores:    make(map[string][]byte),
 	}
 }

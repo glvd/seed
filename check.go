@@ -142,7 +142,7 @@ func (c *Check) Run(ctx context.Context) {
 }
 
 // BeforeRun ...
-func (c *Check) BeforeRun(seed *seed) {
+func (c *Check) BeforeRun(seed Seeder) {
 	c.myID = APIPeerID(seed)
 	if c.Type == "" {
 		c.Type = "recursive"
@@ -150,7 +150,7 @@ func (c *Check) BeforeRun(seed *seed) {
 }
 
 // AfterRun ...
-func (c *Check) AfterRun(seed *seed) {
+func (c *Check) AfterRun(seed Seeder) {
 
 }
 
@@ -198,7 +198,7 @@ func NewCheck(args ...CheckArgs) *Check {
 }
 
 func checkOption(c *Check) Options {
-	return func(seed *seed) {
-		seed.thread[StepperCheck] = c
+	return func(seed Seeder) {
+		seed.SetThread(StepperCheck, c)
 	}
 }

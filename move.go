@@ -12,6 +12,11 @@ type Move struct {
 	Moves map[string]string
 }
 
+// Register ...
+func (m *Move) Register(ops ...Optioner) {
+	panic("implement me")
+}
+
 // Push ...
 func (m *Move) Push(interface{}) error {
 	return nil

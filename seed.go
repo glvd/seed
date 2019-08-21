@@ -74,7 +74,7 @@ func (s *seed) PushTo(stepper Stepper, v interface{}) (e error) {
 	if val, b := s.thread[stepper]; b {
 		return val.Push(v)
 	}
-	return xerrors.Errorf("thread(%d) is not exist")
+	return xerrors.Errorf("thread(%s) is not exist", stepper)
 }
 
 // Args ...

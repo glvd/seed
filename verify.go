@@ -13,35 +13,6 @@ type Verify struct {
 	path string
 }
 
-// GetFiles ...
-func GetFiles(ws string) (files []string) {
-	info, e := os.Stat(ws)
-	if e != nil {
-		return nil
-	}
-	if info.IsDir() {
-		file, e := os.Open(ws)
-		if e != nil {
-			return nil
-		}
-		defer file.Close()
-		names, e := file.Readdirnames(-1)
-		if e != nil {
-			return nil
-		}
-		var fullPath string
-		for _, name := range names {
-			fullPath = filepath.Join(ws, name)
-			tmp := GetFiles(fullPath)
-			if tmp != nil {
-				files = append(files, tmp...)
-			}
-		}
-		return files
-	}
-	return append(files, ws)
-}
-
 // NewVerify ...
 func NewVerify(path string) *Verify {
 	return &Verify{

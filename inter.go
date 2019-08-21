@@ -12,6 +12,7 @@ type Seeder interface {
 	Wait()
 	Stop()
 	PushTo(stepper Stepper, v interface{}) error
+	Register(ops ...Optioner)
 	Err() error
 }
 
@@ -86,7 +87,6 @@ type Threader interface {
 	Pusher
 	BeforeRun(seed *Seed)
 	AfterRun(seed *Seed)
-	Register(ops ...Optioner)
 }
 
 // Runnable ...

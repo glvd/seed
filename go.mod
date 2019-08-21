@@ -12,6 +12,7 @@ require (
 	github.com/godcong/go-trait v0.0.0-20190816072228-f216e906756e
 	github.com/google/uuid v1.1.1
 	github.com/ipfs/go-cid v0.0.2
+	github.com/ipfs/go-ipfs-files v0.0.3
 	github.com/ipfs/go-ipfs-http-client v0.0.3
 	github.com/ipfs/interface-go-ipfs-core v0.1.0
 	github.com/json-iterator/go v1.1.6

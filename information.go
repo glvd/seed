@@ -11,6 +11,8 @@ import (
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
+	files "github.com/ipfs/go-ipfs-files"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
@@ -207,7 +209,6 @@ func (info *Information) Run(ctx context.Context) {
 		vs = filterProcList(vs, info.ProcList)
 		failedSkip := atomic.NewBool(false)
 		maxLimit := len(vs)
-		m := make(map[string]string)
 		for i := info.Start; i < maxLimit; i++ {
 			select {
 			case <-ctx.Done():
@@ -224,14 +225,29 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								poster, e := addPosterHash(info.Seeder, source, "hash")
+								e := info.PushTo(StepperAPI, APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+									source := v.(*VideoSource)
+									file, e := os.Open(source.PosterPath)
+									if e != nil {
+										return e
+									}
+									resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
+									if e != nil {
+										return e
+									}
+									_, e = addPosterHash(info.Seeder, source, resolved.String())
+									if e != nil {
+										failedSkip.Store(true)
+										return e
+									}
+
+									return nil
+								}))
 								if e != nil {
 									log.Error(e)
-									failedSkip.Store(true)
-								} else {
-									v.PosterHash = poster.Hash
-									m[source.PosterPath] = poster.Hash
+									continue
 								}
+
 							}
 						}
 					}
@@ -247,7 +263,6 @@ func (info *Information) Run(ctx context.Context) {
 								failedSkip.Store(true)
 							} else {
 								v.ThumbHash = thumb.Hash
-								m[source.Thumb] = thumb.Hash
 							}
 						}
 					}

@@ -22,12 +22,15 @@ func TestInformation(t *testing.T) {
 // TestInformation2 ...
 func TestInformation2(t *testing.T) {
 	info := seed.NewInformation()
-	info.ResourcePath = "D:\\videoall\\images"
+	info.ResourcePath = "D:\\videoall"
 	info.Path = "D:\\videoall\\video4.json"
 	info.InfoType = seed.InfoTypeBSON
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
-	s := seed.NewSeed(info, sdb)
+
+	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
+
+	s := seed.NewSeed(info, sdb, api)
 
 	s.Start()
 

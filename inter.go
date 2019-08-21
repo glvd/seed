@@ -86,6 +86,7 @@ type Threader interface {
 	Pusher
 	BeforeRun(seed *Seed)
 	AfterRun(seed *Seed)
+	Register(ops ...Optioner)
 }
 
 // Runnable ...

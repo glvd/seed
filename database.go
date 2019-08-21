@@ -38,6 +38,11 @@ func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) DatabaseCaller {
 
 // Push ...
 func (db *Database) Push(v interface{}) error {
+	if v == nil {
+		go func() {
+			db.cb <- nil
+		}()
+	}
 	return db.pushDatabaseCallback(v)
 }
 
@@ -55,6 +60,9 @@ func (db *Database) Run(ctx context.Context) {
 			log.Info("context end")
 			return
 		case v := <-db.cb:
+			if v == nil {
+				return
+			}
 			e = v.Call(db, db.eng)
 			if e != nil {
 				log.Error(e)

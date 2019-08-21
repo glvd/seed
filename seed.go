@@ -205,29 +205,6 @@ func ShellOption(s string) Options {
 	}
 }
 
-// APIOption ...
-func APIOption(s string) Options {
-	return func(seed *seed) {
-		seed.API = NewAPI(s)
-	}
-}
-
-// pinOption ...
-func pinOption(pin *Pin) Options {
-	return func(seed *seed) {
-		seed.thread[StepperPin] = pin
-	}
-}
-
-// IgnoreOption ...
-func IgnoreOption(ignores ...string) Options {
-	return func(seed *seed) {
-		for _, i := range ignores {
-			seed.ignores[i] = nil
-		}
-	}
-}
-
 // ThreadOption ...
 func ThreadOption(t int) Options {
 	return func(seed *seed) {

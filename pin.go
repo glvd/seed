@@ -29,7 +29,7 @@ const (
 
 // Pin ...
 type Pin struct {
-	Seed       *seed
+	Seeder
 	PinType    PinType
 	CheckType  CheckType
 	SkipType   []interface{}
@@ -51,12 +51,12 @@ func (p *Pin) Push(interface{}) error {
 }
 
 // BeforeRun ...
-func (p *Pin) BeforeRun(seed *seed) {
-	p.Seed = seed
+func (p *Pin) BeforeRun(s Seeder) {
+	p.Seeder = s
 }
 
 // AfterRun ...
-func (p *Pin) AfterRun(seed *seed) {
+func (p *Pin) AfterRun(s Seeder) {
 	return
 }
 
@@ -145,7 +145,7 @@ func NewPin(args ...PinArgs) Options {
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 	cPin := make(chan iface.Pin)
-	e := p.Seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
+	e := p.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
@@ -173,7 +173,7 @@ func unfinishedList(ctx context.Context, p *Pin) <-chan *model.Unfinished {
 	defer func() {
 		u <- nil
 	}()
-	p.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+	p.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		if len(p.SkipType) > 0 {
 			session = session.NotIn("type", p.SkipType...)
@@ -202,7 +202,7 @@ func videoList(ctx context.Context, p *Pin) chan<- *model.Video {
 		video <- nil
 	}()
 
-	p.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+	p.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		i, e := session.Clone().Count(model.Video{})
 		if e != nil {
@@ -242,7 +242,7 @@ func (p *Pin) Run(ctx context.Context) {
 				return
 			case uf := <-u:
 				log.With("type", uf.Type, "hash", uf.Hash, "sharpness", uf.Sharpness, "relate", uf.Relate).Info("Pin")
-				if e := APIPin(p.Seed, uf.Hash); e != nil {
+				if e := APIPin(p.Seeder, uf.Hash); e != nil {
 					log.With("hash", uf.Hash).Error(e, " not pinned")
 				}
 			}
@@ -368,4 +368,11 @@ func (p *Pin) pinHash(hash string) (e error) {
 		log.With("hash", hash).Error(e)
 	}
 	return
+}
+
+// pinOption ...
+func pinOption(pin *Pin) Options {
+	return func(seed Seeder) {
+		seed.SetThread(StepperPin, pin)
+	}
 }

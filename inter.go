@@ -2,6 +2,8 @@ package seed
 
 import (
 	"context"
+
+	"github.com/go-xorm/xorm"
 )
 
 // Seeder ...
@@ -58,12 +60,28 @@ const (
 	StepperMax
 )
 
+// DatabaseCallbackFunc ...
+type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine, v interface{}) (e error)
+
+// DatabaseCaller ...
+type DatabaseCaller interface {
+	Call(database *Database, eng *xorm.Engine) (e error)
+}
+
 // Threader ...
 type Threader interface {
 	Runnable
 	Pusher
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
+}
+
+// Async ...
+type Async interface {
+	NeedWait() bool
+	IsRunning() bool
+	Rerun()
+	Stop()
 }
 
 // Runnable ...

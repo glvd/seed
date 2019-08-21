@@ -143,14 +143,13 @@ func defaultSeed() *Seed {
 		Moves:      make(map[string]string),
 		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
-		threads:    3,
 		thread:     make(map[Stepper]Threader, StepperMax),
 		ignores:    make(map[string][]byte),
 	}
 }
 
 // NewSeed ...
-func NewSeed(ops ...Optioner) *Seed {
+func NewSeed(ops ...Optioner) Seeder {
 	seed := defaultSeed()
 	seed.ctx, seed.cancel = context.WithCancel(context.Background())
 	seed.Register(ops...)

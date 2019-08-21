@@ -242,7 +242,7 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							thumb, e := addThumbHash(info.seed, source, "hash")
+							thumb, e := addThumbHash(info.Seeder, source, "hash")
 							if e != nil {
 								log.Error(e)
 								failedSkip.Store(true)
@@ -265,7 +265,7 @@ func (info *Information) Run(ctx context.Context) {
 	return
 }
 
-func addThumbHash(seed *seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
@@ -283,7 +283,7 @@ func addThumbHash(seed *seed, source *VideoSource, hash string) (unf *model.Unfi
 	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(seed *seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addPosterHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi

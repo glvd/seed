@@ -175,6 +175,6 @@ func DatabaseShowExecTimeArg() DatabaseArgs {
 // databaseOption ...
 func databaseOption(db *Database) Options {
 	return func(seed Seeder) {
-		seed.SetThread(StepperDatabase, db)
+		seed.SetBaseThread(StepperDatabase, db)
 	}
 }

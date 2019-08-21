@@ -185,3 +185,10 @@ func (a *apiPin) Done() {
 func (a *apiPin) Failed() {
 	a.done <- false
 }
+
+// APIOption ...
+func APIOption(s string) Options {
+	return func(seed Seeder) {
+		seed.SetThread(StepperAPI, NewAPI(s))
+	}
+}

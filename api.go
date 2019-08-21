@@ -30,6 +30,12 @@ func apiOption(api *API) Options {
 
 // Push ...
 func (api *API) Push(v interface{}) error {
+	if v == nil {
+		go func() {
+			api.cb <- nil
+		}()
+		return nil
+	}
 	return api.pushAPICallback(v)
 }
 
@@ -66,6 +72,7 @@ func (api *API) pushAPICallback(cb interface{}) (e error) {
 		go func(c APICaller) {
 			api.cb <- c
 		}(v)
+		return
 	}
 	return xerrors.New("not api callback")
 }
@@ -80,6 +87,7 @@ func (api *API) Run(ctx context.Context) {
 			return
 		case c := <-api.cb:
 			if c == nil {
+				log.Info("api end")
 				return
 			}
 			e = c.Call(api, api.api)

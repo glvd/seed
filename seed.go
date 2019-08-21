@@ -10,6 +10,7 @@ import (
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
+	"golang.org/x/xerrors"
 )
 
 // Options ...
@@ -70,7 +71,10 @@ func (seed *seed) HasThread(stepper Stepper) bool {
 
 // PushTo ...
 func (seed *seed) PushTo(stepper Stepper, v interface{}) (e error) {
-	return seed.thread[stepper].Push(v)
+	if v, b := seed.thread[stepper]; b {
+		return v.Push(v)
+	}
+	return xerrors.Errorf("thread(%d) is not exist")
 }
 
 // Args ...
@@ -132,19 +136,17 @@ func (seed *seed) Err() error {
 
 // Start ...
 func (seed *seed) Start() {
-	go func() {
-		log.Info("Seed starting")
-		for i := range seed.thread {
-			if seed.thread[i] == nil {
-				continue
-			}
-			seed.wg.Add(1)
-			go func(t Threader, group *sync.WaitGroup) {
-				defer group.Done()
-				t.Run(seed.ctx)
-			}(seed.thread[i], seed.wg)
+	log.Info("Seed starting")
+	for i := range seed.thread {
+		if seed.thread[i] == nil {
+			continue
 		}
-	}()
+		seed.wg.Add(1)
+		go func(t Threader, group *sync.WaitGroup) {
+			defer group.Done()
+			t.Run(seed.ctx)
+		}(seed.thread[i], seed.wg)
+	}
 }
 
 // Wait ...
@@ -176,21 +178,6 @@ func NewSeed(ops ...Optioner) Seeder {
 func (seed *seed) Register(ops ...Optioner) {
 	for _, op := range ops {
 		op.Option(seed)
-	}
-}
-
-// UnfinishedOption ...
-func UnfinishedOption(unfins ...*model.Unfinished) Options {
-	return func(seed Seeder) {
-
-	}
-}
-
-// ShellOption ...
-func ShellOption(s string) Options {
-	return func(seed Seeder) {
-		log.Info("ipfs: ", s)
-		//seed.Shell = shell.NewShell(s)
 	}
 }
 

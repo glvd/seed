@@ -10,8 +10,9 @@ import (
 func TestInformation(t *testing.T) {
 	info := seed.NewInformation()
 	info.ResourcePath = "D:\\videoall\\images"
-	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
-	s := seed.NewSeed(sdb, info)
+	info.Path = "D:\\videoall\\video3.json"
+	//sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
+	s := seed.NewSeed(info)
 	s.Start()
 
 	s.Wait()

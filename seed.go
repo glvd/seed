@@ -46,8 +46,8 @@ type seed struct {
 	preAdd      bool
 	noSlice     bool
 	upScale     bool
-	threads     int
 	thread      map[Stepper]Threader
+	base        []Threader
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool

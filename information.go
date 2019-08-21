@@ -259,7 +259,15 @@ func (info *Information) Run(ctx context.Context) {
 						} else {
 							e := info.PushTo(StepperAPI, APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 								source := v.(*VideoSource)
-								_, e = addThumbHash(info.Seeder, source, source.Thumb)
+								file, e := os.Open(source.PosterPath)
+								if e != nil {
+									return e
+								}
+								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
+								if e != nil {
+									return e
+								}
+								_, e = addThumbHash(info.Seeder, source, resolved.String())
 								if e != nil {
 									failedSkip.Store(true)
 									return e

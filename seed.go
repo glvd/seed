@@ -181,19 +181,8 @@ func (seed *seed) Register(ops ...Optioner) {
 
 // UnfinishedOption ...
 func UnfinishedOption(unfins ...*model.Unfinished) Options {
-	return func(seed *seed) {
-		if seed.Unfinished == nil {
-			seed.Unfinished = make(map[string]*model.Unfinished)
-		}
-		for _, u := range unfins {
-			if u == nil {
-				continue
-			}
+	return func(seed Seeder) {
 
-			if u.Hash != "" {
-				seed.Unfinished[u.Hash] = u
-			}
-		}
 	}
 }
 

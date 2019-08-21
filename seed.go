@@ -54,104 +54,107 @@ type seed struct {
 }
 
 // GetThread ...
-func (seed *seed) GetThread(stepper Stepper) Threader {
-	return seed.thread[stepper]
+func (s *seed) GetThread(stepper Stepper) Threader {
+	return s.thread[stepper]
 }
 
 // SetThread ...
-func (seed *seed) SetThread(stepper Stepper, threader Threader) {
-	seed.thread[stepper] = threader
+func (s *seed) SetThread(stepper Stepper, threader Threader) {
+	s.thread[stepper] = threader
 }
 
 // HasThread ...
-func (seed *seed) HasThread(stepper Stepper) bool {
-	_, b := seed.thread[stepper]
+func (s *seed) HasThread(stepper Stepper) bool {
+	_, b := s.thread[stepper]
 	return b
 }
 
 // PushTo ...
-func (seed *seed) PushTo(stepper Stepper, v interface{}) (e error) {
-	if val, b := seed.thread[stepper]; b {
+func (s *seed) PushTo(stepper Stepper, v interface{}) (e error) {
+	if val, b := s.thread[stepper]; b {
 		return val.Push(v)
 	}
 	return xerrors.Errorf("thread(%d) is not exist")
 }
 
 // Args ...
-func (seed *seed) Args() map[string]interface{} {
-	return seed.args
+func (s *seed) Args() map[string]interface{} {
+	return s.args
 }
 
 // SetArgs ...
-func (seed *seed) SetArgs(args map[string]interface{}) {
-	seed.args = args
+func (s *seed) SetArgs(args map[string]interface{}) {
+	s.args = args
 }
 
 // AddArg ...
-func (seed *seed) AddArg(key string, value interface{}) {
-	seed.args[key] = value
+func (s *seed) AddArg(key string, value interface{}) {
+	s.args[key] = value
 }
 
 // GetArg ...
-func (seed *seed) GetArg(key string) (v interface{}, b bool) {
-	v, b = seed.args[key]
+func (s *seed) GetArg(key string) (v interface{}, b bool) {
+	v, b = s.args[key]
 	return
 }
 
 // GetStringArg ...
-func (seed *seed) GetStringArg(key string) (v string) {
-	if arg, b := seed.GetArg(key); b {
+func (s *seed) GetStringArg(key string) (v string) {
+	if arg, b := s.GetArg(key); b {
 		v, _ = arg.(string)
 	}
 	return
 }
 
 // GetBoolArg ...
-func (seed *seed) GetBoolArg(key string) (v bool) {
-	if arg, b := seed.GetArg(key); b {
+func (s *seed) GetBoolArg(key string) (v bool) {
+	if arg, b := s.GetArg(key); b {
 		v, _ = arg.(bool)
 	}
 	return
 }
 
 // GetNumberArg ...
-func (seed *seed) GetNumberArg(key string) (v int64) {
-	if arg, b := seed.GetArg(key); b {
+func (s *seed) GetNumberArg(key string) (v int64) {
+	if arg, b := s.GetArg(key); b {
 		v, _ = arg.(int64)
 	}
 	return
 }
 
 // Stop ...
-func (seed *seed) Stop() {
-	if seed.cancel != nil {
-		seed.cancel()
+func (s *seed) Stop() {
+	if s.cancel != nil {
+		s.cancel()
 	}
 }
 
 // Err ...
-func (seed *seed) Err() error {
-	return seed.err
+func (s *seed) Err() error {
+	return s.err
 }
 
 // Start ...
-func (seed *seed) Start() {
+func (s *seed) Start() {
 	log.Info("Seed starting")
-	for i := range seed.thread {
-		if seed.thread[i] == nil {
+	for i := range s.thread {
+		if s.thread[i] == nil {
 			continue
 		}
-		seed.wg.Add(1)
-		go func(t Threader, group *sync.WaitGroup) {
-			defer group.Done()
-			t.Run(seed.ctx)
-		}(seed.thread[i], seed.wg)
+		s.thread[i].BeforeRun(s)
+
+		s.wg.Add(1)
+		go func(t Threader, s *seed) {
+			defer s.wg.Done()
+			t.Run(s.ctx)
+			t.AfterRun(s)
+		}(s.thread[i], s)
 	}
 }
 
 // Wait ...
-func (seed *seed) Wait() {
-	seed.wg.Wait()
+func (s *seed) Wait() {
+	s.wg.Wait()
 }
 
 func defaultSeed() *seed {
@@ -175,9 +178,9 @@ func NewSeed(ops ...Optioner) Seeder {
 }
 
 // Register ...
-func (seed *seed) Register(ops ...Optioner) {
+func (s *seed) Register(ops ...Optioner) {
 	for _, op := range ops {
-		op.Option(seed)
+		op.Option(s)
 	}
 }
 

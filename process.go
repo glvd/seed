@@ -42,23 +42,12 @@ func (p *Process) Push(interface{}) error {
 }
 
 // BeforeRun ...
-func (p *Process) BeforeRun(seed *seed) {
-	p.unfinished = seed.Unfinished
-	p.workspace = seed.Workspace
-	p.shell = seed.Shell
-	p.moves = seed.Moves
-	p.preAdd = seed.preAdd
-	p.scale = seed.Scale
-	p.skipConvert = seed.skipConvert
-	p.ignores = seed.ignores
-	p.skipExist = seed.skipExist
+func (p *Process) BeforeRun(seed Seeder) {
 
 }
 
 // AfterRun ...
-func (p *Process) AfterRun(seed *seed) {
-	seed.Unfinished = p.unfinished
-	seed.Moves = p.moves
+func (p *Process) AfterRun(seed Seeder) {
 }
 
 // NewProcess ...

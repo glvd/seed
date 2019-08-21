@@ -2,7 +2,6 @@ package seed
 
 import (
 	"context"
-	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -20,9 +19,9 @@ type Database struct {
 
 // Done ...
 func (db *Database) Done() <-chan bool {
-	//go func() {
-	//	db.cb <- nil
-	//}()
+	go func() {
+		db.cb <- nil
+	}()
 	return db.done
 }
 
@@ -74,9 +73,9 @@ DatabaseEnd:
 			if e != nil {
 				log.Error(e)
 			}
-		case <-time.After(3 * time.Second):
-			log.Info("time out")
-			break DatabaseEnd
+			//case <-time.After(3 * time.Second):
+			//	log.Info("time out")
+			//	break DatabaseEnd
 		}
 	}
 	close(db.cb)
@@ -185,6 +184,6 @@ func DatabaseShowExecTimeArg() DatabaseArgs {
 // databaseOption ...
 func databaseOption(db *Database) Options {
 	return func(seed Seeder) {
-		seed.SetBaseThread(StepperDatabase, db)
+		seed.SetNormalThread(StepperDatabase, db)
 	}
 }

@@ -30,7 +30,6 @@ type seed struct {
 	Shell       *shell.Shell
 	API         *API
 	Move        *Move
-	Database    *Database
 	Workspace   string
 	Scale       int64
 	NoCheck     bool
@@ -46,12 +45,31 @@ type seed struct {
 	skipConvert bool
 	preAdd      bool
 	noSlice     bool
-	upScale     bool
+	Database    Threader
 	thread      map[Stepper]Threader
 	base        map[Stepper]Base
-	ignores     map[string][]byte
-	err         error
-	skipExist   bool
+	normal      map[Stepper][]byte
+}
+
+func defaultSeed() *seed {
+	return &seed{
+		Unfinished: make(map[string]*model.Unfinished),
+		Videos:     make(map[string]*model.Video),
+		Moves:      make(map[string]string),
+		MaxLimit:   math.MaxUint16,
+		wg:         &sync.WaitGroup{},
+		thread:     make(map[Stepper]Threader, StepperMax),
+		base:       make(map[Stepper]Base, StepperMax),
+		normal:     make(map[Stepper][]byte, StepperMax),
+	}
+}
+
+// NewSeed ...
+func NewSeed(ops ...Optioner) Seeder {
+	seed := defaultSeed()
+	seed.ctx, seed.cancel = context.WithCancel(context.Background())
+	seed.Register(ops...)
+	return seed
 }
 
 // GetThread ...
@@ -73,6 +91,18 @@ func (s *seed) SetBaseThread(stepper Stepper, threader BaseThreader) {
 // IsBase ...
 func (s *seed) IsBase(stepper Stepper) bool {
 	_, b := s.base[stepper]
+	return b
+}
+
+// SetNormalThread ...
+func (s *seed) SetNormalThread(stepper Stepper, threader Threader) {
+	s.normal[stepper] = nil
+	s.thread[stepper] = threader
+}
+
+// IsNormal ...
+func (s *seed) IsNormal(stepper Stepper) bool {
+	_, b := s.normal[stepper]
 	return b
 }
 
@@ -139,7 +169,7 @@ func (s *seed) GetNumberArg(key string) (v int64) {
 func (s *seed) Done() {
 	count := atomic.NewInt32(0)
 	for i := range s.base {
-		go func(base Base) {
+		func(base Base) {
 			<-base.Done()
 			count.Add(1)
 		}(s.base[i])
@@ -159,11 +189,6 @@ func (s *seed) Stop() {
 	}
 }
 
-// Err ...
-func (s *seed) Err() error {
-	return s.err
-}
-
 // Start ...
 func (s *seed) Start() {
 	log.Info("Seed starting")
@@ -172,19 +197,21 @@ func (s *seed) Start() {
 			continue
 		}
 		s.thread[i].BeforeRun(s)
-		if s.IsBase(i) {
+		if s.IsNormal(i) || s.IsBase(i) {
 			go func(t Threader, s *seed) {
 				t.Run(s.ctx)
 				t.AfterRun(s)
 			}(s.thread[i], s)
 			continue
+		} else {
+			s.wg.Add(1)
+			go func(t Threader, s *seed) {
+				defer s.wg.Done()
+				t.Run(s.ctx)
+				t.AfterRun(s)
+
+			}(s.thread[i], s)
 		}
-		s.wg.Add(1)
-		go func(t Threader, s *seed) {
-			defer s.wg.Done()
-			t.Run(s.ctx)
-			t.AfterRun(s)
-		}(s.thread[i], s)
 	}
 }
 
@@ -193,28 +220,8 @@ func (s *seed) Wait() {
 	s.wg.Wait()
 
 	log.Info("waiting base")
+
 	s.Done()
-}
-
-func defaultSeed() *seed {
-	return &seed{
-		Unfinished: make(map[string]*model.Unfinished),
-		Videos:     make(map[string]*model.Video),
-		Moves:      make(map[string]string),
-		MaxLimit:   math.MaxUint16,
-		wg:         &sync.WaitGroup{},
-		thread:     make(map[Stepper]Threader, StepperMax),
-		base:       make(map[Stepper]Base, StepperMax),
-		ignores:    make(map[string][]byte),
-	}
-}
-
-// NewSeed ...
-func NewSeed(ops ...Optioner) Seeder {
-	seed := defaultSeed()
-	seed.ctx, seed.cancel = context.WithCancel(context.Background())
-	seed.Register(ops...)
-	return seed
 }
 
 // Register ...

@@ -252,8 +252,8 @@ func (info *Information) Run(ctx context.Context) {
 						}
 					}
 				}
-				e := info.PushTo(StepperDatabase, DatabaseCallback(v, func(database *Database, eng *xorm.Engine) (e error) {
-					return model.AddOrUpdateVideo(eng.NewSession(), v)
+				e := info.PushTo(StepperDatabase, DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+					return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
 				}))
 				if e != nil {
 					log.With("bangumi", v.Bangumi).Error(e)
@@ -271,9 +271,9 @@ func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unf
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		unfinThumb.Hash = hash
-		e = seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
-			return model.AddOrUpdateUnfinished(eng.NewSession(), unfinThumb)
-		})
+		e = seed.PushTo(StepperDatabase, DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+		}))
 		if e != nil {
 			return nil, e
 		}
@@ -290,9 +290,9 @@ func addPosterHash(seed Seeder, source *VideoSource, hash string) (unf *model.Un
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = hash
-		e = seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
-			return model.AddOrUpdateUnfinished(eng.NewSession(), unfinPoster)
-		})
+		e = seed.PushTo(StepperDatabase, DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+		}))
 		if e != nil {
 			return nil, e
 		}

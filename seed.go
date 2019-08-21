@@ -10,6 +10,7 @@ import (
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
+	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
@@ -47,7 +48,7 @@ type seed struct {
 	noSlice     bool
 	upScale     bool
 	thread      map[Stepper]Threader
-	base        map[Stepper][]byte
+	base        map[Stepper]Base
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool
@@ -64,7 +65,7 @@ func (s *seed) SetThread(stepper Stepper, threader Threader) {
 }
 
 // SetBaseThread ...
-func (s *seed) SetBaseThread(stepper Stepper, threader Threader) {
+func (s *seed) SetBaseThread(stepper Stepper, threader BaseThreader) {
 	s.base[stepper] = nil
 	s.thread[stepper] = threader
 }
@@ -136,6 +137,18 @@ func (s *seed) GetNumberArg(key string) (v int64) {
 
 // Done ...
 func (s *seed) Done() {
+	count := atomic.NewInt32(0)
+	for i := range s.base {
+		go func(base Base) {
+			<-base.Done()
+			count.Add(1)
+		}(s.base[i])
+	}
+	for {
+		if count.Load() == int32(len(s.base)) {
+			return
+		}
+	}
 
 }
 
@@ -159,7 +172,12 @@ func (s *seed) Start() {
 			continue
 		}
 		s.thread[i].BeforeRun(s)
-
+		if s.IsBase(i) {
+			go func(t Threader, s *seed) {
+				t.Run(s.ctx)
+				t.AfterRun(s)
+			}(s.thread[i], s)
+		}
 		s.wg.Add(1)
 		go func(t Threader, s *seed) {
 			defer s.wg.Done()
@@ -172,7 +190,7 @@ func (s *seed) Start() {
 // Wait ...
 func (s *seed) Wait() {
 	s.wg.Wait()
-
+	s.Done()
 }
 
 func defaultSeed() *seed {

@@ -14,6 +14,15 @@ type Database struct {
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCaller
+	done      chan bool
+}
+
+// Done ...
+func (db *Database) Done() <-chan bool {
+	go func() {
+		db.cb <- nil
+	}()
+	return db.done
 }
 
 var _ DatabaseCaller = &databaseCall{}
@@ -38,12 +47,6 @@ func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) DatabaseCaller {
 
 // Push ...
 func (db *Database) Push(v interface{}) error {
-	if v == nil {
-		go func() {
-			db.cb <- nil
-		}()
-		return nil
-	}
 	return db.pushDatabaseCallback(v)
 }
 
@@ -55,6 +58,7 @@ func (db *Database) Run(ctx context.Context) {
 	if e != nil {
 		panic(e)
 	}
+DatabaseEnd:
 	for {
 		select {
 		case <-ctx.Done():
@@ -63,7 +67,7 @@ func (db *Database) Run(ctx context.Context) {
 		case v := <-db.cb:
 			if v == nil {
 				log.Info("db end")
-				return
+				break DatabaseEnd
 			}
 			e = v.Call(db, db.eng)
 			if e != nil {
@@ -71,6 +75,7 @@ func (db *Database) Run(ctx context.Context) {
 			}
 		}
 	}
+	db.done <- true
 }
 
 // BeforeRun ...

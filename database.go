@@ -91,7 +91,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
 	db.cb = make(chan DatabaseCaller)
-
+	db.done = make(chan bool)
 	for _, argFn := range args {
 		argFn(db)
 	}

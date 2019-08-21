@@ -63,6 +63,8 @@ func NewAPI(path string) *API {
 	if e != nil {
 		panic(e)
 	}
+	a.cb = make(chan APICaller)
+	a.done = make(chan bool)
 	return a
 }
 

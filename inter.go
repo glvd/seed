@@ -16,6 +16,8 @@ type Seeder interface {
 	GetThread(stepper Stepper) Threader
 	SetThread(stepper Stepper, threader Threader)
 	HasThread(stepper Stepper) bool
+	SetBaseThread(stepper Stepper, threader Threader)
+	IsBase(stepper Stepper) bool
 	Register(ops ...Optioner)
 	Err() error
 }

@@ -12,9 +12,9 @@ import (
 
 // API ...
 type API struct {
-	Seed *seed
-	api  *httpapi.HttpApi
-	cb   chan APICallback
+	Seeder
+	api *httpapi.HttpApi
+	cb  chan APICallback
 }
 
 // Push ...
@@ -23,12 +23,12 @@ func (api *API) Push(v interface{}) error {
 }
 
 // BeforeRun ...
-func (api *API) BeforeRun(seed *seed) {
-	api.Seed = seed
+func (api *API) BeforeRun(seed Seeder) {
+	api.Seeder = seed
 }
 
 // AfterRun ...
-func (api *API) AfterRun(seed *seed) {
+func (api *API) AfterRun(seed Seeder) {
 }
 
 // NewAPI ...
@@ -104,7 +104,7 @@ type PeerID struct {
 }
 
 // APIPeerID ...
-func APIPeerID(seed *seed) *PeerID {
+func APIPeerID(seed Seeder) *PeerID {
 	pid := new(apiPeerID)
 	pid.done = make(chan bool)
 	e := seed.PushTo(StepperAPI, pid)
@@ -154,7 +154,7 @@ func (p *apiPeerID) Callback(api *API, api2 *httpapi.HttpApi) (e error) {
 }
 
 // APIPin ...
-func APIPin(seed *seed, hash string) (e error) {
+func APIPin(seed Seeder, hash string) (e error) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	e = seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) error {

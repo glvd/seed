@@ -45,7 +45,7 @@ func (info *Information) Push(v interface{}) error {
 }
 
 // Option ...
-func (info *Information) Option(seed *seed) {
+func (info *Information) Option(seed Seeder) {
 	informationOption(info)(seed)
 }
 

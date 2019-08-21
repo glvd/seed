@@ -16,7 +16,7 @@ type Seeder interface {
 	GetThread(stepper Stepper) Threader
 	SetThread(stepper Stepper, threader Threader)
 	HasThread(stepper Stepper) bool
-	SetBaseThread(stepper Stepper, threader Threader)
+	SetBaseThread(stepper Stepper, threader BaseThreader)
 	IsBase(stepper Stepper) bool
 	Register(ops ...Optioner)
 	Err() error
@@ -85,6 +85,17 @@ type Threader interface {
 	Pusher
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
+}
+
+// Base ...
+type Base interface {
+	Done() <-chan bool
+}
+
+// BaseThreader ...
+type BaseThreader interface {
+	Threader
+	Base
 }
 
 // Async ...

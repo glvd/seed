@@ -13,8 +13,17 @@ import (
 // API ...
 type API struct {
 	Seeder
-	api *httpapi.HttpApi
-	cb  chan APICaller
+	api  *httpapi.HttpApi
+	cb   chan APICaller
+	done chan bool
+}
+
+// Done ...
+func (api *API) Done() <-chan bool {
+	go func() {
+		api.cb <- nil
+	}()
+	return api.done
 }
 
 // Option ...
@@ -30,12 +39,6 @@ func apiOption(api *API) Options {
 
 // Push ...
 func (api *API) Push(v interface{}) error {
-	if v == nil {
-		go func() {
-			api.cb <- nil
-		}()
-		return nil
-	}
 	return api.pushAPICallback(v)
 }
 
@@ -81,6 +84,7 @@ func (api *API) pushAPICallback(cb interface{}) (e error) {
 func (api *API) Run(ctx context.Context) {
 	log.Info("api running")
 	var e error
+APIEnd:
 	for {
 		select {
 		case <-ctx.Done():
@@ -88,7 +92,7 @@ func (api *API) Run(ctx context.Context) {
 		case c := <-api.cb:
 			if c == nil {
 				log.Info("api end")
-				return
+				break APIEnd
 			}
 			e = c.Call(api, api.api)
 			if e != nil {
@@ -96,6 +100,7 @@ func (api *API) Run(ctx context.Context) {
 			}
 		}
 	}
+	api.done <- true
 }
 
 // PeerID ...

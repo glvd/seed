@@ -29,7 +29,7 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	seed         *Seed
+	seed         *seed
 	infoType     InfoType
 	Path         string
 	ResourcePath string
@@ -44,7 +44,7 @@ func (info *Information) Push(v interface{}) error {
 }
 
 // Option ...
-func (info *Information) Option(seed *Seed) {
+func (info *Information) Option(seed *seed) {
 	informationOption(info)(seed)
 }
 
@@ -68,12 +68,12 @@ func (info *Information) pushVideoCallback(cb interface{}) error {
 }
 
 // BeforeRun ...
-func (info *Information) BeforeRun(seed *Seed) {
+func (info *Information) BeforeRun(seed *seed) {
 	info.seed = seed
 }
 
 // AfterRun ...
-func (info *Information) AfterRun(seed *Seed) {
+func (info *Information) AfterRun(seed *seed) {
 }
 
 func fixBson(s []byte) []byte {
@@ -264,7 +264,7 @@ func (info *Information) Run(ctx context.Context) {
 	return
 }
 
-func addThumbHash(seed *Seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addThumbHash(seed *seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
@@ -282,7 +282,7 @@ func addThumbHash(seed *Seed, source *VideoSource, hash string) (unf *model.Unfi
 	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(seed *Seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addPosterHash(seed *seed, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi

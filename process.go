@@ -21,7 +21,7 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	Seed        *Seed
+	Seed        *seed
 	workspace   string
 	path        string
 	shell       *shell.Shell
@@ -42,7 +42,7 @@ func (p *Process) Push(interface{}) error {
 }
 
 // BeforeRun ...
-func (p *Process) BeforeRun(seed *Seed) {
+func (p *Process) BeforeRun(seed *seed) {
 	p.unfinished = seed.Unfinished
 	p.workspace = seed.Workspace
 	p.shell = seed.Shell
@@ -56,7 +56,7 @@ func (p *Process) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (p *Process) AfterRun(seed *Seed) {
+func (p *Process) AfterRun(seed *seed) {
 	seed.Unfinished = p.unfinished
 	seed.Moves = p.moves
 }
@@ -68,7 +68,7 @@ func NewProcess() *Process {
 }
 
 // Option ...
-func (p *Process) Option(seed *Seed) {
+func (p *Process) Option(seed *seed) {
 	processOption(p)(seed)
 }
 

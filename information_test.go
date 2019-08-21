@@ -23,8 +23,8 @@ func TestInformation2(t *testing.T) {
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 
 	s := seed.NewSeed(info, sdb)
-	s.Workspace = "D:\\videoall"
-	s.MaxLimit = 5
+	//s.Workspace = "D:\\videoall"
+	//s.MaxLimit = 5
 	s.Start()
 
 	s.Wait()

@@ -29,7 +29,7 @@ const (
 
 // Pin ...
 type Pin struct {
-	Seed       *Seed
+	Seed       *seed
 	PinType    PinType
 	CheckType  CheckType
 	SkipType   []interface{}
@@ -51,12 +51,12 @@ func (p *Pin) Push(interface{}) error {
 }
 
 // BeforeRun ...
-func (p *Pin) BeforeRun(seed *Seed) {
+func (p *Pin) BeforeRun(seed *seed) {
 	p.Seed = seed
 }
 
 // AfterRun ...
-func (p *Pin) AfterRun(seed *Seed) {
+func (p *Pin) AfterRun(seed *seed) {
 	return
 }
 

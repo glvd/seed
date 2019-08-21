@@ -12,7 +12,7 @@ import (
 
 // Check ...
 type Check struct {
-	*Seed
+	*seed
 	myID      *PeerID
 	Type      string
 	checkType CheckType
@@ -26,7 +26,7 @@ func (c *Check) Push(interface{}) error {
 }
 
 // Option ...
-func (c *Check) Option(seed *Seed) {
+func (c *Check) Option(seed *seed) {
 	checkOption(c)(seed)
 }
 
@@ -34,7 +34,7 @@ func (c *Check) Option(seed *Seed) {
 func (c *Check) Run(ctx context.Context) {
 	log.Info("Check running")
 	cPin := make(chan iface.Pin)
-	e := c.Seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
+	e := c.seed.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
@@ -71,7 +71,7 @@ func (c *Check) Run(ctx context.Context) {
 					PeerID:  []string{c.myID.ID},
 					VideoID: "",
 				}
-				e := c.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+				e := c.seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 					return model.UpdatePinVideoID(eng.NewSession(), p)
 				})
 				if e != nil {
@@ -83,7 +83,7 @@ func (c *Check) Run(ctx context.Context) {
 
 	case CheckTypeUnpin:
 		unf := make(chan *model.Unfinished)
-		c.Seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+		c.seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 			defer func() {
 				unf <- nil
 			}()
@@ -142,7 +142,7 @@ func (c *Check) Run(ctx context.Context) {
 }
 
 // BeforeRun ...
-func (c *Check) BeforeRun(seed *Seed) {
+func (c *Check) BeforeRun(seed *seed) {
 	c.myID = APIPeerID(seed)
 	if c.Type == "" {
 		c.Type = "recursive"
@@ -150,7 +150,7 @@ func (c *Check) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (c *Check) AfterRun(seed *Seed) {
+func (c *Check) AfterRun(seed *seed) {
 
 }
 
@@ -198,7 +198,7 @@ func NewCheck(args ...CheckArgs) *Check {
 }
 
 func checkOption(c *Check) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperCheck] = c
 	}
 }

@@ -166,23 +166,23 @@ func APIPin(seed Seeder, hash string) (e error) {
 	return e
 }
 
-type apiPin struct {
+type apiCall struct {
 	hash string
 	done chan bool
 }
 
 // Callback ...
-func (a *apiPin) Callback(api *API, api2 *httpapi.HttpApi) error {
+func (a *apiCall) Callback(api *API, api2 *httpapi.HttpApi) error {
 	return api2.Pin().Add(context.Background(), path.New(a.hash))
 }
 
 // Done ...
-func (a *apiPin) Done() {
+func (a *apiCall) Done() {
 	a.done <- true
 }
 
 // Failed ...
-func (a *apiPin) Failed() {
+func (a *apiCall) Failed() {
 	a.done <- false
 }
 

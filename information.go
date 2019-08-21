@@ -261,6 +261,10 @@ func (info *Information) Run(ctx context.Context) {
 			}
 		}
 		log.Info("info end")
+		e := info.PushTo(StepperDatabase, nil)
+		if e != nil {
+			log.Error(e)
+		}
 	}
 	return
 }

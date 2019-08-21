@@ -235,7 +235,7 @@ func (info *Information) Run(ctx context.Context) {
 									if e != nil {
 										return e
 									}
-									_, e = addPosterHash(info.Seeder, source, resolved.String())
+									_, e = addPosterHash(info.Seeder, source, model.PinHash(resolved))
 									if e != nil {
 										failedSkip.Store(true)
 										return e
@@ -267,7 +267,7 @@ func (info *Information) Run(ctx context.Context) {
 								if e != nil {
 									return e
 								}
-								_, e = addThumbHash(info.Seeder, source, resolved.String())
+								_, e = addThumbHash(info.Seeder, source, model.PinHash(resolved))
 								if e != nil {
 									failedSkip.Store(true)
 									return e
@@ -290,7 +290,6 @@ func (info *Information) Run(ctx context.Context) {
 			}
 		}
 		log.Info("info end")
-
 	}
 	return
 }

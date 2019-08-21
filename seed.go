@@ -47,7 +47,7 @@ type seed struct {
 	noSlice     bool
 	upScale     bool
 	thread      map[Stepper]Threader
-	base        []Threader
+	base        map[Stepper][]byte
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool
@@ -61,6 +61,18 @@ func (s *seed) GetThread(stepper Stepper) Threader {
 // SetThread ...
 func (s *seed) SetThread(stepper Stepper, threader Threader) {
 	s.thread[stepper] = threader
+}
+
+// SetBaseThread ...
+func (s *seed) SetBaseThread(stepper Stepper, threader Threader) {
+	s.base[stepper] = nil
+	s.thread[stepper] = threader
+}
+
+// IsBase ...
+func (s *seed) IsBase(stepper Stepper) bool {
+	_, b := s.base[stepper]
+	return b
 }
 
 // HasThread ...
@@ -122,6 +134,11 @@ func (s *seed) GetNumberArg(key string) (v int64) {
 	return
 }
 
+// Done ...
+func (s *seed) Done() {
+
+}
+
 // Stop ...
 func (s *seed) Stop() {
 	if s.cancel != nil {
@@ -155,6 +172,7 @@ func (s *seed) Start() {
 // Wait ...
 func (s *seed) Wait() {
 	s.wg.Wait()
+
 }
 
 func defaultSeed() *seed {

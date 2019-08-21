@@ -225,7 +225,7 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								poster, e := addPosterHash(info.seed, source, "hash")
+								poster, e := addPosterHash(info.Seeder, source, "hash")
 								if e != nil {
 									log.Error(e)
 									failedSkip.Store(true)
@@ -254,14 +254,13 @@ func (info *Information) Run(ctx context.Context) {
 					}
 				}
 
-				info.seed.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+				info.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
 					return model.AddOrUpdateVideo(eng.NewSession(), v)
 				})
 			}
 		}
 		log.Info("info end")
 	}
-
 	return
 }
 

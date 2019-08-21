@@ -16,14 +16,6 @@ type Database struct {
 	cb        chan DatabaseCaller
 }
 
-// DatabaseCallbackFunc ...
-type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine, v interface{}) (e error)
-
-// DatabaseCaller ...
-type DatabaseCaller interface {
-	Call(database *Database, eng *xorm.Engine) (e error)
-}
-
 var _ DatabaseCaller = &call{}
 
 type call struct {
@@ -51,6 +43,7 @@ func (db *Database) Push(v interface{}) error {
 
 // Run ...
 func (db *Database) Run(ctx context.Context) {
+	log.Info("database running")
 	var e error
 	e = db.Sync()
 	if e != nil {
@@ -59,6 +52,7 @@ func (db *Database) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
+			log.Info("context end")
 			return
 		case v := <-db.cb:
 			e = v.Call(db, db.eng)

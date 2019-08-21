@@ -169,7 +169,7 @@ func checkFileNotExist(path string) bool {
 
 // Run ...
 func (info *Information) Run(ctx context.Context) {
-	log.Info("Information running")
+	log.Info("information running")
 	var vs []*VideoSource
 	isDefault := true
 	switch info.InfoType {

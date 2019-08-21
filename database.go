@@ -13,7 +13,33 @@ type Database struct {
 	Seed      *seed
 	eng       *xorm.Engine
 	syncTable []interface{}
-	cb        chan DatabaseCallback
+	cb        chan DatabaseCaller
+}
+
+// DatabaseCallbackFunc ...
+type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine) (e error)
+
+// DatabaseCaller ...
+type DatabaseCaller interface {
+	DatabaseCall(database *Database, eng *xorm.Engine) (e error)
+}
+
+type call struct {
+	v  interface{}
+	cb DatabaseCallbackFunc
+}
+
+// DatabaseCall ...
+func (c call) DatabaseCall(database *Database, eng *xorm.Engine) (e error) {
+	return c.cb(database, eng)
+}
+
+// DatabaseCallback ...
+func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) DatabaseCaller {
+	return &call{
+		v:  v,
+		cb: cb,
+	}
 }
 
 // Push ...
@@ -33,7 +59,7 @@ func (db *Database) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case v := <-db.cb:
-			e = v(db, db.eng)
+			e = v.DatabaseCall(db, db.eng)
 			if e != nil {
 				log.Error(e)
 			}
@@ -53,7 +79,7 @@ func (db *Database) AfterRun(seed Seeder) {
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
-	db.cb = make(chan DatabaseCallback, 10)
+	db.cb = make(chan DatabaseCaller, 10)
 
 	for _, argFn := range args {
 		argFn(db)
@@ -64,9 +90,9 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 
 // PushCallback ...
 func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
-	if v, b := cb.(DatabaseCallback); b {
-		go func(database *Database, databaseCallback DatabaseCallback) {
-			database.cb <- databaseCallback
+	if v, b := cb.(DatabaseCaller); b {
+		go func(database *Database, dc DatabaseCaller) {
+			database.cb <- dc
 		}(db, v)
 	}
 	return xerrors.New("not database callback")

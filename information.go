@@ -252,12 +252,11 @@ func (info *Information) Run(ctx context.Context) {
 						}
 					}
 				}
-
-				e := info.PushTo(StepperDatabase, DatabaseCallback(func(database *Database, eng *xorm.Engine) (e error) {
+				e := info.PushTo(StepperDatabase, DatabaseCallback(v, func(database *Database, eng *xorm.Engine) (e error) {
 					return model.AddOrUpdateVideo(eng.NewSession(), v)
 				}))
 				if e != nil {
-					log.Error(e)
+					log.With("bangumi", v.Bangumi).Error(e)
 				}
 			}
 		}

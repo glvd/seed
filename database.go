@@ -24,6 +24,10 @@ func (db *Database) Push(v interface{}) error {
 // Run ...
 func (db *Database) Run(ctx context.Context) {
 	var e error
+	e = db.Sync()
+	if e != nil {
+		panic(e)
+	}
 	for {
 		select {
 		case <-ctx.Done():

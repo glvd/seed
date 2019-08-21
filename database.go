@@ -17,11 +17,11 @@ type Database struct {
 }
 
 // DatabaseCallbackFunc ...
-type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine) (e error)
+type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine, v interface{}) (e error)
 
 // DatabaseCaller ...
 type DatabaseCaller interface {
-	DatabaseCall(database *Database, eng *xorm.Engine) (e error)
+	Call(database *Database, eng *xorm.Engine) (e error)
 }
 
 type call struct {
@@ -29,9 +29,9 @@ type call struct {
 	cb DatabaseCallbackFunc
 }
 
-// DatabaseCall ...
-func (c call) DatabaseCall(database *Database, eng *xorm.Engine) (e error) {
-	return c.cb(database, eng)
+// Call ...
+func (c *call) Call(database *Database, eng *xorm.Engine) (e error) {
+	return c.cb(database, eng, c.v)
 }
 
 // DatabaseCallback ...
@@ -59,7 +59,7 @@ func (db *Database) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case v := <-db.cb:
-			e = v.DatabaseCall(db, db.eng)
+			e = v.Call(db, db.eng)
 			if e != nil {
 				log.Error(e)
 			}

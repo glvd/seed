@@ -12,6 +12,9 @@ type Seeder interface {
 	Wait()
 	Stop()
 	PushTo(stepper Stepper, v interface{}) error
+	GetThread(stepper Stepper) Threader
+	SetThread(stepper Stepper, threader Threader)
+	HasThread(stepper Stepper) bool
 	Register(ops ...Optioner)
 	Err() error
 }
@@ -47,7 +50,7 @@ type Initer interface {
 
 //Optioner set option
 type Optioner interface {
-	Option(seed *seed)
+	Option(Seeder)
 }
 
 // Stepper ...

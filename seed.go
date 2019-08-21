@@ -13,10 +13,10 @@ import (
 )
 
 // Options ...
-type Options func(*seed)
+type Options func(seeder Seeder)
 
 // AfterInitOptions ...
-type AfterInitOptions func(*seed)
+type AfterInitOptions func(Seeder)
 
 // Thread ...
 type Thread struct {
@@ -50,6 +50,22 @@ type seed struct {
 	ignores     map[string][]byte
 	err         error
 	skipExist   bool
+}
+
+// GetThread ...
+func (seed *seed) GetThread(stepper Stepper) Threader {
+	return seed.thread[stepper]
+}
+
+// SetThread ...
+func (seed *seed) SetThread(stepper Stepper, threader Threader) {
+	seed.thread[stepper] = threader
+}
+
+// HasThread ...
+func (seed *seed) HasThread(stepper Stepper) bool {
+	_, b := seed.thread[stepper]
+	return b
 }
 
 // PushTo ...
@@ -160,55 +176,6 @@ func NewSeed(ops ...Optioner) Seeder {
 func (seed *seed) Register(ops ...Optioner) {
 	for _, op := range ops {
 		op.Option(seed)
-	}
-}
-
-// SkipConvertOption ...
-func SkipConvertOption() Options {
-	return func(seed *seed) {
-		seed.skipConvert = true
-	}
-}
-
-// SkipExistOption ...
-func SkipExistOption() Options {
-	return func(seed *seed) {
-		seed.skipExist = true
-	}
-}
-
-// NoSliceOption ...
-func NoSliceOption() Options {
-	return func(seed *seed) {
-		seed.noSlice = true
-	}
-}
-
-// MaxLimitOption ...
-func MaxLimitOption(max int) Options {
-	return func(seed *seed) {
-		seed.MaxLimit = max
-	}
-}
-
-// PreAddOption ...
-func PreAddOption() Options {
-	return func(seed *seed) {
-		seed.preAdd = true
-	}
-}
-
-// databaseOption ...
-func databaseOption(db *Database) Options {
-	return func(seed *seed) {
-		seed.thread[StepperDatabase] = db
-	}
-}
-
-// InformationOption ...
-func informationOption(info *Information) Options {
-	return func(seed *seed) {
-		seed.thread[StepperInformation] = info
 	}
 }
 

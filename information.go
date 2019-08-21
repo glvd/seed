@@ -360,3 +360,10 @@ type VideoSource struct {
 	MagnetLinks  []string  `json:"magnet_links"`  //磁链
 	Uncensored   bool      `json:"uncensored"`    //有码,无码
 }
+
+// InformationOption ...
+func informationOption(info *Information) Options {
+	return func(seed Seeder) {
+		seed.SetThread(StepperInformation, info)
+	}
+}

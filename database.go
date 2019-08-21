@@ -38,14 +38,12 @@ func (db *Database) Run(ctx context.Context) {
 }
 
 // BeforeRun ...
-func (db *Database) BeforeRun(seed *seed) {
+func (db *Database) BeforeRun(seed Seeder) {
 }
 
 // AfterRun ...
-func (db *Database) AfterRun(seed *seed) {
+func (db *Database) AfterRun(seed Seeder) {
 }
-
-var _ Optioner = &Database{}
 
 // NewDatabase ...
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
@@ -84,7 +82,7 @@ func (db *Database) RegisterSync(v interface{}) {
 }
 
 // Option ...
-func (db *Database) Option(seed *seed) {
+func (db *Database) Option(seed Seeder) {
 	databaseOption(db)(seed)
 }
 
@@ -132,5 +130,12 @@ func DatabaseShowSQLArg() DatabaseArgs {
 func DatabaseShowExecTimeArg() DatabaseArgs {
 	return func(db *Database) {
 		db.eng.ShowExecTime()
+	}
+}
+
+// databaseOption ...
+func databaseOption(db *Database) Options {
+	return func(seed Seeder) {
+		seed.SetThread(StepperDatabase, db)
 	}
 }

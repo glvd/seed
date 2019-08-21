@@ -14,7 +14,7 @@ import (
 type API struct {
 	Seeder
 	api *httpapi.HttpApi
-	cb  chan APICallback
+	cb  chan APICaller
 }
 
 // Push ...
@@ -46,32 +46,14 @@ func NewAPI(path string) *API {
 	return a
 }
 
-// APICallbackStatusAble ...
-type APICallbackStatusAble interface {
-	Done()
-	Failed()
-}
-
-// APICallback ...
-type APICallback func(*API, *httpapi.HttpApi) error
-
-// APICallbackAble ...
-type APICallbackAble interface {
-	Callback(*API, *httpapi.HttpApi) error
-}
-
 // CallbackFunc ...
 type CallbackFunc func(*API, *httpapi.HttpApi) error
 
-type apiCallback struct {
-	fn APICallback
-}
-
 // PushCallback ...
 func (api *API) pushAPICallback(cb interface{}) (e error) {
-	if v, b := cb.(APICallback); b {
-		go func(a APICallback) {
-			api.cb <- a
+	if v, b := cb.(APICaller); b {
+		go func(c APICaller) {
+			api.cb <- c
 		}(v)
 	}
 	return xerrors.New("not api callback")
@@ -86,7 +68,10 @@ func (api *API) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case c := <-api.cb:
-			e = c(api, api.api)
+			if c == nil {
+				return
+			}
+			e = c.Call(api, api.api)
 			if e != nil {
 				log.Error(e)
 			}
@@ -166,24 +151,22 @@ func APIPin(seed Seeder, hash string) (e error) {
 	return e
 }
 
+// APICallbackFunc ...
+type APICallbackFunc func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error)
+
+// APICaller ...
+type APICaller interface {
+	Call(*API, *httpapi.HttpApi) error
+}
+
 type apiCall struct {
-	hash string
-	done chan bool
+	v  interface{}
+	cb APICallbackFunc
 }
 
 // Callback ...
-func (a *apiCall) Callback(api *API, api2 *httpapi.HttpApi) error {
-	return api2.Pin().Add(context.Background(), path.New(a.hash))
-}
-
-// Done ...
-func (a *apiCall) Done() {
-	a.done <- true
-}
-
-// Failed ...
-func (a *apiCall) Failed() {
-	a.done <- false
+func (a *apiCall) Call(api *API, api2 *httpapi.HttpApi) error {
+	return a.cb(api, api2, a.v)
 }
 
 // APIOption ...

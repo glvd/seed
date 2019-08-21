@@ -30,8 +30,7 @@ const InfoTypeBSON InfoType = "bson"
 // Information ...
 type Information struct {
 	Seeder
-
-	infoType     InfoType
+	InfoType     InfoType
 	Path         string
 	ResourcePath string
 	ProcList     []string
@@ -173,7 +172,7 @@ func (info *Information) Run(ctx context.Context) {
 	log.Info("Information running")
 	var vs []*VideoSource
 	isDefault := true
-	switch info.infoType {
+	switch info.InfoType {
 	case InfoTypeBSON:
 		isDefault = false
 		b, e := ioutil.ReadFile(info.Path)

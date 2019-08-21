@@ -133,12 +133,12 @@ func (seed *seed) Err() error {
 // Start ...
 func (seed *seed) Start() {
 	go func() {
-		log.Info("first running")
-		defer seed.wg.Done()
+		log.Info("Seed starting")
 		for i := range seed.thread {
 			if seed.thread[i] == nil {
 				continue
 			}
+			seed.wg.Add(1)
 			go func(t Threader, group *sync.WaitGroup) {
 				defer group.Done()
 				t.Run(seed.ctx)

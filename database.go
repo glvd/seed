@@ -24,6 +24,8 @@ type DatabaseCaller interface {
 	Call(database *Database, eng *xorm.Engine) (e error)
 }
 
+var _ DatabaseCaller = &call{}
+
 type call struct {
 	v  interface{}
 	cb DatabaseCallbackFunc

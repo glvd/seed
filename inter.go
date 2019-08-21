@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-xorm/xorm"
+	httpapi "github.com/ipfs/go-ipfs-http-client"
 )
 
 // Seeder ...
@@ -66,6 +67,14 @@ type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine, v interface
 // DatabaseCaller ...
 type DatabaseCaller interface {
 	Call(database *Database, eng *xorm.Engine) (e error)
+}
+
+// APICallbackFunc ...
+type APICallbackFunc func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error)
+
+// APICaller ...
+type APICaller interface {
+	Call(*API, *httpapi.HttpApi) error
 }
 
 // Threader ...

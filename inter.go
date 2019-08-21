@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/go-xorm/xorm"
 )
@@ -62,6 +63,11 @@ const (
 	// StepperMax ...
 	StepperMax
 )
+
+// String ...
+func (s Stepper) String() string {
+	return reflect.ValueOf(s).String()
+}
 
 // Threader ...
 type Threader interface {

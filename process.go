@@ -233,10 +233,6 @@ func (p *Process) Run(ctx context.Context) {
 	return
 }
 
-func updateRelate(unfinished model.Unfinished) error {
-	return nil
-}
-
 func isPicture(name string) bool {
 	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
 	ext := filepath.Ext(name)
@@ -307,19 +303,6 @@ func (p *Process) skip(format *cmd.StreamFormat) bool {
 	}
 	log.Info("noskip")
 	return false
-}
-
-func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {
-	format, e = cmd.FFProbeStreamFormat(file)
-	if e != nil {
-		return nil, e
-	}
-
-	if format.IsVideo() {
-		u.Type = model.TypeVideo
-		u.Sharpness = format.Resolution()
-	}
-	return format, nil
 }
 
 func moveSuccess(file string) (e error) {

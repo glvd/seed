@@ -10,7 +10,7 @@ import (
 
 // Database ...
 type Database struct {
-	Seed      *seed
+	Seeder
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCaller

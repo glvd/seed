@@ -222,7 +222,7 @@ func IsExist(session *xorm.Session, table interface{}) bool {
 		//Where("type = ?", unfin.Type).
 		Count()
 	//log.With("checksum", unfin.Checksum, "type", unfin.Type, "num", i).Info("check exist")
-	if e != nil || i <= -1 {
+	if e != nil || i <= 0 {
 		return false
 	}
 	return true

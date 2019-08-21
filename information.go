@@ -29,7 +29,8 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	seed         *seed
+	Seeder
+
 	infoType     InfoType
 	Path         string
 	ResourcePath string
@@ -68,12 +69,12 @@ func (info *Information) pushVideoCallback(cb interface{}) error {
 }
 
 // BeforeRun ...
-func (info *Information) BeforeRun(seed *seed) {
-	info.seed = seed
+func (info *Information) BeforeRun(seed Seeder) {
+	info.Seeder = seed
 }
 
 // AfterRun ...
-func (info *Information) AfterRun(seed *seed) {
+func (info *Information) AfterRun(seed Seeder) {
 }
 
 func fixBson(s []byte) []byte {

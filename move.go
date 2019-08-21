@@ -48,12 +48,11 @@ func (m *Move) Run(context.Context) {
 }
 
 // BeforeRun ...
-func (m *Move) BeforeRun(seed *seed) {
+func (m *Move) BeforeRun(seed Seeder) {
 }
 
 // AfterRun ...
-func (m *Move) AfterRun(seed *seed) {
-	seed.Moves = make(map[string]string)
+func (m *Move) AfterRun(seed Seeder) {
 }
 
 // MoveInfo ...
@@ -73,8 +72,8 @@ func MoveProc(path string) Options {
 }
 
 // MoveOption ...
-func MoveOption(m Stepper, Move *Move) Options {
-	return func(seed *seed) {
-		seed.thread[m] = Move
+func MoveOption(stepper Stepper, Move *Move) Options {
+	return func(seed Seeder) {
+		seed.SetThread(stepper, Move)
 	}
 }

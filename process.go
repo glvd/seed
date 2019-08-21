@@ -358,3 +358,10 @@ func Load(path string) []*VideoSource {
 	}
 	return vs
 }
+
+// processOption ...
+func processOption(process *Process) Options {
+	return func(seed Seeder) {
+		seed.SetThread(StepperProcess, process)
+	}
+}

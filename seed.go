@@ -212,13 +212,6 @@ func APIOption(s string) Options {
 	}
 }
 
-// processOption ...
-func processOption(process *Process) Options {
-	return func(seed *seed) {
-		seed.thread[StepperProcess] = process
-	}
-}
-
 // pinOption ...
 func pinOption(pin *Pin) Options {
 	return func(seed *seed) {

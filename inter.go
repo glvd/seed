@@ -2,8 +2,6 @@ package seed
 
 import (
 	"context"
-
-	"github.com/go-xorm/xorm"
 )
 
 // Seeder ...
@@ -18,9 +16,6 @@ type Seeder interface {
 	Register(ops ...Optioner)
 	Err() error
 }
-
-// DatabaseCallback ...
-type DatabaseCallback func(database *Database, eng *xorm.Engine) (e error)
 
 // Initer ...
 type Initer interface {

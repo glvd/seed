@@ -1,9 +1,10 @@
 package seed_test
 
 import (
+	"testing"
+
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
-	"testing"
 )
 
 // TestInformation ...
@@ -11,6 +12,7 @@ func TestInformation(t *testing.T) {
 	info := seed.NewInformation()
 	info.ResourcePath = "D:\\videoall\\images"
 	info.Path = "D:\\videoall\\video3.json"
+	info.InfoType = seed.InfoTypeBSON
 	//sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 	s := seed.NewSeed(info)
 	s.Start()

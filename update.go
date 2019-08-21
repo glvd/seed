@@ -65,8 +65,8 @@ func Update(method UpdateMethod, content UpdateContent) Options {
 
 // updateOption ...
 func updateOption(update *update) Options {
-	return func(seed *seed) {
-		seed.thread[StepperUpdate] = update
+	return func(seed Seeder) {
+		seed.SetThread(StepperUpdate, update)
 	}
 }
 
@@ -268,12 +268,11 @@ END:
 }
 
 // BeforeRun ...
-func (u *update) BeforeRun(seed *seed) {
-	u.videos = seed.Videos
-	u.unfinished = seed.Unfinished
+func (u *update) BeforeRun(seed Seeder) {
+
 }
 
 // AfterRun ...
-func (u *update) AfterRun(seed *seed) {
+func (u *update) AfterRun(seed Seeder) {
 
 }

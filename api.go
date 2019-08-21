@@ -151,12 +151,12 @@ func APIPin(seed Seeder, hash string) (e error) {
 	return e
 }
 
-// APICallbackFunc ...
-type APICallbackFunc func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error)
-
-// APICaller ...
-type APICaller interface {
-	Call(*API, *httpapi.HttpApi) error
+// APICallback ...
+func APICallback(v interface{}, cb APICallbackFunc) APICaller {
+	return &apiCall{
+		v:  v,
+		cb: cb,
+	}
 }
 
 type apiCall struct {

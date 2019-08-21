@@ -13,18 +13,18 @@ import (
 )
 
 // Options ...
-type Options func(*Seed)
+type Options func(*seed)
 
 // AfterInitOptions ...
-type AfterInitOptions func(*Seed)
+type AfterInitOptions func(*seed)
 
 // Thread ...
 type Thread struct {
 	wg sync.WaitGroup
 }
 
-// Seed ...
-type Seed struct {
+// seed ...
+type seed struct {
 	Shell       *shell.Shell
 	API         *API
 	Move        *Move
@@ -53,33 +53,33 @@ type Seed struct {
 }
 
 // PushTo ...
-func (seed *Seed) PushTo(stepper Stepper, v interface{}) (e error) {
+func (seed *seed) PushTo(stepper Stepper, v interface{}) (e error) {
 	return seed.thread[stepper].Push(v)
 }
 
 // Args ...
-func (seed *Seed) Args() map[string]interface{} {
+func (seed *seed) Args() map[string]interface{} {
 	return seed.args
 }
 
 // SetArgs ...
-func (seed *Seed) SetArgs(args map[string]interface{}) {
+func (seed *seed) SetArgs(args map[string]interface{}) {
 	seed.args = args
 }
 
 // AddArg ...
-func (seed *Seed) AddArg(key string, value interface{}) {
+func (seed *seed) AddArg(key string, value interface{}) {
 	seed.args[key] = value
 }
 
 // GetArg ...
-func (seed *Seed) GetArg(key string) (v interface{}, b bool) {
+func (seed *seed) GetArg(key string) (v interface{}, b bool) {
 	v, b = seed.args[key]
 	return
 }
 
 // GetStringArg ...
-func (seed *Seed) GetStringArg(key string) (v string) {
+func (seed *seed) GetStringArg(key string) (v string) {
 	if arg, b := seed.GetArg(key); b {
 		v, _ = arg.(string)
 	}
@@ -87,7 +87,7 @@ func (seed *Seed) GetStringArg(key string) (v string) {
 }
 
 // GetBoolArg ...
-func (seed *Seed) GetBoolArg(key string) (v bool) {
+func (seed *seed) GetBoolArg(key string) (v bool) {
 	if arg, b := seed.GetArg(key); b {
 		v, _ = arg.(bool)
 	}
@@ -95,7 +95,7 @@ func (seed *Seed) GetBoolArg(key string) (v bool) {
 }
 
 // GetNumberArg ...
-func (seed *Seed) GetNumberArg(key string) (v int64) {
+func (seed *seed) GetNumberArg(key string) (v int64) {
 	if arg, b := seed.GetArg(key); b {
 		v, _ = arg.(int64)
 	}
@@ -103,19 +103,19 @@ func (seed *Seed) GetNumberArg(key string) (v int64) {
 }
 
 // Stop ...
-func (seed *Seed) Stop() {
+func (seed *seed) Stop() {
 	if seed.cancel != nil {
 		seed.cancel()
 	}
 }
 
 // Err ...
-func (seed *Seed) Err() error {
+func (seed *seed) Err() error {
 	return seed.err
 }
 
 // Start ...
-func (seed *Seed) Start() {
+func (seed *seed) Start() {
 	go func() {
 		log.Info("first running")
 		defer seed.wg.Done()
@@ -132,12 +132,12 @@ func (seed *Seed) Start() {
 }
 
 // Wait ...
-func (seed *Seed) Wait() {
+func (seed *seed) Wait() {
 	seed.wg.Wait()
 }
 
-func defaultSeed() *Seed {
-	return &Seed{
+func defaultSeed() *seed {
+	return &seed{
 		Unfinished: make(map[string]*model.Unfinished),
 		Videos:     make(map[string]*model.Video),
 		Moves:      make(map[string]string),
@@ -157,7 +157,7 @@ func NewSeed(ops ...Optioner) Seeder {
 }
 
 // Register ...
-func (seed *Seed) Register(ops ...Optioner) {
+func (seed *seed) Register(ops ...Optioner) {
 	for _, op := range ops {
 		op.Option(seed)
 	}
@@ -165,56 +165,56 @@ func (seed *Seed) Register(ops ...Optioner) {
 
 // SkipConvertOption ...
 func SkipConvertOption() Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.skipConvert = true
 	}
 }
 
 // SkipExistOption ...
 func SkipExistOption() Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.skipExist = true
 	}
 }
 
 // NoSliceOption ...
 func NoSliceOption() Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.noSlice = true
 	}
 }
 
 // MaxLimitOption ...
 func MaxLimitOption(max int) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.MaxLimit = max
 	}
 }
 
 // PreAddOption ...
 func PreAddOption() Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.preAdd = true
 	}
 }
 
 // databaseOption ...
 func databaseOption(db *Database) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperDatabase] = db
 	}
 }
 
 // InformationOption ...
 func informationOption(info *Information) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperInformation] = info
 	}
 }
 
 // UnfinishedOption ...
 func UnfinishedOption(unfins ...*model.Unfinished) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		if seed.Unfinished == nil {
 			seed.Unfinished = make(map[string]*model.Unfinished)
 		}
@@ -232,7 +232,7 @@ func UnfinishedOption(unfins ...*model.Unfinished) Options {
 
 // ShellOption ...
 func ShellOption(s string) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		log.Info("ipfs: ", s)
 		seed.Shell = shell.NewShell(s)
 	}
@@ -240,28 +240,28 @@ func ShellOption(s string) Options {
 
 // APIOption ...
 func APIOption(s string) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.API = NewAPI(s)
 	}
 }
 
 // processOption ...
 func processOption(process *Process) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperProcess] = process
 	}
 }
 
 // pinOption ...
 func pinOption(pin *Pin) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperPin] = pin
 	}
 }
 
 // IgnoreOption ...
 func IgnoreOption(ignores ...string) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		for _, i := range ignores {
 			seed.ignores[i] = nil
 		}
@@ -270,7 +270,7 @@ func IgnoreOption(ignores ...string) Options {
 
 // ThreadOption ...
 func ThreadOption(t int) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.threads = t
 	}
 }

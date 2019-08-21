@@ -64,7 +64,7 @@ func (transfer transfer) Push(interface{}) error {
 }
 
 // BeforeRun ...
-func (transfer *transfer) BeforeRun(seed *Seed) {
+func (transfer *transfer) BeforeRun(seed *seed) {
 	transfer.shell = seed.Shell
 	transfer.workspace = seed.Workspace
 	transfer.unfinished = seed.Unfinished
@@ -73,14 +73,14 @@ func (transfer *transfer) BeforeRun(seed *Seed) {
 }
 
 // AfterRun ...
-func (transfer *transfer) AfterRun(seed *Seed) {
+func (transfer *transfer) AfterRun(seed *seed) {
 	seed.Videos = transfer.videos
 	seed.Unfinished = transfer.unfinished
 }
 
 // TransferOption ...
 func TransferOption(t *transfer) Options {
-	return func(seed *Seed) {
+	return func(seed *seed) {
 		seed.thread[StepperTransfer] = t
 	}
 }

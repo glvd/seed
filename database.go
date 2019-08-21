@@ -10,7 +10,7 @@ import (
 
 // Database ...
 type Database struct {
-	Seed      *Seed
+	Seed      *seed
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCallback
@@ -38,11 +38,11 @@ func (db *Database) Run(ctx context.Context) {
 }
 
 // BeforeRun ...
-func (db *Database) BeforeRun(seed *Seed) {
+func (db *Database) BeforeRun(seed *seed) {
 }
 
 // AfterRun ...
-func (db *Database) AfterRun(seed *Seed) {
+func (db *Database) AfterRun(seed *seed) {
 }
 
 var _ Optioner = &Database{}
@@ -84,7 +84,7 @@ func (db *Database) RegisterSync(v interface{}) {
 }
 
 // Option ...
-func (db *Database) Option(seed *Seed) {
+func (db *Database) Option(seed *seed) {
 	databaseOption(db)(seed)
 }
 

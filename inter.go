@@ -47,7 +47,7 @@ type Initer interface {
 
 //Optioner set option
 type Optioner interface {
-	Option(seed *Seed)
+	Option(seed *seed)
 }
 
 // Stepper ...
@@ -85,8 +85,8 @@ const (
 type Threader interface {
 	Runnable
 	Pusher
-	BeforeRun(seed *Seed)
-	AfterRun(seed *Seed)
+	BeforeRun(seed *seed)
+	AfterRun(seed *seed)
 }
 
 // Runnable ...

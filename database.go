@@ -77,8 +77,10 @@ func (db *Database) Sync() error {
 }
 
 // RegisterSync ...
-func (db *Database) RegisterSync(v interface{}) {
-	db.syncTable = append(db.syncTable, v)
+func (db *Database) RegisterSync(v ...interface{}) {
+	for _, val := range v {
+		db.syncTable = append(db.syncTable, val)
+	}
 }
 
 // Option ...

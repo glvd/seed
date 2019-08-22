@@ -31,6 +31,11 @@ type Slice struct {
 	cb          chan SliceCaller
 }
 
+// NewSlice ...
+func NewSlice() *Slice {
+	return &Slice{}
+}
+
 // Run ...
 func (s *Slice) Run(context.Context) {
 	log.Info("slice running")

@@ -9,6 +9,7 @@ import (
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"golang.org/x/xerrors"
 
 	"github.com/glvd/seed/model"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
@@ -29,6 +30,15 @@ type Slice struct {
 	SkipExist   bool
 	SkipSlice   bool
 	cb          chan SliceCaller
+}
+
+// Push ...
+func (s *Slice) Push(cb interface{}) error {
+	if v, b := cb.(SliceCaller); b {
+		s.cb <- v
+		return nil
+	}
+	return xerrors.New("not slice callback")
 }
 
 // NewSlice ...

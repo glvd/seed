@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -73,9 +74,8 @@ DatabaseEnd:
 			if e != nil {
 				log.Error(e)
 			}
-			//case <-time.After(3 * time.Second):
-			//	log.Info("time out")
-			//	break DatabaseEnd
+		case <-time.After(30 * time.Second):
+			log.Info("api time out")
 		}
 	}
 	close(db.cb)

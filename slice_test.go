@@ -33,6 +33,7 @@ func TestNewSlice(t *testing.T) {
 	s.Wait()
 	fmt.Println("waiting db end")
 	sdb.Done()
+	api.Done()
 	fmt.Println("db end")
 
 }

@@ -202,12 +202,13 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 		}
 	}
 	log.Infof("%+v", u.format)
-	if SkipTypeVerify("video", c.skipType...) {
+	if !SkipTypeVerify("video", c.skipType...) {
 		e = s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
-			if !model.IsExist(session, u.unfinished) || !u.skipExist {
+			if !model.IsExist(session, model.Unfinished{}) || !u.skipExist {
+				log.With("file", u.file).Info("video")
 				e = s.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					us := v.(*unfinishedSlice)
 					reader, e := os.Open(us.file)
@@ -241,7 +242,8 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
-			if !model.IsExist(session, u.unfinished) || !u1.skipExist {
+			if !model.IsExist(session, model.Unfinished{}) || !u1.skipExist {
+				log.With("file", u.path).Info("slice")
 				e = database.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					var sa *cmd.SplitArgs
 					sa, e = sliceVideo(u, u.format)
@@ -281,16 +283,15 @@ func sliceVideo(us *unfinishedSlice, format *cmd.StreamFormat) (sa *cmd.SplitArg
 		if int64(res) < s {
 			s = int64(res)
 		}
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.path, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(us.sliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(us.sliceOutput))
 		us.unfinished.Sharpness = fmt.Sprintf("%dP", scale(s))
 
 	} else {
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.path, cmd.StreamFormatOption(format), cmd.OutputOption(us.sliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.OutputOption(us.sliceOutput))
 	}
 
 	log.Infof("%+v", sa)
 	return
-
 }
 
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {

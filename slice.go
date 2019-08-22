@@ -271,8 +271,10 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 					if err != nil {
 						return err
 					}
-					log.Info("api add")
-					resolved, err := api2.Unixfs().Add(context.Background(), sf)
+					resolved, err := api2.Unixfs().Add(context.Background(), sf, func(settings *options.UnixfsAddSettings) error {
+						settings.Pin = true
+						return nil
+					})
 					if err != nil {
 						return err
 					}

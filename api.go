@@ -74,9 +74,7 @@ type CallbackFunc func(*API, *httpapi.HttpApi) error
 // PushCallback ...
 func (api *API) pushAPICallback(cb interface{}) (e error) {
 	if v, b := cb.(APICaller); b {
-		//go func(c APICaller) {
 		api.cb <- v
-		//}(v)
 		return
 	}
 	return xerrors.New("not api callback")

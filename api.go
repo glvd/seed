@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"sync"
+	"time"
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -98,6 +99,8 @@ APIEnd:
 			if e != nil {
 				log.Error(e)
 			}
+		case <-time.After(30 * time.Second):
+			log.Info("api time out")
 		}
 	}
 	close(api.cb)

@@ -233,12 +233,6 @@ func (p *Process) Run(ctx context.Context) {
 	return
 }
 
-func isPicture(name string) bool {
-	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
-	ext := filepath.Ext(name)
-	return strings.Index(picture, ext) != -1
-}
-
 // PathMD5 ...
 func PathMD5(s ...string) string {
 	str := filepath.Join(s...)

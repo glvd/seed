@@ -1,10 +1,11 @@
 package seed
 
 import (
-	cmd "github.com/godcong/go-ffmpeg-cmd"
-	"os"
 	"path"
 	"path/filepath"
+	"strings"
+
+	cmd "github.com/godcong/go-ffmpeg-cmd"
 )
 
 // Verify ...
@@ -18,6 +19,12 @@ func NewVerify(path string) *Verify {
 	return &Verify{
 		path: path,
 	}
+}
+
+func isPicture(name string) bool {
+	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
+	ext := filepath.Ext(name)
+	return strings.Index(picture, ext) != -1
 }
 
 func isVideo(filename string) bool {

@@ -151,7 +151,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	}
 	log.Infof("%+v", u.format)
 	if SkipTypeVerify("video", c.skipType...) {
-		s.PushTo(StepperRDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
@@ -182,7 +182,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 		u1 := new(unfinishedSlice)
 		u1.unfinished = u.unfinished.Clone()
 		u1.unfinished.Type = model.TypeSlice
-		e = s.PushTo(StepperRDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = s.PushTo(StepperDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)

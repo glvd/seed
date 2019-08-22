@@ -151,7 +151,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	}
 	log.Infof("%+v", u.format)
 	if SkipTypeVerify("video", c.skipType...) {
-		s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
@@ -176,6 +176,9 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 			}
 			return
 		}))
+		if e != nil {
+			return
+		}
 	}
 
 	if u.unfinished.Type == model.TypeVideo && !skip(u.format) {
@@ -187,7 +190,6 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
 			if !model.IsExist(session, u.unfinished) || !u1.skipExist {
-				//e = p.sliceAdd(unfinSlice, format, file)
 				e = database.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					var sa *cmd.SplitArgs
 					sa, e = sliceVideo(u, u.format)

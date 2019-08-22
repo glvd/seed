@@ -2,11 +2,13 @@ package seed
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
-	"os"
-	"path/filepath"
 
 	"github.com/glvd/seed/model"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
@@ -21,11 +23,12 @@ type SliceCaller interface {
 // Slice ...
 type Slice struct {
 	Seeder
-	Scale     int64
-	skipType  []interface{}
-	skipExist bool
-	skipSlice bool
-	cb        chan SliceCaller
+	Scale       int64
+	SliceOutput string
+	SkipType    []interface{}
+	SkipExist   bool
+	SkipSlice   bool
+	cb          chan SliceCaller
 }
 
 // Run ...
@@ -88,9 +91,11 @@ func GetFiles(p string) (files []string) {
 type sliceCall struct {
 	path string
 	//*Slice
-	skipType  []interface{}
-	skipExist bool
-	skipSlice bool
+	skipType    []interface{}
+	skipExist   bool
+	skipSlice   bool
+	scale       int64
+	sliceOutput string
 }
 
 // Path ...
@@ -100,6 +105,7 @@ func (c *sliceCall) Path() string {
 
 type unfinishedSlice struct {
 	unfinished *model.Unfinished
+	format     *cmd.StreamFormat
 	file       string
 	sliceCall
 }
@@ -107,10 +113,12 @@ type unfinishedSlice struct {
 // SliceCall ...
 func SliceCall(call *Slice, path string) SliceCaller {
 	return &sliceCall{
-		path:      path,
-		skipType:  call.skipType,
-		skipExist: call.skipExist,
-		skipSlice: call.skipSlice,
+		path:        path,
+		skipType:    call.SkipType,
+		skipExist:   call.SkipExist,
+		skipSlice:   call.SkipSlice,
+		scale:       call.Scale,
+		sliceOutput: call.SliceOutput,
 	}
 }
 
@@ -132,19 +140,18 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	u.sliceCall = *c
 	u.unfinished = defaultUnfinished(path)
 	u.unfinished.Relate = onlyName(path)
-	var format *cmd.StreamFormat
 	if isPicture(path) {
 		u.unfinished.Type = model.TypePoster
 	} else {
 		//fix name and get format
-		format, e = parseUnfinishedFromStreamFormat(path, u.unfinished)
+		u.format, e = parseUnfinishedFromStreamFormat(path, u.unfinished)
 		if e != nil {
 			return e
 		}
 	}
-	log.Infof("%+v", format)
+	log.Infof("%+v", u.format)
 	if SkipTypeVerify("video", c.skipType...) {
-		s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		s.PushTo(StepperRDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
@@ -171,22 +178,39 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 		}))
 	}
 
-	if u.unfinished.Type == model.TypeVideo && !skip(format) {
+	if u.unfinished.Type == model.TypeVideo && !skip(u.format) {
 		u1 := new(unfinishedSlice)
 		u1.unfinished = u.unfinished.Clone()
 		u1.unfinished.Type = model.TypeSlice
-		e = s.PushTo(StepperDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = s.PushTo(StepperRDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
 			if !model.IsExist(session, u.unfinished) || !u1.skipExist {
 				//e = p.sliceAdd(unfinSlice, format, file)
 				e = database.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-					//reader, e := os.Open(us.file)
-					//if e != nil {
-					//	return e
-					//}
-					//api2.Unixfs().Add(context.Background(),)
+					var sa *cmd.SplitArgs
+					sa, e = sliceVideo(u, u.format)
+					if e != nil {
+						return e
+					}
+					stat, err := os.Lstat(sa.Output)
+					if err != nil {
+						return err
+					}
+
+					sf, err := files.NewSerialFile(sa.Output, false, stat)
+					if err != nil {
+						return err
+					}
+
+					resolved, e := api2.Unixfs().Add(context.Background(), sf)
+					u.unfinished.Hash = model.PinHash(resolved)
+					e = api.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+						u := v.(*unfinishedSlice)
+						e = model.AddOrUpdateUnfinished(eng.NewSession(), u.unfinished)
+						return
+					}))
 					return
 				}))
 			}
@@ -195,6 +219,26 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	}
 	return
 }
+
+func sliceVideo(us *unfinishedSlice, format *cmd.StreamFormat) (sa *cmd.SplitArgs, e error) {
+	s := us.scale
+	if s != 0 {
+		res := format.ResolutionInt()
+		if int64(res) < s {
+			s = int64(res)
+		}
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.path, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(us.sliceOutput))
+		us.unfinished.Sharpness = fmt.Sprintf("%dP", scale(s))
+
+	} else {
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.path, cmd.StreamFormatOption(format), cmd.OutputOption(us.sliceOutput))
+	}
+
+	log.Infof("%+v", sa)
+	return
+
+}
+
 func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {
 	format, e = cmd.FFProbeStreamFormat(file)
 	if e != nil {

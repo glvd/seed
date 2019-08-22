@@ -33,7 +33,7 @@ func (api *API) Option(s Seeder) {
 
 func apiOption(api *API) Options {
 	return func(seeder Seeder) {
-		seeder.SetBaseThread(StepperAPI, api)
+		seeder.SetThread(StepperAPI, api)
 	}
 }
 

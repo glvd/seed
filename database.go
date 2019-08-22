@@ -84,6 +84,7 @@ DatabaseEnd:
 
 // BeforeRun ...
 func (db *Database) BeforeRun(seed Seeder) {
+	db.Seeder = seed
 }
 
 // AfterRun ...

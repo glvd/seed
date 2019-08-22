@@ -9,6 +9,7 @@ import (
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 	"golang.org/x/xerrors"
 
 	"github.com/glvd/seed/model"
@@ -189,6 +190,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 		log.Error(e)
 	}
 	u := new(unfinishedSlice)
+	u.file = path
 	u.sliceCall = *c
 	u.unfinished = defaultUnfinished(path)
 	u.unfinished.Relate = onlyName(path)
@@ -211,17 +213,24 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 				log.With("file", u.file).Info("video")
 				e = s.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					us := v.(*unfinishedSlice)
-					reader, e := os.Open(us.file)
-					if e != nil {
-						return e
+					file, err := os.Open(us.file)
+					if err != nil {
+						return err
 					}
 
-					resolved, e := api2.Unixfs().Add(context.Background(), files.NewReaderFile(reader))
-					if e != nil {
-						return e
+					resolved, err := api2.Unixfs().Add(context.Background(),
+						files.NewReaderFile(file),
+						func(settings *options.UnixfsAddSettings) error {
+							settings.Pin = true
+							return nil
+						})
+					if err != nil {
+						return err
 					}
 					u.unfinished.Hash = model.PinHash(resolved)
 					e = api.PushTo(StepperDatabase, DatabaseCallback(u.unfinished, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+						u := v.(*model.Unfinished)
+						log.With("hash", u.Hash, "relate", u.Relate).Info("update unfinished")
 						return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 					}))
 					return
@@ -230,20 +239,23 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 			return
 		}))
 		if e != nil {
-			return
+			log.Error(e)
 		}
 	}
-
-	if u.unfinished.Type == model.TypeVideo && !skip(u.format) {
+	log.With("type", u.unfinished.Type).Info("video info")
+	if u.unfinished.Type == model.TypeVideo /*&& !skip(u.format) */ {
 		u1 := new(unfinishedSlice)
+		u1.file = path
+		u1.sliceCall = *c
 		u1.unfinished = u.unfinished.Clone()
 		u1.unfinished.Type = model.TypeSlice
+		log.Info("slice run")
 		e = s.PushTo(StepperDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
 			if !model.IsExist(session, model.Unfinished{}) || !u1.skipExist {
-				log.With("file", u.path).Info("slice")
+				log.With("file", u.file).Info("slice")
 				e = database.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					var sa *cmd.SplitArgs
 					sa, e = sliceVideo(u, u.format)
@@ -259,8 +271,11 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 					if err != nil {
 						return err
 					}
-
-					resolved, e := api2.Unixfs().Add(context.Background(), sf)
+					log.Info("api add")
+					resolved, err := api2.Unixfs().Add(context.Background(), sf)
+					if err != nil {
+						return err
+					}
 					u.unfinished.Hash = model.PinHash(resolved)
 					e = api.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 						u := v.(*unfinishedSlice)

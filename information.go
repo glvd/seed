@@ -13,6 +13,7 @@ import (
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/options"
 	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
@@ -263,7 +264,10 @@ func (info *Information) Run(ctx context.Context) {
 								if e != nil {
 									return e
 								}
-								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
+								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
+									settings.Pin = true
+									return nil
+								})
 								if e != nil {
 									return e
 								}

@@ -63,7 +63,10 @@ func (s *Slice) Push(cb interface{}) error {
 
 // NewSlice ...
 func NewSlice() *Slice {
-	return &Slice{}
+	return &Slice{
+		cb:   make(chan SliceCaller),
+		done: make(chan bool),
+	}
 }
 
 // Run ...
@@ -129,6 +132,7 @@ func GetFiles(p string) (files []string) {
 }
 
 type sliceCall struct {
+	cb   SliceCallbackFunc
 	path string
 	//*Slice
 	skipType    []interface{}
@@ -150,15 +154,19 @@ type unfinishedSlice struct {
 	sliceCall
 }
 
+// SliceCallbackFunc ...
+type SliceCallbackFunc func(s *Slice, v interface{}) (e error)
+
 // SliceCall ...
-func SliceCall(call *Slice, path string) SliceCaller {
+func SliceCall(path string, cb SliceCallbackFunc) SliceCaller {
 	return &sliceCall{
-		path:        path,
-		skipType:    call.SkipType,
-		skipExist:   call.SkipExist,
-		skipSlice:   call.SkipSlice,
-		scale:       call.Scale,
-		sliceOutput: call.SliceOutput,
+		cb:   cb,
+		path: path,
+		//skipType:    call.SkipType,
+		//skipExist:   call.SkipExist,
+		//skipSlice:   call.SkipSlice,
+		//scale:       call.Scale,
+		//sliceOutput: call.SliceOutput,
 	}
 }
 
@@ -176,6 +184,10 @@ func skip(format *cmd.StreamFormat) bool {
 
 // Call ...
 func (c *sliceCall) Call(s *Slice, path string) (e error) {
+	e = c.cb(s, path)
+	if e != nil {
+		log.Error(e)
+	}
 	u := new(unfinishedSlice)
 	u.sliceCall = *c
 	u.unfinished = defaultUnfinished(path)

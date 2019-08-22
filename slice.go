@@ -30,6 +30,26 @@ type Slice struct {
 	SkipExist   bool
 	SkipSlice   bool
 	cb          chan SliceCaller
+	done        chan bool
+}
+
+// Done ...
+func (s *Slice) Done() <-chan bool {
+	go func() {
+		s.cb <- nil
+	}()
+	return s.done
+}
+
+// Option ...
+func (s *Slice) Option(seed Seeder) {
+	sliceOption(s)(seed)
+}
+
+func sliceOption(slice *Slice) Options {
+	return func(seeder Seeder) {
+		seeder.SetBaseThread(StepperSlice, slice)
+	}
 }
 
 // Push ...
@@ -49,10 +69,13 @@ func NewSlice() *Slice {
 // Run ...
 func (s *Slice) Run(context.Context) {
 	log.Info("slice running")
-
+SliceEnd:
 	for {
 		select {
 		case v := <-s.cb:
+			if v == nil {
+				break SliceEnd
+			}
 			files := GetFiles(v.Path())
 			for _, file := range files {
 				e := v.Call(s, file)
@@ -62,6 +85,8 @@ func (s *Slice) Run(context.Context) {
 			}
 		}
 	}
+	close(s.cb)
+	s.done <- true
 }
 
 // BeforeRun ...

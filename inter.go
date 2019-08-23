@@ -98,13 +98,14 @@ type APICaller interface {
 type Threader interface {
 	Runnable
 	Pusher
-	State() State
+
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
 }
 
 // Base ...
 type Base interface {
+	State() State
 	Done() <-chan bool
 }
 

@@ -19,15 +19,10 @@ func dummy(process *Process) (e error) {
 	return
 }
 
-// ProcessCallback ...
-type ProcessCallback interface {
-	Call(process *Process, file string)
-}
-
 // Process ...
 type Process struct {
 	Seed        *seed
-	cb          chan ProcessCallback
+	cb          chan ProcessCaller
 	workspace   string
 	path        string
 	shell       *shell.Shell
@@ -178,8 +173,8 @@ func (p *Process) Run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case <-p.cb:
-
+		case v := <-p.cb:
+			v.Call(p)
 		default:
 
 			log.With("file", file).Info("process run")
@@ -332,4 +327,14 @@ func processOption(process *Process) Options {
 	return func(seed Seeder) {
 		seed.SetThread(StepperProcess, process)
 	}
+}
+
+type processCall struct {
+	file string
+	cb   ProcessCallbackFunc
+}
+
+// Call ...
+func (p *processCall) Call(process *Process) error {
+	return p.cb(process, p.file)
 }

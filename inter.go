@@ -94,6 +94,14 @@ type APICaller interface {
 	Call(*API, *httpapi.HttpApi) error
 }
 
+// ProcessCallbackFunc ...
+type ProcessCallbackFunc func(*Process, string) error
+
+// ProcessCaller ...
+type ProcessCaller interface {
+	Call(process *Process) error
+}
+
 // Threader ...
 type Threader interface {
 	Runnable

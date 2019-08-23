@@ -6,6 +6,7 @@ import (
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
+	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
@@ -16,6 +17,12 @@ type Database struct {
 	syncTable []interface{}
 	cb        chan DatabaseCaller
 	done      chan bool
+	state     *atomic.Int32
+}
+
+// State ...
+func (db *Database) State() State {
+	return State(db.state.Load())
 }
 
 // Done ...
@@ -64,8 +71,10 @@ DatabaseEnd:
 		select {
 		case <-ctx.Done():
 			log.Info("context end")
+			db.state.Store(int32(StateStop))
 			return
 		case v := <-db.cb:
+			db.state.Store(int32(StateRunning))
 			if v == nil {
 				log.Info("db end")
 				break DatabaseEnd
@@ -76,6 +85,7 @@ DatabaseEnd:
 			}
 		case <-time.After(30 * time.Second):
 			log.Info("api time out")
+			db.state.Store(int32(StateWaiting))
 		}
 	}
 	close(db.cb)

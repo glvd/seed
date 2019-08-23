@@ -22,7 +22,7 @@ func (api *API) Done() <-chan bool {
 	go func() {
 		api.cb <- nil
 	}()
-	return api.Done()
+	return api.Threader.Done()
 }
 
 // Option ...

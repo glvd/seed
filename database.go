@@ -23,7 +23,7 @@ func (db *Database) Done() <-chan bool {
 	go func() {
 		db.cb <- nil
 	}()
-	return db.Done()
+	return db.Threader.Done()
 }
 
 var _ DatabaseCaller = &databaseCall{}

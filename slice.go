@@ -11,7 +11,6 @@ import (
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 
 	"github.com/glvd/seed/model"
@@ -27,19 +26,18 @@ type SliceCaller interface {
 // Slice ...
 type Slice struct {
 	Seeder
+	Threader
 	Scale       int64
 	SliceOutput string
 	SkipType    []interface{}
 	SkipExist   bool
 	SkipSlice   bool
 	cb          chan SliceCaller
-	done        chan bool
-	state       *atomic.Int32
 }
 
-// State ...
-func (s *Slice) State() State {
-	return State(s.state.Load())
+// Push ...
+func (s *Slice) Push(v interface{}) error {
+	return s.push(v)
 }
 
 // Done ...
@@ -47,7 +45,7 @@ func (s *Slice) Done() <-chan bool {
 	go func() {
 		s.cb <- nil
 	}()
-	return s.done
+	return s.Threader.Done()
 }
 
 // Option ...
@@ -62,7 +60,7 @@ func sliceOption(slice *Slice) Options {
 }
 
 // Push ...
-func (s *Slice) Push(cb interface{}) error {
+func (s *Slice) push(cb interface{}) error {
 	if v, b := cb.(SliceCaller); b {
 		s.cb <- v
 		return nil
@@ -73,9 +71,8 @@ func (s *Slice) Push(cb interface{}) error {
 // NewSlice ...
 func NewSlice() *Slice {
 	return &Slice{
-		cb:    make(chan SliceCaller),
-		done:  make(chan bool),
-		state: atomic.NewInt32(int32(StateWaiting)),
+		cb:       make(chan SliceCaller),
+		Threader: NewThread(),
 	}
 }
 
@@ -86,14 +83,14 @@ SliceEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			s.state.Store(int32(StateStop))
+			s.SetState(StateStop)
 			break SliceEnd
 		case v := <-s.cb:
 			if v == nil {
-				s.state.Store(int32(StateStop))
+				s.SetState(StateStop)
 				break SliceEnd
 			}
-			s.state.Store(int32(StateRunning))
+			s.SetState(StateRunning)
 			files := GetFiles(v.Path())
 			for _, file := range files {
 				e := v.Call(s, file)
@@ -102,11 +99,11 @@ SliceEnd:
 				}
 			}
 		case <-time.After(30 * time.Second):
-			s.state.Store(int32(StateWaiting))
+			s.SetState(StateWaiting)
 		}
 	}
 	close(s.cb)
-	s.done <- true
+	s.Finished()
 }
 
 // BeforeRun ...

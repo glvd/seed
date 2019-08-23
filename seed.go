@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"sync"
+	"time"
 
 	"github.com/glvd/seed/model"
 	shell "github.com/godcong/go-ipfs-restapi"
@@ -220,6 +221,21 @@ func (s *seed) Wait() {
 	s.wg.Wait()
 
 	log.Info("waiting base")
+	state := 1
+	for state > 0 {
+		for _, t := range s.base {
+			if StateWaiting != t.State() {
+				state = 2
+				time.Sleep(15 * time.Second)
+				break
+			}
+		}
+		if state == 2 {
+			state = 0
+		} else {
+			state = 1
+		}
+	}
 
 	s.Done()
 }

@@ -11,6 +11,8 @@ import (
 // TestSliceCall ...
 func TestNewSlice(t *testing.T) {
 	sli := seed.NewSlice()
+	sli.SliceOutput = "d:\\temp"
+
 	info := seed.NewInformation()
 	info.ResourcePath = "D:\\videoall"
 	info.Path = "D:\\videoall\\video4.json"

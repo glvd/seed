@@ -175,8 +175,8 @@ type unfinishedSlice struct {
 type SliceCallbackFunc func(s *Slice, v interface{}) (e error)
 
 // SliceCall ...
-func SliceCall(path string, cb SliceCallbackFunc) SliceCaller {
-	return &sliceCall{
+func SliceCall(path string, cb SliceCallbackFunc) (Stepper, SliceCaller) {
+	return StepperSlice, &sliceCall{
 		cb:   cb,
 		path: path,
 		//skipType:    call.SkipType,
@@ -228,7 +228,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 				Where("type = ?", u.unfinished.Type)
 			if !model.IsExist(session, model.Unfinished{}) || !u.skipExist {
 				log.With("file", u.file).Info("video")
-				e = s.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+				e = s.PushTo(APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					us := v.(*unfinishedSlice)
 					file, err := os.Open(us.file)
 					if err != nil {
@@ -267,13 +267,13 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 		u1.unfinished = u.unfinished.Clone()
 		u1.unfinished.Type = model.TypeSlice
 		log.Info("slice run")
-		e = s.PushTo(StepperDatabase, DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = s.PushTo(DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
 			if !model.IsExist(session, model.Unfinished{}) || !u1.skipExist {
 				log.With("file", u.file).Info("slice")
-				e = database.PushTo(StepperAPI, APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+				e = database.PushTo(APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					var sa *cmd.SplitArgs
 					sa, e = sliceVideo(u, u.format)
 					if e != nil {
@@ -296,7 +296,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 						return err
 					}
 					u.unfinished.Hash = model.PinHash(resolved)
-					e = api.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+					e = api.PushTo(DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 						u := v.(*unfinishedSlice)
 						e = model.AddOrUpdateUnfinished(eng.NewSession(), u.unfinished)
 						return

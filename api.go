@@ -100,11 +100,11 @@ APIEnd:
 			api.state.Store(int32(StateStop))
 			return
 		case c := <-api.cb:
-			api.state.Store(int32(StateRunning))
 			if c == nil {
-				log.Info("api end")
+				api.state.Store(int32(StateStop))
 				break APIEnd
 			}
+			api.state.Store(int32(StateRunning))
 			e = c.Call(api, api.api)
 			if e != nil {
 				log.Error(e)

@@ -70,15 +70,14 @@ DatabaseEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			log.Info("context end")
 			db.state.Store(int32(StateStop))
 			return
 		case v := <-db.cb:
-			db.state.Store(int32(StateRunning))
 			if v == nil {
-				log.Info("db end")
+				db.state.Store(int32(StateStop))
 				break DatabaseEnd
 			}
+			db.state.Store(int32(StateRunning))
 			e = v.Call(db, db.eng)
 			if e != nil {
 				log.Error(e)

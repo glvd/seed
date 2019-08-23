@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
+	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 
 	"github.com/glvd/seed/model"
@@ -32,6 +34,12 @@ type Slice struct {
 	SkipSlice   bool
 	cb          chan SliceCaller
 	done        chan bool
+	state       *atomic.Int32
+}
+
+// State ...
+func (s *Slice) State() State {
+	return State(s.state.Load())
 }
 
 // Done ...
@@ -49,7 +57,7 @@ func (s *Slice) Option(seed Seeder) {
 
 func sliceOption(slice *Slice) Options {
 	return func(seeder Seeder) {
-		seeder.SetBaseThread(StepperSlice, slice)
+		seeder.SetThread(StepperSlice, slice)
 	}
 }
 
@@ -71,15 +79,20 @@ func NewSlice() *Slice {
 }
 
 // Run ...
-func (s *Slice) Run(context.Context) {
+func (s *Slice) Run(ctx context.Context) {
 	log.Info("slice running")
 SliceEnd:
 	for {
 		select {
+		case <-ctx.Done():
+			s.state.Store(int32(StateStop))
+			break SliceEnd
 		case v := <-s.cb:
 			if v == nil {
+				s.state.Store(int32(StateStop))
 				break SliceEnd
 			}
+			s.state.Store(int32(StateRunning))
 			files := GetFiles(v.Path())
 			for _, file := range files {
 				e := v.Call(s, file)
@@ -87,6 +100,8 @@ SliceEnd:
 					log.With("file", file).Error(e)
 				}
 			}
+		case <-time.After(30 * time.Second):
+			s.state.Store(int32(StateWaiting))
 		}
 	}
 	close(s.cb)

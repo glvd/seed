@@ -35,8 +35,7 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	Seeder
-	Threader
+	*Thread
 	InfoType     InfoType
 	Path         string
 	ResourcePath string
@@ -58,8 +57,8 @@ func (info *Information) Option(seed Seeder) {
 // NewInformation ...
 func NewInformation() *Information {
 	info := new(Information)
-	info.cb = make(chan InformationCaller, 1000)
-	info.Threader = NewThread()
+	info.cb = make(chan InformationCaller)
+	info.Thread = NewThread()
 	return info
 }
 
@@ -361,24 +360,25 @@ func splitCall(information *Information, c *informationCall, vs []*VideoSource, 
 			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
 			if e != nil {
 				log.Error(e)
-				return false
+				continue
 			}
 			defer openFile.Close()
 			if i+limit >= size {
 				vstmp = vs[i:size]
 			} else {
-				vstmp = vs[i:limit]
+				vstmp = vs[i : i+limit]
 			}
 			encoder := json.NewEncoder(openFile)
 			e = encoder.Encode(vstmp)
 			if e != nil {
 				log.Error(e)
-				return false
+				continue
 			}
 			log.With("path", open).Info("json")
 			e = information.PushTo(InformationCall(InfoTypeJSON, open))
 			if e != nil {
-				return false
+				log.Error(e)
+				continue
 			}
 		}
 		return true
@@ -399,6 +399,9 @@ func (i *informationCall) Call(information *Information) error {
 	if vs == nil {
 		return xerrors.New("no video source")
 	}
+	if information == nil {
+		log.Panic("nil information")
+	}
 
 	if splitCall(information, i, vs, 10000) {
 		return nil
@@ -409,6 +412,9 @@ func (i *informationCall) Call(information *Information) error {
 
 	for {
 		source := <-vsc
+		if source == nil {
+			return nil
+		}
 		v := video(source)
 		if !failedSkip.Load() {
 			if source.Poster != "" {

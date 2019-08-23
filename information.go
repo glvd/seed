@@ -42,15 +42,9 @@ type Information struct {
 	cb           chan InformationCaller
 }
 
-// State ...
-func (info *Information) State() State {
-	//return State(info.state.Load())
-	return StateWaiting
-}
-
 // Push ...
 func (info *Information) Push(v interface{}) error {
-	return info.pushVideoCallback(v)
+	return info.push(v)
 }
 
 // Option ...
@@ -65,7 +59,7 @@ func NewInformation() *Information {
 }
 
 // PushCallback ...
-func (info *Information) pushVideoCallback(cb interface{}) error {
+func (info *Information) push(cb interface{}) error {
 	if v, b := cb.(InformationCaller); b {
 		go func(cb InformationCaller) {
 			info.cb <- cb

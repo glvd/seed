@@ -38,16 +38,7 @@ func apiOption(api *API) Options {
 
 // Push ...
 func (api *API) Push(v interface{}) error {
-	return api.pushAPICallback(v)
-}
-
-// BeforeRun ...
-func (api *API) BeforeRun(seed Seeder) {
-	api.Seeder = seed
-}
-
-// AfterRun ...
-func (api *API) AfterRun(seed Seeder) {
+	return api.push(v)
 }
 
 // NewAPI ...
@@ -69,7 +60,7 @@ func NewAPI(path string) *API {
 }
 
 // PushCallback ...
-func (api *API) pushAPICallback(cb interface{}) (e error) {
+func (api *API) push(cb interface{}) (e error) {
 	if v, b := cb.(APICaller); b {
 		api.cb <- v
 		return

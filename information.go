@@ -3,10 +3,12 @@ package seed
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -56,6 +58,8 @@ func (info *Information) Option(seed Seeder) {
 // NewInformation ...
 func NewInformation() *Information {
 	info := new(Information)
+	info.cb = make(chan InformationCaller, 1000)
+	info.Threader = NewThread()
 	return info
 }
 
@@ -241,6 +245,7 @@ func filterProcList(sources []*VideoSource, filterList []string) <-chan *VideoSo
 			}
 		}(vs)
 	} else {
+		log.With("list", filterList).Info("filter")
 		go func(vs chan<- *VideoSource) {
 			defer func() {
 				vs <- nil
@@ -341,11 +346,48 @@ var infoCallList = map[InfoType]func(string) ([]*VideoSource, error){
 type informationCall struct {
 	infoType InfoType
 	path     string
+	list     []string
+	start    int
+}
+
+func splitCall(information *Information, c *informationCall, vs []*VideoSource, limit int) bool {
+	size := len(vs)
+	var vstmp []*VideoSource
+	if size > limit {
+		for i := 0; i < size; i += limit {
+			dir, file := filepath.Split(c.path)
+			open := filepath.Join(dir, file+"."+strconv.Itoa(i))
+
+			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
+			if e != nil {
+				log.Error(e)
+				return false
+			}
+			defer openFile.Close()
+			if i+limit >= size {
+				vstmp = vs[i:size]
+			} else {
+				vstmp = vs[i:limit]
+			}
+			encoder := json.NewEncoder(openFile)
+			e = encoder.Encode(vstmp)
+			if e != nil {
+				log.Error(e)
+				return false
+			}
+			log.With("path", open).Info("json")
+			e = information.PushTo(InformationCall(InfoTypeJSON, open))
+			if e != nil {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // Call ...
 func (i *informationCall) Call(information *Information) error {
-
 	var e error
 	var vs []*VideoSource
 	if v, b := infoCallList[i.infoType]; b {
@@ -357,94 +399,104 @@ func (i *informationCall) Call(information *Information) error {
 	if vs == nil {
 		return xerrors.New("no video source")
 	}
-	log.With("filter", info.ProcList).Info("filter list")
-	vs = filterProcList(vs, info.ProcList)
+
+	if splitCall(information, i, vs, 10000) {
+		return nil
+	}
+
+	vsc := filterProcList(vs, i.list)
 	failedSkip := atomic.NewBool(false)
-	maxLimit := len(vs)
-	for i := info.Start; i < maxLimit; i++ {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			source := vs[i]
-			v := video(source)
-			if !failedSkip.Load() {
-				if source.Poster != "" {
-					v.PosterHash = source.Poster
-				} else {
-					if source.PosterPath != "" {
-						source.PosterPath = filepath.Join(info.ResourcePath, source.PosterPath)
-						if checkFileNotExist(source.PosterPath) {
-							log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
-						} else {
-							e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-								source := v.(*VideoSource)
-								file, e := os.Open(source.PosterPath)
-								if e != nil {
-									return e
-								}
-								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
-								if e != nil {
-									return e
-								}
-								_, e = addPosterHash(info.Seeder, source, model.PinHash(resolved))
-								if e != nil {
-									failedSkip.Store(true)
-									return e
-								}
 
-								return nil
-							}))
-							if e != nil {
-								log.Error(e)
-								continue
-							}
-
-						}
-					}
-				}
-
-				if source.Thumb != "" {
-					source.Thumb = filepath.Join(info.ResourcePath, source.Thumb)
-					if checkFileNotExist(source.Thumb) {
-						log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+	for {
+		source := <-vsc
+		v := video(source)
+		if !failedSkip.Load() {
+			if source.Poster != "" {
+				v.PosterHash = source.Poster
+			} else {
+				if source.PosterPath != "" {
+					source.PosterPath = filepath.Join(information.ResourcePath, source.PosterPath)
+					if checkFileNotExist(source.PosterPath) {
+						log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 					} else {
-						e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+						e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 							source := v.(*VideoSource)
 							file, e := os.Open(source.PosterPath)
 							if e != nil {
 								return e
 							}
-							resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
-								settings.Pin = true
-								return nil
-							})
+							resolved, e := api2.Unixfs().Add(context.Background(), files.NewReaderFile(file))
 							if e != nil {
 								return e
 							}
-							_, e = addThumbHash(info.Seeder, source, model.PinHash(resolved))
+							_, e = addPosterHash(information.Seeder, source, model.PinHash(resolved))
 							if e != nil {
 								failedSkip.Store(true)
 								return e
 							}
+
 							return nil
 						}))
 						if e != nil {
 							log.Error(e)
 							continue
 						}
+
 					}
 				}
 			}
-			e := info.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-				return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
-			}))
-			if e != nil {
-				log.With("bangumi", v.Bangumi).Error(e)
+
+			if source.Thumb != "" {
+				source.Thumb = filepath.Join(information.ResourcePath, source.Thumb)
+				if checkFileNotExist(source.Thumb) {
+					log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+				} else {
+					e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+						source := v.(*VideoSource)
+						file, e := os.Open(source.PosterPath)
+						if e != nil {
+							return e
+						}
+						resolved, e := api2.Unixfs().Add(context.Background(), files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
+							settings.Pin = true
+							return nil
+						})
+						if e != nil {
+							return e
+						}
+						_, e = addThumbHash(information.Seeder, source, model.PinHash(resolved))
+						if e != nil {
+							failedSkip.Store(true)
+							return e
+						}
+						return nil
+					}))
+					if e != nil {
+						log.Error(e)
+						continue
+					}
+				}
 			}
 		}
+		e := information.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+			return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
+		}))
+		if e != nil {
+			log.With("bangumi", v.Bangumi).Error(e)
+		}
+		log.Info("info end")
 	}
-	log.Info("info end")
+
+}
+
+// InformationCall ...
+func InformationCall(it InfoType, path string, list ...string) (Stepper, InformationCaller) {
+	return StepperInformation, &informationCall{
+		infoType: it,
+		path:     path,
+		list:     list,
+		//start:    0,
+	}
 }
 
 var _ InformationCaller = &informationCall{}

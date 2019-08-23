@@ -242,9 +242,9 @@ func (p *Pin) Run(ctx context.Context) {
 				return
 			case uf := <-u:
 				log.With("type", uf.Type, "hash", uf.Hash, "sharpness", uf.Sharpness, "relate", uf.Relate).Info("Pin")
-				if e := APIPin(p.Seeder, uf.Hash); e != nil {
-					log.With("hash", uf.Hash).Error(e, " not pinned")
-				}
+				//if e := APIPin(p.Seeder, uf.Hash); e != nil {
+				//	log.With("hash", uf.Hash).Error(e, " not pinned")
+				//}
 			}
 		}
 		//case PinStatusAssignHash:

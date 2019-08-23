@@ -17,6 +17,10 @@ func TestInformation(t *testing.T) {
 	s := seed.NewSeed(info)
 	s.Start()
 
+	e := s.PushTo(seed.InformationCall(info.InfoType, info.Path))
+	if e != nil {
+		t.Error(e)
+	}
 	s.Wait()
 }
 

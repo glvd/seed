@@ -21,11 +21,6 @@ type Options func(seeder Seeder)
 // AfterInitOptions ...
 type AfterInitOptions func(Seeder)
 
-// Thread ...
-type Thread struct {
-	wg sync.WaitGroup
-}
-
 // seed ...
 type seed struct {
 	Shell       *shell.Shell
@@ -46,9 +41,9 @@ type seed struct {
 	skipConvert bool
 	preAdd      bool
 	noSlice     bool
-	Database    Threader
-	thread      map[Stepper]Threader
-	base        map[Stepper]Base
+	Database    ThreadRun
+	thread      map[Stepper]ThreadRun
+	base        map[Stepper]ThreadBase
 	normal      map[Stepper][]byte
 }
 
@@ -59,8 +54,8 @@ func defaultSeed() *seed {
 		Moves:      make(map[string]string),
 		MaxLimit:   math.MaxUint16,
 		wg:         &sync.WaitGroup{},
-		thread:     make(map[Stepper]Threader, StepperMax),
-		base:       make(map[Stepper]Base, StepperMax),
+		thread:     make(map[Stepper]ThreadRun, StepperMax),
+		base:       make(map[Stepper]ThreadBase, StepperMax),
 		normal:     make(map[Stepper][]byte, StepperMax),
 	}
 }
@@ -74,17 +69,17 @@ func NewSeed(ops ...Optioner) Seeder {
 }
 
 // GetThread ...
-func (s *seed) GetThread(stepper Stepper) Threader {
+func (s *seed) GetThread(stepper Stepper) ThreadRun {
 	return s.thread[stepper]
 }
 
 // SetThread ...
-func (s *seed) SetThread(stepper Stepper, threader Threader) {
+func (s *seed) SetThread(stepper Stepper, threader ThreadRun) {
 	s.thread[stepper] = threader
 }
 
 // SetBaseThread ...
-func (s *seed) SetBaseThread(stepper Stepper, threader BaseThreader) {
+func (s *seed) SetBaseThread(stepper Stepper, threader Threader) {
 	s.base[stepper] = threader
 	s.thread[stepper] = threader
 }
@@ -96,7 +91,7 @@ func (s *seed) IsBase(stepper Stepper) bool {
 }
 
 // SetNormalThread ...
-func (s *seed) SetNormalThread(stepper Stepper, threader Threader) {
+func (s *seed) SetNormalThread(stepper Stepper, threader ThreadRun) {
 	s.normal[stepper] = nil
 	s.thread[stepper] = threader
 }
@@ -170,7 +165,7 @@ func (s *seed) GetNumberArg(key string) (v int64) {
 func (s *seed) Done() {
 	count := atomic.NewInt32(0)
 	for i := range s.base {
-		func(base Base) {
+		func(base ThreadBase) {
 			<-base.Done()
 			count.Add(1)
 		}(s.base[i])
@@ -199,14 +194,14 @@ func (s *seed) Start() {
 		}
 		s.thread[i].BeforeRun(s)
 		if s.IsNormal(i) || s.IsBase(i) {
-			go func(t Threader, s *seed) {
+			go func(t ThreadRun, s *seed) {
 				t.Run(s.ctx)
 				t.AfterRun(s)
 			}(s.thread[i], s)
 			continue
 		} else {
 			s.wg.Add(1)
-			go func(t Threader, s *seed) {
+			go func(t ThreadRun, s *seed) {
 				defer s.wg.Done()
 				t.Run(s.ctx)
 				t.AfterRun(s)

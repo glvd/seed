@@ -397,6 +397,43 @@ func SplitCall(information *Information, limit int) (e error) {
 	return
 }
 
+func splitCall(information *Information, c *informationCall, vs []*VideoSource, limit int) (b bool) {
+	size := len(vs)
+	var vstmp []*VideoSource
+	if size > limit {
+		for i := 0; i < size; i += limit {
+			dir, file := filepath.Split(c.path)
+			open := filepath.Join(dir, file+"."+strconv.Itoa(i))
+
+			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
+			if e != nil {
+				log.Error(e)
+				continue
+			}
+			defer openFile.Close()
+			if i+limit >= size {
+				vstmp = vs[i:size]
+			} else {
+				vstmp = vs[i : i+limit]
+			}
+			encoder := json.NewEncoder(openFile)
+			e = encoder.Encode(vstmp)
+			if e != nil {
+				log.Error(e)
+				continue
+			}
+			log.With("path", open).Info("json")
+			e = information.PushTo(InformationCall(InfoTypeJSON, open, c.list...))
+			if e != nil {
+				log.Error(e)
+				continue
+			}
+		}
+		return true
+	}
+	return false
+}
+
 // Call ...
 func (i *informationCall) Call(information *Information) error {
 	var e error
@@ -410,13 +447,11 @@ func (i *informationCall) Call(information *Information) error {
 	if vs == nil {
 		return xerrors.New("no video source")
 	}
-	if information == nil {
-		log.Panic("nil information")
-	}
 
-	//if splitCall(information, i, vs, 10000) {
-	//	return nil
-	//}
+	if splitCall(information, i, vs, 10000) {
+		log.With("path", i.path).Info("split")
+		return nil
+	}
 
 	vsc := filterProcList(vs, i.list)
 	failedSkip := atomic.NewBool(false)
@@ -501,9 +536,7 @@ func (i *informationCall) Call(information *Information) error {
 		if e != nil {
 			log.With("bangumi", v.Bangumi).Error(e)
 		}
-		log.Info("info end")
 	}
-
 }
 
 // InformationCall ...

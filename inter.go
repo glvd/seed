@@ -98,7 +98,6 @@ type APICaller interface {
 type Threader interface {
 	Runnable
 	Pusher
-
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
 }

@@ -12,40 +12,10 @@ type State int
 
 // State ...
 const (
-	StateRunning State = iota
-
-	StateWaiting
-
+	StateWaiting State = iota
+	StateRunning
 	StateStop
 )
-
-// Seeder ...
-type Seeder interface {
-	Start()
-	Wait()
-	Stop()
-	State()
-	PushTo(stepper Stepper, v interface{}) error
-	GetThread(stepper Stepper) Threader
-	SetThread(stepper Stepper, threader Threader)
-	HasThread(stepper Stepper) bool
-	SetBaseThread(stepper Stepper, threader BaseThreader)
-	IsBase(stepper Stepper) bool
-	SetNormalThread(stepper Stepper, threader Threader)
-	IsNormal(stepper Stepper) bool
-	Register(ops ...Optioner)
-	//Err() error
-}
-
-// Initer ...
-type Initer interface {
-	Init()
-}
-
-//Optioner set option
-type Optioner interface {
-	Option(Seeder)
-}
 
 // Stepper ...
 type Stepper int
@@ -82,6 +52,32 @@ const (
 	StepperMax
 )
 
+// Seeder ...
+type Seeder interface {
+	Start()
+	Wait()
+	Stop()
+	PushTo(stepper Stepper, v interface{}) error
+	GetThread(stepper Stepper) Threader
+	SetThread(stepper Stepper, threader Threader)
+	HasThread(stepper Stepper) bool
+	SetBaseThread(stepper Stepper, threader BaseThreader)
+	IsBase(stepper Stepper) bool
+	SetNormalThread(stepper Stepper, threader Threader)
+	IsNormal(stepper Stepper) bool
+	Register(ops ...Optioner)
+}
+
+// Initer ...
+type Initer interface {
+	Init()
+}
+
+//Optioner set option
+type Optioner interface {
+	Option(Seeder)
+}
+
 // DatabaseCallbackFunc ...
 type DatabaseCallbackFunc func(database *Database, eng *xorm.Engine, v interface{}) (e error)
 
@@ -102,6 +98,7 @@ type APICaller interface {
 type Threader interface {
 	Runnable
 	Pusher
+	State() State
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
 }

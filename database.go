@@ -84,7 +84,6 @@ DatabaseEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
-			log.Info("api time out")
 			db.state.Store(int32(StateWaiting))
 		}
 	}

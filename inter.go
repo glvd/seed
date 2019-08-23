@@ -61,10 +61,10 @@ type Seeder interface {
 	GetThread(stepper Stepper) Threader
 	SetThread(stepper Stepper, threader Threader)
 	HasThread(stepper Stepper) bool
-	SetBaseThread(stepper Stepper, threader BaseThreader)
-	IsBase(stepper Stepper) bool
-	SetNormalThread(stepper Stepper, threader Threader)
-	IsNormal(stepper Stepper) bool
+	//SetBaseThread(stepper Stepper, threader BaseThreader)
+	//IsBase(stepper Stepper) bool
+	//SetNormalThread(stepper Stepper, threader Threader)
+	//IsNormal(stepper Stepper) bool
 	Register(ops ...Optioner)
 }
 

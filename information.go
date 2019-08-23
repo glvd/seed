@@ -39,12 +39,13 @@ type Information struct {
 	ProcList     []string
 	Start        int
 	vcb          chan InformationVideoCallback
-	state        *atomic.Int32
+	//state        *atomic.Int32
 }
 
 // State ...
 func (info *Information) State() State {
-	return State(info.state.Load())
+	//return State(info.state.Load())
+	return StateWaiting
 }
 
 // Push ...
@@ -179,10 +180,10 @@ func checkFileNotExist(path string) bool {
 // Run ...
 func (info *Information) Run(ctx context.Context) {
 	log.Info("information running")
-	info.state.Store(int32(StateRunning))
-	defer func() {
-		info.state.Store(int32(StateStop))
-	}()
+	//info.state.Store(int32(StateRunning))
+	//defer func() {
+	//	info.state.Store(int32(StateStop))
+	//}()
 	var vs []*VideoSource
 	isDefault := true
 	switch info.InfoType {

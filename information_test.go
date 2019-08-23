@@ -39,6 +39,13 @@ func TestInformation2(t *testing.T) {
 
 	s.Start()
 	fmt.Println("waiting end")
+	//e := seed.SplitCall(info, 10000)
+	//if e != nil {
+	//	t.Error(e)
+	//}
+	if err := s.PushTo(seed.InformationCall(info.InfoType, info.Path)); err != nil {
+		t.Error(err)
+	}
 	s.Wait()
 	fmt.Println("waiting db end")
 	sdb.Done()

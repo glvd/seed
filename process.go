@@ -19,9 +19,15 @@ func dummy(process *Process) (e error) {
 	return
 }
 
+// ProcessCallback ...
+type ProcessCallback interface {
+	Call(process *Process, file string)
+}
+
 // Process ...
 type Process struct {
 	Seed        *seed
+	cb          chan ProcessCallback
 	workspace   string
 	path        string
 	shell       *shell.Shell
@@ -168,17 +174,14 @@ func LastSlice(s, sep string) string {
 
 // Run ...
 func (p *Process) Run(ctx context.Context) {
-	files := p.getFiles(p.path)
-	log.Info(files)
-	var unfin *model.Unfinished
-	for _, file := range files {
+	for {
 		select {
 		case <-ctx.Done():
-			if err := ctx.Err(); err != nil {
-				log.Error(err)
-			}
 			return
+		case <-p.cb:
+
 		default:
+
 			log.With("file", file).Info("process run")
 			unfin = defaultUnfinished(file)
 			unfin.Relate = onlyName(file)
@@ -227,9 +230,8 @@ func (p *Process) Run(ctx context.Context) {
 
 			}
 		}
-
-		p.moves[file] = unfin.Hash
 	}
+
 	return
 }
 

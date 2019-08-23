@@ -190,8 +190,8 @@ func APIPin(seed Seeder, hash string) (e error) {
 }
 
 // APICallback ...
-func APICallback(v interface{}, cb APICallbackFunc) APICaller {
-	return &apiCall{
+func APICallback(v interface{}, cb APICallbackFunc) (Stepper, APICaller) {
+	return StepperAPI, &apiCall{
 		v:  v,
 		cb: cb,
 	}

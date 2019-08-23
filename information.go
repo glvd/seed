@@ -237,7 +237,7 @@ func (info *Information) Run(ctx context.Context) {
 							if checkFileNotExist(source.PosterPath) {
 								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 							} else {
-								e := info.PushTo(StepperAPI, APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+								e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 									source := v.(*VideoSource)
 									file, e := os.Open(source.PosterPath)
 									if e != nil {
@@ -269,7 +269,7 @@ func (info *Information) Run(ctx context.Context) {
 						if checkFileNotExist(source.Thumb) {
 							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 						} else {
-							e := info.PushTo(StepperAPI, APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+							e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 								source := v.(*VideoSource)
 								file, e := os.Open(source.PosterPath)
 								if e != nil {
@@ -296,7 +296,7 @@ func (info *Information) Run(ctx context.Context) {
 						}
 					}
 				}
-				e := info.PushTo(StepperDatabase, DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+				e := info.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 					return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
 				}))
 				if e != nil {
@@ -315,7 +315,7 @@ func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unf
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		unfinThumb.Hash = hash
-		e = seed.PushTo(StepperDatabase, DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = seed.PushTo(DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {
@@ -334,7 +334,7 @@ func addPosterHash(seed Seeder, source *VideoSource, hash string) (unf *model.Un
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = hash
-		e = seed.PushTo(StepperDatabase, DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = seed.PushTo(DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {

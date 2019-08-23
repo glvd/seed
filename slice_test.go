@@ -25,7 +25,7 @@ func TestNewSlice(t *testing.T) {
 	s := seed.NewSeed(info, sdb, api, sli)
 	s.Start()
 	fmt.Println("waiting end")
-	e := s.PushTo(seed.StepperSlice, seed.SliceCall("D:\\videoall\\videos", func(s *seed.Slice, v interface{}) (e error) {
+	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos", func(s *seed.Slice, v interface{}) (e error) {
 		fmt.Println("slice call")
 		return
 	}))

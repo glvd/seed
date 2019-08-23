@@ -55,7 +55,6 @@ func (t *BaseThread) Done() <-chan bool {
 // NewThread ...
 func NewThread() Threader {
 	return &BaseThread{
-		//Seeder: nil,
 		state: atomic.NewInt32(int32(StateWaiting)),
 		done:  make(chan bool),
 	}

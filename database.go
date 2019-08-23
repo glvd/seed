@@ -48,7 +48,7 @@ func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) (Stepper, Database
 
 // Push ...
 func (db *Database) Push(v interface{}) error {
-	return db.pushDatabaseCallback(v)
+	return db.push(v)
 }
 
 // Run ...
@@ -83,15 +83,6 @@ DatabaseEnd:
 	db.Finished()
 }
 
-// BeforeRun ...
-func (db *Database) BeforeRun(seed Seeder) {
-	db.Seeder = seed
-}
-
-// AfterRun ...
-func (db *Database) AfterRun(seed Seeder) {
-}
-
 // NewDatabase ...
 func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
@@ -107,7 +98,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 }
 
 // PushCallback ...
-func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
+func (db *Database) push(cb interface{}) (e error) {
 	if v, b := cb.(DatabaseCaller); b {
 		db.cb <- v
 		return nil

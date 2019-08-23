@@ -7,11 +7,24 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 )
 
+// State ...
+type State int
+
+// State ...
+const (
+	StateRunning State = iota
+
+	StateWaiting
+
+	StateStop
+)
+
 // Seeder ...
 type Seeder interface {
 	Start()
 	Wait()
 	Stop()
+	State()
 	PushTo(stepper Stepper, v interface{}) error
 	GetThread(stepper Stepper) Threader
 	SetThread(stepper Stepper, threader Threader)

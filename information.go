@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -162,133 +163,30 @@ func checkFileNotExist(path string) bool {
 // Run ...
 func (info *Information) Run(ctx context.Context) {
 	log.Info("information running")
-	//info.state.Store(int32(StateRunning))
-	//defer func() {
-	//	info.state.Store(int32(StateStop))
-	//}()
-	var vs []*VideoSource
-	isDefault := true
-	switch info.InfoType {
-	case InfoTypeBSON:
-		isDefault = false
-		b, e := ioutil.ReadFile(info.Path)
-		if e != nil {
-			panic(e)
-		}
-		fixed := fixBson(b)
-		reader := bytes.NewBuffer(fixed)
-		e = LoadFrom(&vs, reader)
-		if e != nil {
-			panic(e)
-		}
-	case InfoTypeJSON:
-		isDefault = false
-		b, e := ioutil.ReadFile(info.Path)
-		if e != nil {
-			panic(e)
-		}
-		reader := bytes.NewBuffer(b)
-		e = LoadFrom(&vs, reader)
-		if e != nil {
-			panic(e)
-		}
-	default:
-	}
-	if !isDefault {
-		if vs == nil {
-			log.Info("nil video source")
-			return
-		}
-		log.With("filter", info.ProcList).Info("filter list")
-		vs = filterProcList(vs, info.ProcList)
-		failedSkip := atomic.NewBool(false)
-		maxLimit := len(vs)
-		for i := info.Start; i < maxLimit; i++ {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				source := vs[i]
-				v := video(source)
-				if !failedSkip.Load() {
-					if source.Poster != "" {
-						v.PosterHash = source.Poster
-					} else {
-						if source.PosterPath != "" {
-							source.PosterPath = filepath.Join(info.ResourcePath, source.PosterPath)
-							if checkFileNotExist(source.PosterPath) {
-								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
-							} else {
-								e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-									source := v.(*VideoSource)
-									file, e := os.Open(source.PosterPath)
-									if e != nil {
-										return e
-									}
-									resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
-									if e != nil {
-										return e
-									}
-									_, e = addPosterHash(info.Seeder, source, model.PinHash(resolved))
-									if e != nil {
-										failedSkip.Store(true)
-										return e
-									}
 
-									return nil
-								}))
-								if e != nil {
-									log.Error(e)
-									continue
-								}
-
-							}
-						}
-					}
-
-					if source.Thumb != "" {
-						source.Thumb = filepath.Join(info.ResourcePath, source.Thumb)
-						if checkFileNotExist(source.Thumb) {
-							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
-						} else {
-							e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-								source := v.(*VideoSource)
-								file, e := os.Open(source.PosterPath)
-								if e != nil {
-									return e
-								}
-								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
-									settings.Pin = true
-									return nil
-								})
-								if e != nil {
-									return e
-								}
-								_, e = addThumbHash(info.Seeder, source, model.PinHash(resolved))
-								if e != nil {
-									failedSkip.Store(true)
-									return e
-								}
-								return nil
-							}))
-							if e != nil {
-								log.Error(e)
-								continue
-							}
-						}
-					}
-				}
-				e := info.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-					return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
-				}))
-				if e != nil {
-					log.With("bangumi", v.Bangumi).Error(e)
-				}
+InfoEnd:
+	for {
+		select {
+		case <-ctx.Done():
+			info.SetState(StateStop)
+			break InfoEnd
+		case cb := <-info.cb:
+			if cb == nil {
+				info.SetState(StateStop)
+				break InfoEnd
 			}
+			info.SetState(StateRunning)
+			e := cb.Call(info)
+			if e != nil {
+				log.Error(e)
+			}
+		case <-time.After(30 * time.Second):
+			info.SetState(StateWaiting)
 		}
-		log.Info("info end")
 	}
-	return
+	close(info.cb)
+	info.Finished()
+
 }
 
 func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
@@ -395,12 +293,150 @@ func informationOption(info *Information) Options {
 	}
 }
 
+func bsonVideoSource(path string) (vs []*VideoSource, e error) {
+	var bs []byte
+	bs, e = ioutil.ReadFile(path)
+	if e != nil {
+		return nil, e
+	}
+	fixed := fixBson(bs)
+	reader := bytes.NewBuffer(fixed)
+	vs = *new([]*VideoSource)
+	e = LoadFrom(&vs, reader)
+	return
+}
+
+func jsonVideoSource(path string) (vs []*VideoSource, e error) {
+	var bs []byte
+	bs, e = ioutil.ReadFile(path)
+	if e != nil {
+		return nil, e
+	}
+	reader := bytes.NewBuffer(bs)
+	vs = *new([]*VideoSource)
+	e = LoadFrom(&vs, reader)
+	return
+}
+
+var infoCallList = map[InfoType]func(string) ([]*VideoSource, error){
+	InfoTypeBSON: bsonVideoSource,
+	InfoTypeJSON: jsonVideoSource,
+}
+
 type informationCall struct {
+	infoType InfoType
+	path     string
 }
 
 // Call ...
-func (i informationCall) Call(information Information) error {
-	panic("implement me")
+func (i *informationCall) Call(information *Information) error {
+
+	isDefault := true
+	var e error
+	var vs []*VideoSource
+	if v, b := infoCallList[i.infoType]; b {
+		isDefault = false
+		vs, e = v(i.path)
+		if e != nil {
+			return e
+		}
+	}
+
+	if !isDefault {
+		if vs == nil {
+			log.Info("nil video source")
+			return
+		}
+		log.With("filter", info.ProcList).Info("filter list")
+		vs = filterProcList(vs, info.ProcList)
+		failedSkip := atomic.NewBool(false)
+		maxLimit := len(vs)
+		for i := info.Start; i < maxLimit; i++ {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				source := vs[i]
+				v := video(source)
+				if !failedSkip.Load() {
+					if source.Poster != "" {
+						v.PosterHash = source.Poster
+					} else {
+						if source.PosterPath != "" {
+							source.PosterPath = filepath.Join(info.ResourcePath, source.PosterPath)
+							if checkFileNotExist(source.PosterPath) {
+								log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
+							} else {
+								e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+									source := v.(*VideoSource)
+									file, e := os.Open(source.PosterPath)
+									if e != nil {
+										return e
+									}
+									resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file))
+									if e != nil {
+										return e
+									}
+									_, e = addPosterHash(info.Seeder, source, model.PinHash(resolved))
+									if e != nil {
+										failedSkip.Store(true)
+										return e
+									}
+
+									return nil
+								}))
+								if e != nil {
+									log.Error(e)
+									continue
+								}
+
+							}
+						}
+					}
+
+					if source.Thumb != "" {
+						source.Thumb = filepath.Join(info.ResourcePath, source.Thumb)
+						if checkFileNotExist(source.Thumb) {
+							log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+						} else {
+							e := info.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+								source := v.(*VideoSource)
+								file, e := os.Open(source.PosterPath)
+								if e != nil {
+									return e
+								}
+								resolved, e := api2.Unixfs().Add(ctx, files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
+									settings.Pin = true
+									return nil
+								})
+								if e != nil {
+									return e
+								}
+								_, e = addThumbHash(info.Seeder, source, model.PinHash(resolved))
+								if e != nil {
+									failedSkip.Store(true)
+									return e
+								}
+								return nil
+							}))
+							if e != nil {
+								log.Error(e)
+								continue
+							}
+						}
+					}
+				}
+				e := info.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+					return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
+				}))
+				if e != nil {
+					log.With("bangumi", v.Bangumi).Error(e)
+				}
+			}
+		}
+		log.Info("info end")
+	}
+	return
 }
 
 var _ InformationCaller = &informationCall{}

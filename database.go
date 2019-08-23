@@ -116,9 +116,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 // PushCallback ...
 func (db *Database) pushDatabaseCallback(cb interface{}) (e error) {
 	if v, b := cb.(DatabaseCaller); b {
-		//go func(database *Database, dc DatabaseCaller) {
 		db.cb <- v
-		//}(db, v)
 		return nil
 	}
 	return xerrors.New("not database callback")

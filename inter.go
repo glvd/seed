@@ -62,12 +62,12 @@ type Seeder interface {
 	Wait()
 	Stop()
 	PushTo(stepper Stepper, v interface{}) error
-	GetThread(stepper Stepper) Threader
-	SetThread(stepper Stepper, threader Threader)
+	GetThread(stepper Stepper) ThreadRun
+	SetThread(stepper Stepper, threader ThreadRun)
 	HasThread(stepper Stepper) bool
-	//SetBaseThread(stepper Stepper, threader BaseThreader)
+	//SetBaseThread(stepper Stepper, threader Threader)
 	//IsBase(stepper Stepper) bool
-	//SetNormalThread(stepper Stepper, threader Threader)
+	//SetNormalThread(stepper Stepper, threader ThreadRun)
 	//IsNormal(stepper Stepper) bool
 	Register(ops ...Optioner)
 }
@@ -109,32 +109,31 @@ type ProcessCaller interface {
 // InformationCallbackFunc ...
 type InformationCallbackFunc func(information *Information, v *model.Video)
 
-// Threader ...
-type Threader interface {
+// InformationCaller ...
+type InformationCaller interface {
+	Call(information Information) error
+}
+
+// ThreadRun ...
+type ThreadRun interface {
 	Runnable
 	Pusher
 	BeforeRun(seed Seeder)
 	AfterRun(seed Seeder)
 }
 
-// Base ...
-type Base interface {
+// ThreadBase ...
+type ThreadBase interface {
 	State() State
+	SetState(state State)
 	Done() <-chan bool
+	Finished()
 }
 
-// BaseThreader ...
-type BaseThreader interface {
-	Threader
-	Base
-}
-
-// Async ...
-type Async interface {
-	NeedWait() bool
-	IsRunning() bool
-	Rerun()
-	Stop()
+// Threader ...
+type Threader interface {
+	ThreadRun
+	ThreadBase
 }
 
 // Runnable ...

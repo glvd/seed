@@ -6,22 +6,15 @@ import (
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/multiformats/go-multiaddr"
-	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
 // API ...
 type API struct {
 	Seeder
-	api   *httpapi.HttpApi
-	cb    chan APICaller
-	done  chan bool
-	state *atomic.Int32
-}
-
-// State ...
-func (api *API) State() State {
-	return State(api.state.Load())
+	Threader
+	api *httpapi.HttpApi
+	cb  chan APICaller
 }
 
 // Done ...
@@ -29,7 +22,7 @@ func (api *API) Done() <-chan bool {
 	go func() {
 		api.cb <- nil
 	}()
-	return api.done
+	return api.Done()
 }
 
 // Option ...
@@ -70,8 +63,8 @@ func NewAPI(path string) *API {
 		panic(e)
 	}
 	a.cb = make(chan APICaller, 10)
-	a.done = make(chan bool)
-	a.state = atomic.NewInt32(int32(StateWaiting))
+	a.Threader = NewThread()
+
 	return a
 }
 
@@ -92,24 +85,24 @@ APIEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			api.state.Store(int32(StateStop))
+			api.SetState(StateStop)
 			return
 		case c := <-api.cb:
 			if c == nil {
-				api.state.Store(int32(StateStop))
+				api.SetState(StateStop)
 				break APIEnd
 			}
-			api.state.Store(int32(StateRunning))
+			api.SetState(StateRunning)
 			e = c.Call(api, api.api)
 			if e != nil {
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
-			api.state.Store(int32(StateWaiting))
+			api.SetState(StateWaiting)
 		}
 	}
 	close(api.cb)
-	api.done <- true
+	api.Finished()
 }
 
 // PeerID ...

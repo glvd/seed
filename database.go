@@ -6,23 +6,16 @@ import (
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
 // Database ...
 type Database struct {
 	Seeder
+	Threader
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCaller
-	done      chan bool
-	state     *atomic.Int32
-}
-
-// State ...
-func (db *Database) State() State {
-	return State(db.state.Load())
 }
 
 // Done ...
@@ -30,7 +23,7 @@ func (db *Database) Done() <-chan bool {
 	go func() {
 		db.cb <- nil
 	}()
-	return db.done
+	return db.Done()
 }
 
 var _ DatabaseCaller = &databaseCall{}
@@ -70,24 +63,24 @@ DatabaseEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			db.state.Store(int32(StateStop))
+			db.SetState(StateStop)
 			return
 		case v := <-db.cb:
 			if v == nil {
-				db.state.Store(int32(StateStop))
+				db.SetState(StateStop)
 				break DatabaseEnd
 			}
-			db.state.Store(int32(StateRunning))
+			db.SetState(StateRunning)
 			e = v.Call(db, db.eng)
 			if e != nil {
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
-			db.state.Store(int32(StateWaiting))
+			db.SetState(StateWaiting)
 		}
 	}
 	close(db.cb)
-	db.done <- true
+	db.Finished()
 }
 
 // BeforeRun ...
@@ -104,8 +97,8 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
 	db.cb = make(chan DatabaseCaller, 10)
-	db.done = make(chan bool)
-	db.state = atomic.NewInt32(int32(StateWaiting))
+	db.Threader = NewThread()
+
 	for _, argFn := range args {
 		argFn(db)
 	}

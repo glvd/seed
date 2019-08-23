@@ -33,13 +33,13 @@ const InfoTypeBSON InfoType = "bson"
 // Information ...
 type Information struct {
 	Seeder
+	Threader
 	InfoType     InfoType
 	Path         string
 	ResourcePath string
 	ProcList     []string
 	Start        int
-	cb           chan InformationCallbackFunc
-	//state        *atomic.Int32
+	cb           chan InformationCaller
 }
 
 // State ...
@@ -66,9 +66,9 @@ func NewInformation() *Information {
 
 // PushCallback ...
 func (info *Information) pushVideoCallback(cb interface{}) error {
-	if v, b := cb.(InformationCallbackFunc); b {
-		go func(callback InformationCallbackFunc) {
-			info.cb <- callback
+	if v, b := cb.(InformationCaller); b {
+		go func(cb InformationCaller) {
+			info.cb <- cb
 		}(v)
 	}
 	return xerrors.New("not information callback")

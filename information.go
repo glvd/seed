@@ -394,3 +394,13 @@ func informationOption(info *Information) Options {
 		seed.SetThread(StepperInformation, info)
 	}
 }
+
+type informationCall struct {
+}
+
+// Call ...
+func (i informationCall) Call(information Information) error {
+	panic("implement me")
+}
+
+var _ InformationCaller = &informationCall{}

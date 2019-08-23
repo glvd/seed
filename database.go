@@ -26,18 +26,6 @@ func (db *Database) Done() <-chan bool {
 	return db.Threader.Done()
 }
 
-var _ DatabaseCaller = &databaseCall{}
-
-type databaseCall struct {
-	v  interface{}
-	cb DatabaseCallbackFunc
-}
-
-// Call ...
-func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
-	return c.cb(database, eng, c.v)
-}
-
 // DatabaseCallback ...
 func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &databaseCall{
@@ -180,3 +168,15 @@ func databaseOption(db *Database) Options {
 		//seed.SetNormalThread(StepperRDatabase, db)
 	}
 }
+
+type databaseCall struct {
+	v  interface{}
+	cb DatabaseCallbackFunc
+}
+
+// Call ...
+func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
+	return c.cb(database, eng, c.v)
+}
+
+var _ DatabaseCaller = &databaseCall{}

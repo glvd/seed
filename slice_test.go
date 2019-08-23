@@ -37,5 +37,4 @@ func TestNewSlice(t *testing.T) {
 	sdb.Done()
 	api.Done()
 	fmt.Println("db end")
-
 }

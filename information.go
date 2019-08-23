@@ -38,7 +38,7 @@ type Information struct {
 	ResourcePath string
 	ProcList     []string
 	Start        int
-	vcb          chan InformationVideoCallback
+	cb           chan InformationCallbackFunc
 	//state        *atomic.Int32
 }
 
@@ -64,14 +64,11 @@ func NewInformation() *Information {
 	return info
 }
 
-// InformationVideoCallback ...
-type InformationVideoCallback func(information *Information, v *model.Video)
-
 // PushCallback ...
 func (info *Information) pushVideoCallback(cb interface{}) error {
-	if v, b := cb.(InformationVideoCallback); b {
-		go func(callback InformationVideoCallback) {
-			info.vcb <- callback
+	if v, b := cb.(InformationCallbackFunc); b {
+		go func(callback InformationCallbackFunc) {
+			info.cb <- callback
 		}(v)
 	}
 	return xerrors.New("not information callback")

@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 
+	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 )
@@ -101,6 +102,9 @@ type ProcessCallbackFunc func(*Process, string) error
 type ProcessCaller interface {
 	Call(process *Process) error
 }
+
+// InformationCallbackFunc ...
+type InformationCallbackFunc func(information *Information, v *model.Video)
 
 // Threader ...
 type Threader interface {

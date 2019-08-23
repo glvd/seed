@@ -8,15 +8,22 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiformats/go-multiaddr"
+	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
 // API ...
 type API struct {
 	Seeder
-	api  *httpapi.HttpApi
-	cb   chan APICaller
-	done chan bool
+	api   *httpapi.HttpApi
+	cb    chan APICaller
+	done  chan bool
+	state *atomic.Int32
+}
+
+// State ...
+func (api *API) State() State {
+	return State(api.state.Load())
 }
 
 // Done ...
@@ -66,6 +73,7 @@ func NewAPI(path string) *API {
 	}
 	a.cb = make(chan APICaller, 10)
 	a.done = make(chan bool)
+	a.state = atomic.NewInt32(int32(StateWaiting))
 	return a
 }
 

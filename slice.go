@@ -73,8 +73,9 @@ func (s *Slice) Push(cb interface{}) error {
 // NewSlice ...
 func NewSlice() *Slice {
 	return &Slice{
-		cb:   make(chan SliceCaller),
-		done: make(chan bool),
+		cb:    make(chan SliceCaller),
+		done:  make(chan bool),
+		state: atomic.NewInt32(int32(StateWaiting)),
 	}
 }
 
@@ -200,6 +201,7 @@ func skip(format *cmd.StreamFormat) bool {
 
 // Call ...
 func (c *sliceCall) Call(s *Slice, path string) (e error) {
+
 	e = c.cb(s, path)
 	if e != nil {
 		log.Error(e)
@@ -220,7 +222,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	}
 	log.Infof("%+v", u.format)
 	if !SkipTypeVerify("video", c.skipType...) {
-		e = s.PushTo(StepperDatabase, DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = s.PushTo(DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			u := v.(*unfinishedSlice)
 			session := eng.Where("checksum = ?", u.unfinished.Checksum).
 				Where("type = ?", u.unfinished.Type)
@@ -243,7 +245,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 						return err
 					}
 					u.unfinished.Hash = model.PinHash(resolved)
-					e = api.PushTo(StepperDatabase, DatabaseCallback(u.unfinished, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+					e = api.PushTo(DatabaseCallback(u.unfinished, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 						u := v.(*model.Unfinished)
 						log.With("hash", u.Hash, "relate", u.Relate).Info("update unfinished")
 						return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))

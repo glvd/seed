@@ -46,8 +46,8 @@ func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
 }
 
 // DatabaseCallback ...
-func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) DatabaseCaller {
-	return &databaseCall{
+func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) (Stepper, DatabaseCaller) {
+	return StepperDatabase, &databaseCall{
 		v:  v,
 		cb: cb,
 	}

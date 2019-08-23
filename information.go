@@ -68,15 +68,6 @@ func (info *Information) push(cb interface{}) error {
 	return xerrors.New("not information callback")
 }
 
-// BeforeRun ...
-func (info *Information) BeforeRun(seed Seeder) {
-	info.Seeder = seed
-}
-
-// AfterRun ...
-func (info *Information) AfterRun(seed Seeder) {
-}
-
 func fixBson(s []byte) []byte {
 	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
 	return reg.ReplaceAll(s, []byte(" "))

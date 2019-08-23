@@ -97,8 +97,10 @@ APIEnd:
 	for {
 		select {
 		case <-ctx.Done():
+			api.state.Store(int32(StateStop))
 			return
 		case c := <-api.cb:
+			api.state.Store(int32(StateRunning))
 			if c == nil {
 				log.Info("api end")
 				break APIEnd
@@ -108,7 +110,7 @@ APIEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
-			log.Info("api time out")
+			api.state.Store(int32(StateWaiting))
 		}
 	}
 	close(api.cb)

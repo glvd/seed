@@ -111,7 +111,7 @@ type InformationCallbackFunc func(information *Information, v *model.Video)
 
 // InformationCaller ...
 type InformationCaller interface {
-	Call(information Information) error
+	Call(information *Information) error
 }
 
 // ThreadRun ...

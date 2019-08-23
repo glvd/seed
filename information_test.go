@@ -12,12 +12,12 @@ import (
 func TestInformation(t *testing.T) {
 	info := seed.NewInformation()
 	info.ResourcePath = "D:\\videoall\\images"
-	info.Path = "D:\\videoall\\video.json"
+	info.Path = "D:\\videoall\\video3.json"
 	info.InfoType = seed.InfoTypeBSON
 	s := seed.NewSeed(info)
 	s.Start()
 
-	e := s.PushTo(seed.InformationCall(info.InfoType, info.Path))
+	e := seed.SplitCall(info, 10000)
 	if e != nil {
 		t.Error(e)
 	}

@@ -349,12 +349,24 @@ type informationCall struct {
 	start    int
 }
 
-func splitCall(information *Information, c *informationCall, vs []*VideoSource, limit int) bool {
+// SplitCall ...
+func SplitCall(information *Information, limit int) (e error) {
+	var vs []*VideoSource
+	if v, b := infoCallList[information.InfoType]; b {
+		vs, e = v(information.Path)
+		if e != nil {
+			return e
+		}
+	}
+	if vs == nil {
+		return xerrors.New("no video source")
+	}
+
 	size := len(vs)
 	var vstmp []*VideoSource
 	if size > limit {
 		for i := 0; i < size; i += limit {
-			dir, file := filepath.Split(c.path)
+			dir, file := filepath.Split(information.Path)
 			open := filepath.Join(dir, file+"."+strconv.Itoa(i))
 
 			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
@@ -381,9 +393,8 @@ func splitCall(information *Information, c *informationCall, vs []*VideoSource, 
 				continue
 			}
 		}
-		return true
 	}
-	return false
+	return
 }
 
 // Call ...
@@ -403,9 +414,9 @@ func (i *informationCall) Call(information *Information) error {
 		log.Panic("nil information")
 	}
 
-	if splitCall(information, i, vs, 10000) {
-		return nil
-	}
+	//if splitCall(information, i, vs, 10000) {
+	//	return nil
+	//}
 
 	vsc := filterProcList(vs, i.list)
 	failedSkip := atomic.NewBool(false)

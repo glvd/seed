@@ -11,8 +11,7 @@ import (
 
 // API ...
 type API struct {
-	Seeder
-	Threader
+	*Thread
 	api *httpapi.HttpApi
 	cb  chan APICaller
 }
@@ -22,7 +21,7 @@ func (api *API) Done() <-chan bool {
 	go func() {
 		api.cb <- nil
 	}()
-	return api.Threader.Done()
+	return api.Thread.Done()
 }
 
 // Option ...
@@ -54,7 +53,7 @@ func NewAPI(path string) *API {
 		panic(e)
 	}
 	a.cb = make(chan APICaller, 10)
-	a.Threader = NewThread()
+	a.Thread = NewThread()
 
 	return a
 }

@@ -6,55 +6,55 @@ import (
 	"go.uber.org/atomic"
 )
 
-// BaseThread ...
-type BaseThread struct {
+// Thread ...
+type Thread struct {
 	Seeder
 	state *atomic.Int32
 	done  chan bool
 }
 
 // Finished ...
-func (t *BaseThread) Finished() {
+func (t *Thread) Finished() {
 	t.done <- true
 }
 
 // Run ...
-func (t *BaseThread) Run(context.Context) {
+func (t *Thread) Run(context.Context) {
 	panic("implement me")
 }
 
 // SetState ...
-func (t *BaseThread) SetState(state State) {
+func (t *Thread) SetState(state State) {
 	t.state.Store(int32(state))
 }
 
 // Push ...
-func (t *BaseThread) Push(interface{}) error {
+func (t *Thread) Push(interface{}) error {
 	panic("implement me")
 }
 
 // BeforeRun ...
-func (t *BaseThread) BeforeRun(seed Seeder) {
+func (t *Thread) BeforeRun(seed Seeder) {
 	t.Seeder = seed
 }
 
 // AfterRun ...
-func (t *BaseThread) AfterRun(seed Seeder) {
+func (t *Thread) AfterRun(seed Seeder) {
 }
 
 // State ...
-func (t *BaseThread) State() State {
+func (t *Thread) State() State {
 	return State(t.state.Load())
 }
 
 // Done ...
-func (t *BaseThread) Done() <-chan bool {
+func (t *Thread) Done() <-chan bool {
 	return t.done
 }
 
 // NewThread ...
-func NewThread() Threader {
-	return &BaseThread{
+func NewThread() *Thread {
+	return &Thread{
 		state: atomic.NewInt32(int32(StateWaiting)),
 		done:  make(chan bool),
 	}

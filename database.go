@@ -11,8 +11,7 @@ import (
 
 // Database ...
 type Database struct {
-	Seeder
-	Threader
+	*Thread
 	eng       *xorm.Engine
 	syncTable []interface{}
 	cb        chan DatabaseCaller
@@ -23,7 +22,7 @@ func (db *Database) Done() <-chan bool {
 	go func() {
 		db.cb <- nil
 	}()
-	return db.Threader.Done()
+	return db.Thread.Done()
 }
 
 // DatabaseCallback ...
@@ -76,7 +75,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db := new(Database)
 	db.eng = eng
 	db.cb = make(chan DatabaseCaller, 10)
-	db.Threader = NewThread()
+	db.Thread = NewThread()
 
 	for _, argFn := range args {
 		argFn(db)

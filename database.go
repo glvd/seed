@@ -106,6 +106,7 @@ func NewDatabase(eng *xorm.Engine, args ...DatabaseArgs) *Database {
 	db.eng = eng
 	db.cb = make(chan DatabaseCaller, 10)
 	db.done = make(chan bool)
+	db.state = atomic.NewInt32(int32(StateWaiting))
 	for _, argFn := range args {
 		argFn(db)
 	}

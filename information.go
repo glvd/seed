@@ -455,7 +455,7 @@ func (i *informationCall) Call(information *Information) error {
 
 	vsc := filterProcList(vs, i.list)
 	failedSkip := atomic.NewBool(false)
-
+	log.With("path", i.path).Info("info")
 	for {
 		source := <-vsc
 		if source == nil {

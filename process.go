@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/glvd/seed/model"
@@ -170,14 +171,24 @@ func LastSlice(s, sep string) string {
 
 // Run ...
 func (p *Process) Run(ctx context.Context) {
+ProcessEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			p.SetState(StateStop)
+			break ProcessEnd
 		case v := <-p.cb:
-			v.Call(p)
-		default:
-
+			if v == nil {
+				p.SetState(StateStop)
+				break ProcessEnd
+			}
+			p.SetState(StateRunning)
+			e := v.Call(p)
+			if e != nil {
+				log.Error(e)
+			}
+		case <-time.After(30 * time.Second):
+			p.SetState(StateWaiting)
 			//log.With("file", file).Info("process run")
 			//unfin = defaultUnfinished(file)
 			//unfin.Relate = onlyName(file)
@@ -227,8 +238,8 @@ func (p *Process) Run(ctx context.Context) {
 			//}
 		}
 	}
-
-	return
+	close(p.cb)
+	p.Finished()
 }
 
 // PathMD5 ...

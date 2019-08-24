@@ -351,6 +351,7 @@ func (p *processCall) Call(process *Process) error {
 	return p.cb(process, p.video)
 }
 
+// ProcessCall ...
 func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) *processCall {
 	return &processCall{
 		video: v,

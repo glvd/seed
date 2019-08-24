@@ -471,6 +471,7 @@ func (i *informationCall) Call(information *Information) error {
 					if checkFileNotExist(source.PosterPath) {
 						log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 					} else {
+
 						e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 							source := v.(*VideoSource)
 							file, e := os.Open(source.PosterPath)

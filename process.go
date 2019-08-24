@@ -21,7 +21,7 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	Seed        *seed
+	*Thread
 	cb          chan ProcessCaller
 	workspace   string
 	path        string
@@ -54,6 +54,7 @@ func (p *Process) AfterRun(seed Seeder) {
 // NewProcess ...
 func NewProcess() *Process {
 	process := &Process{}
+	process.Thread = NewThread()
 	return process
 }
 

@@ -350,3 +350,10 @@ type processCall struct {
 func (p *processCall) Call(process *Process) error {
 	return p.cb(process, p.video)
 }
+
+func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) *processCall {
+	return &processCall{
+		video: v,
+		cb:    callbackFunc,
+	}
+}

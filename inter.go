@@ -99,7 +99,7 @@ type APICaller interface {
 }
 
 // ProcessCallbackFunc ...
-type ProcessCallbackFunc func(*Process, string) error
+type ProcessCallbackFunc func(*Process, *model.Video) error
 
 // ProcessCaller ...
 type ProcessCaller interface {

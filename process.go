@@ -342,11 +342,11 @@ func processOption(process *Process) Options {
 }
 
 type processCall struct {
-	file string
-	cb   ProcessCallbackFunc
+	video *model.Video
+	cb    ProcessCallbackFunc
 }
 
 // Call ...
 func (p *processCall) Call(process *Process) error {
-	return p.cb(process, p.file)
+	return p.cb(process, p.video)
 }

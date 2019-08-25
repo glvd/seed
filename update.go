@@ -2,11 +2,9 @@ package seed
 
 import (
 	"context"
-	"strconv"
-	"sync"
-
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
+	"strconv"
 )
 
 // UpdateContent ...
@@ -41,7 +39,7 @@ const (
 )
 
 type update struct {
-	wg         *sync.WaitGroup
+	*Thread
 	videos     map[string]*model.Video
 	unfinished map[string]*model.Unfinished
 	method     UpdateMethod
@@ -58,7 +56,7 @@ func Update(method UpdateMethod, content UpdateContent) Options {
 	update := &update{
 		method:  method,
 		content: content,
-		wg:      &sync.WaitGroup{},
+		Thread:  NewThread(),
 	}
 	return updateOption(update)
 }
@@ -265,14 +263,4 @@ func (u *update) Run(context.Context) {
 
 END:
 	log.Info("update end")
-}
-
-// BeforeRun ...
-func (u *update) BeforeRun(seed Seeder) {
-
-}
-
-// AfterRun ...
-func (u *update) AfterRun(seed Seeder) {
-
 }

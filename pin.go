@@ -29,7 +29,7 @@ const (
 
 // Pin ...
 type Pin struct {
-	Seeder
+	*Thread
 	PinType    PinType
 	CheckType  CheckType
 	SkipType   []interface{}
@@ -48,16 +48,6 @@ type Pin struct {
 // Push ...
 func (p *Pin) Push(interface{}) error {
 	return nil
-}
-
-// BeforeRun ...
-func (p *Pin) BeforeRun(s Seeder) {
-	p.Seeder = s
-}
-
-// AfterRun ...
-func (p *Pin) AfterRun(s Seeder) {
-	return
 }
 
 // PinStatus ...
@@ -136,6 +126,7 @@ func NewPin(args ...PinArgs) Options {
 	pin := &Pin{
 		PinStatus: PinStatusAll,
 	}
+	pin.Thread = NewThread()
 
 	for _, argFn := range args {
 		argFn(pin)

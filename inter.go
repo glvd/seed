@@ -99,7 +99,7 @@ type APICaller interface {
 }
 
 // ProcessCallbackFunc ...
-type ProcessCallbackFunc func(*Process, string) error
+type ProcessCallbackFunc func(*Process, *model.Video) error
 
 // ProcessCaller ...
 type ProcessCaller interface {
@@ -144,4 +144,12 @@ type Runnable interface {
 // Pusher ...
 type Pusher interface {
 	Push(interface{}) error
+}
+type PinCallFunc func(*Pin) error
+
+type PinCaller interface {
+	Call()
+}
+
+type pinCall struct {
 }

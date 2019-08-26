@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/glvd/seed/model"
@@ -21,7 +22,7 @@ func dummy(process *Process) (e error) {
 
 // Process ...
 type Process struct {
-	Seed        *seed
+	*Thread
 	cb          chan ProcessCaller
 	workspace   string
 	path        string
@@ -54,6 +55,7 @@ func (p *Process) AfterRun(seed Seeder) {
 // NewProcess ...
 func NewProcess() *Process {
 	process := &Process{}
+	process.Thread = NewThread()
 	return process
 }
 
@@ -169,14 +171,24 @@ func LastSlice(s, sep string) string {
 
 // Run ...
 func (p *Process) Run(ctx context.Context) {
+ProcessEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			p.SetState(StateStop)
+			break ProcessEnd
 		case v := <-p.cb:
-			v.Call(p)
-		default:
-
+			if v == nil {
+				p.SetState(StateStop)
+				break ProcessEnd
+			}
+			p.SetState(StateRunning)
+			e := v.Call(p)
+			if e != nil {
+				log.Error(e)
+			}
+		case <-time.After(30 * time.Second):
+			p.SetState(StateWaiting)
 			//log.With("file", file).Info("process run")
 			//unfin = defaultUnfinished(file)
 			//unfin.Relate = onlyName(file)
@@ -226,8 +238,8 @@ func (p *Process) Run(ctx context.Context) {
 			//}
 		}
 	}
-
-	return
+	close(p.cb)
+	p.Finished()
 }
 
 // PathMD5 ...
@@ -330,11 +342,19 @@ func processOption(process *Process) Options {
 }
 
 type processCall struct {
-	file string
-	cb   ProcessCallbackFunc
+	video *model.Video
+	cb    ProcessCallbackFunc
 }
 
 // Call ...
 func (p *processCall) Call(process *Process) error {
-	return p.cb(process, p.file)
+	return p.cb(process, p.video)
+}
+
+// ProcessCall ...
+func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) *processCall {
+	return &processCall{
+		video: v,
+		cb:    callbackFunc,
+	}
 }

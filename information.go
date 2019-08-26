@@ -193,6 +193,9 @@ InfoEnd:
 }
 
 func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
+	if a.IsFailed() {
+		return nil, xerrors.New("ipfs failed")
+	}
 	file, e := os.Open(source.PosterPath)
 	if e != nil {
 		return nil, e
@@ -202,6 +205,7 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 		return nil
 	})
 	if e != nil {
+		a.isFailed.Store(true)
 		return nil, e
 	}
 	unfinThumb := defaultUnfinished(source.Thumb)

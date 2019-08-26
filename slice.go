@@ -231,7 +231,7 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	//				u.unfinished.Hash = model.PinHash(resolved)
 	//				e = api.PushTo(DatabaseCallback(u.unfinished, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 	//					u := v.(*model.Unfinished)
-	//					log.With("hash", u.Hash, "relate", u.Relate).Info("update unfinished")
+	//					log.With("hash", u.Hash, "relate", u.Relate).Info("Update unfinished")
 	//					return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 	//				}))
 	//				return

@@ -6,14 +6,16 @@ import (
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/multiformats/go-multiaddr"
+	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
 // API ...
 type API struct {
 	*Thread
-	api *httpapi.HttpApi
-	cb  chan APICaller
+	isFailed *atomic.Bool
+	api      *httpapi.HttpApi
+	cb       chan APICaller
 }
 
 // Done ...
@@ -33,6 +35,11 @@ func apiOption(api *API) Options {
 	return func(seeder Seeder) {
 		seeder.SetThread(StepperAPI, api)
 	}
+}
+
+// IsFailed ...
+func (api *API) IsFailed() bool {
+	return api.isFailed.Load()
 }
 
 // Push ...

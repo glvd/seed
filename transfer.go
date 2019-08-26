@@ -11,7 +11,6 @@ import (
 	"github.com/glvd/seed/model"
 	"github.com/glvd/seed/old"
 	"github.com/go-xorm/xorm"
-	shell "github.com/godcong/go-ipfs-restapi"
 	"golang.org/x/xerrors"
 )
 
@@ -47,30 +46,17 @@ const TransferFlagJSON TransferFlag = "json"
 
 // transfer ...
 type transfer struct {
-	db         *Database
-	shell      *shell.Shell
-	unfinished map[string]*model.Unfinished
-	videos     map[string]*model.Video
-	workspace  string
-	status     TransferStatus
-	path       string
-	flag       TransferFlag
-	reader     io.Reader
+	*Thread
+	workspace string
+	status    TransferStatus
+	path      string
+	flag      TransferFlag
+	reader    io.Reader
 }
 
 // Push ...
 func (transfer transfer) Push(interface{}) error {
 	return nil
-}
-
-// BeforeRun ...
-func (transfer *transfer) BeforeRun(seed Seeder) {
-
-}
-
-// AfterRun ...
-func (transfer *transfer) AfterRun(seed Seeder) {
-
 }
 
 // TransferOption ...

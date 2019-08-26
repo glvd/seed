@@ -192,13 +192,24 @@ InfoEnd:
 
 }
 
-func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
+	file, e := os.Open(source.PosterPath)
+	if e != nil {
+		return nil, e
+	}
+	resolved, e := api.Unixfs().Add(context.Background(), files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
+		settings.Pin = true
+		return nil
+	})
+	if e != nil {
+		return nil, e
+	}
 	unfinThumb := defaultUnfinished(source.Thumb)
 	unfinThumb.Type = model.TypeThumb
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
-		unfinThumb.Hash = hash
-		e = seed.PushTo(DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		unfinThumb.Hash = model.PinHash(resolved)
+		e = a.PushTo(DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {
@@ -210,14 +221,28 @@ func addThumbHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unf
 	return nil, xerrors.New("no thumb")
 }
 
-func addPosterHash(seed Seeder, source *VideoSource, hash string) (unf *model.Unfinished, e error) {
+func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
+	if a.IsFailed() {
+		return nil, xerrors.New("ipfs failed")
+	}
+
+	file, err := os.Open(source.PosterPath)
+	if err != nil {
+		return nil, err
+	}
+	resolved, err := api.Unixfs().Add(context.Background(), files.NewReaderFile(file))
+	if err != nil {
+		a.isFailed.Store(true)
+		return nil, err
+	}
+
 	unfinPoster := defaultUnfinished(source.PosterPath)
 	unfinPoster.Type = model.TypePoster
 	unfinPoster.Relate = source.Bangumi
 
 	if source.PosterPath != "" {
-		unfinPoster.Hash = hash
-		e = seed.PushTo(DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		unfinPoster.Hash = model.PinHash(resolved)
+		e = a.PushTo(DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {
@@ -228,8 +253,31 @@ func addPosterHash(seed Seeder, source *VideoSource, hash string) (unf *model.Un
 	return nil, xerrors.New("no poster")
 }
 
-func addVideo(db *Database, video *model.Video) {
-
+func addVideo(a *API, api *httpapi.HttpApi, video *model.Video, path string) {
+	//file, e := os.Open(source.PosterPath)
+	//if e != nil {
+	//	return nil, e
+	//}
+	//resolved, e := api.Unixfs().Add(context.Background(), files.NewReaderFile(file))
+	//if e != nil {
+	//	return nil, e
+	//}
+	//
+	//unfinPoster := defaultUnfinished(sou)
+	//unfinPoster.Type = model.TypePoster
+	//unfinPoster.Relate = source.Bangumi
+	//
+	//if source.PosterPath != "" {
+	//	unfinPoster.Hash = model.PinHash(resolved)
+	//	e = a.PushTo(DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+	//		return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+	//	}))
+	//	if e != nil {
+	//		return nil, e
+	//	}
+	//	return unfinPoster, nil
+	//}
+	//return nil, xerrors.New("no poster")
 }
 
 func filterProcList(sources []*VideoSource, filterList []string) <-chan *VideoSource {
@@ -471,17 +519,10 @@ func (i *informationCall) Call(information *Information) error {
 					if checkFileNotExist(source.PosterPath) {
 						log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 					} else {
+
 						e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-							source := v.(*VideoSource)
-							file, e := os.Open(source.PosterPath)
-							if e != nil {
-								return e
-							}
-							resolved, e := api2.Unixfs().Add(context.Background(), files.NewReaderFile(file))
-							if e != nil {
-								return e
-							}
-							_, e = addPosterHash(information.Seeder, source, model.PinHash(resolved))
+
+							_, e = addPosterHash(api, api2, v.(*VideoSource))
 							if e != nil {
 								failedSkip.Store(true)
 								return e
@@ -504,19 +545,7 @@ func (i *informationCall) Call(information *Information) error {
 					log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 				} else {
 					e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-						source := v.(*VideoSource)
-						file, e := os.Open(source.PosterPath)
-						if e != nil {
-							return e
-						}
-						resolved, e := api2.Unixfs().Add(context.Background(), files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
-							settings.Pin = true
-							return nil
-						})
-						if e != nil {
-							return e
-						}
-						_, e = addThumbHash(information.Seeder, source, model.PinHash(resolved))
+						_, e = addThumbHash(api, api2, v.(*VideoSource))
 						if e != nil {
 							failedSkip.Store(true)
 							return e

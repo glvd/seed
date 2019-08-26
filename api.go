@@ -13,9 +13,9 @@ import (
 // API ...
 type API struct {
 	*Thread
-	isFailed *atomic.Bool
-	api      *httpapi.HttpApi
-	cb       chan APICaller
+	failed *atomic.Bool
+	api    *httpapi.HttpApi
+	cb     chan APICaller
 }
 
 // Done ...
@@ -39,7 +39,7 @@ func apiOption(api *API) Options {
 
 // IsFailed ...
 func (api *API) IsFailed() bool {
-	return api.isFailed.Load()
+	return api.failed.Load()
 }
 
 // Push ...
@@ -59,6 +59,7 @@ func NewAPI(path string) *API {
 	if e != nil {
 		panic(e)
 	}
+	a.failed = atomic.NewBool(false)
 	a.cb = make(chan APICaller, 10)
 	a.Thread = NewThread()
 

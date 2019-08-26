@@ -17,7 +17,6 @@ import (
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-	"go.uber.org/atomic"
 	"golang.org/x/xerrors"
 )
 
@@ -205,7 +204,7 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 		return nil
 	})
 	if e != nil {
-		a.isFailed.Store(true)
+		a.failed.Store(true)
 		return nil, e
 	}
 	unfinThumb := defaultUnfinished(source.Thumb)
@@ -236,7 +235,7 @@ func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *mode
 	}
 	resolved, err := api.Unixfs().Add(context.Background(), files.NewReaderFile(file))
 	if err != nil {
-		a.isFailed.Store(true)
+		a.failed.Store(true)
 		return nil, err
 	}
 
@@ -506,7 +505,6 @@ func (i *informationCall) Call(information *Information) error {
 	}
 
 	vsc := filterProcList(vs, i.list)
-	failedSkip := atomic.NewBool(false)
 
 	for {
 		source := <-vsc
@@ -514,52 +512,48 @@ func (i *informationCall) Call(information *Information) error {
 			return nil
 		}
 		v := video(source)
-		if !failedSkip.Load() {
-			if source.Poster != "" {
-				v.PosterHash = source.Poster
-			} else {
-				if source.PosterPath != "" {
-					source.PosterPath = filepath.Join(information.ResourcePath, source.PosterPath)
-					if checkFileNotExist(source.PosterPath) {
-						log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
-					} else {
-
-						e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-
-							_, e = addPosterHash(api, api2, v.(*VideoSource))
-							if e != nil {
-								failedSkip.Store(true)
-								return e
-							}
-
-							return nil
-						}))
-						if e != nil {
-							log.Error(e)
-							continue
-						}
-
-					}
-				}
-			}
-
-			if source.Thumb != "" {
-				source.Thumb = filepath.Join(information.ResourcePath, source.Thumb)
-				if checkFileNotExist(source.Thumb) {
-					log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+		if source.Poster != "" {
+			v.PosterHash = source.Poster
+		} else {
+			if source.PosterPath != "" {
+				source.PosterPath = filepath.Join(information.ResourcePath, source.PosterPath)
+				if checkFileNotExist(source.PosterPath) {
+					log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 				} else {
+
 					e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-						_, e = addThumbHash(api, api2, v.(*VideoSource))
+
+						_, e = addPosterHash(api, api2, v.(*VideoSource))
 						if e != nil {
-							failedSkip.Store(true)
 							return e
 						}
+
 						return nil
 					}))
 					if e != nil {
 						log.Error(e)
 						continue
 					}
+
+				}
+			}
+		}
+
+		if source.Thumb != "" {
+			source.Thumb = filepath.Join(information.ResourcePath, source.Thumb)
+			if checkFileNotExist(source.Thumb) {
+				log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+			} else {
+				e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+					_, e = addThumbHash(api, api2, v.(*VideoSource))
+					if e != nil {
+						return e
+					}
+					return nil
+				}))
+				if e != nil {
+					log.Error(e)
+					continue
 				}
 			}
 		}

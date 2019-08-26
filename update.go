@@ -2,9 +2,11 @@ package seed
 
 import (
 	"context"
+	"strconv"
+	"time"
+
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	"strconv"
 )
 
 // UpdateContent ...
@@ -38,31 +40,34 @@ const (
 	UpdateContentDelete UpdateContent = "delete"
 )
 
-type update struct {
+type UpdateCaller interface {
+	Call(*Update) error
+}
+
+type Update struct {
 	*Thread
-	videos     map[string]*model.Video
-	unfinished map[string]*model.Unfinished
-	method     UpdateMethod
-	content    UpdateContent
+	cb      chan UpdateCaller
+	method  UpdateMethod
+	content UpdateContent
 }
 
 // Push ...
-func (u *update) Push(interface{}) error {
+func (u *Update) Push(interface{}) error {
 	return nil
 }
 
-// Update ...
-func Update(method UpdateMethod, content UpdateContent) Options {
-	update := &update{
-		method:  method,
-		content: content,
-		Thread:  NewThread(),
+// NewUpdate ...
+func NewUpdate() *Update {
+	update := &Update{
+		//method:  method,
+		//content: content,
+		Thread: NewThread(),
 	}
-	return updateOption(update)
+	return update
 }
 
 // updateOption ...
-func updateOption(update *update) Options {
+func updateOption(update *Update) Options {
 	return func(seed Seeder) {
 		seed.SetThread(StepperUpdate, update)
 	}
@@ -87,10 +92,10 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 	//var vs []*model.Video
 	switch content {
 	case UpdateContentAll:
-		log.Info("update all")
+		log.Info("Update all")
 		fallthrough
 	case UpdateContentHash:
-		log.With("bangumi", video.Bangumi).Info("update hash")
+		log.With("bangumi", video.Bangumi).Info("Update hash")
 		unfins := new([]*model.Unfinished)
 		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"-%").FindAndCount(unfins)
 		if e != nil {
@@ -136,7 +141,7 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 
 		log.Infof("total(%d),value:%+v", len(vs), vs)
 	case UpdateContentInfo:
-		log.With("bangumi", video.Bangumi).Info("update info")
+		log.With("bangumi", video.Bangumi).Info("Update info")
 		unfins := new([]*model.Unfinished)
 
 		i, e := engine.Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
@@ -168,99 +173,27 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 }
 
 // Run ...
-func (u *update) Run(context.Context) {
+func (u *Update) Run(ctx context.Context) {
 	log.Info("update running")
-	var e error
-	videoChan := make(chan *model.Video, 10)
-	go func(vc chan<- *model.Video) {
-		switch u.method {
-		case UpdateMethodAll:
-
-			//i, e := model.DB().Count(&model.Video{})
-			//if e != nil {
-			//	return
-			//}
-			//for j := int64(0); j < i; j += 50 {
-			//	videos, e := model.AllVideos(nil, 50, int(j))
-			//	if e != nil {
-			//		return
-			//	}
-			//	for _, video := range *videos {
-			//		vs, e := doContent(video, u.content)
-			//		if e != nil {
-			//			continue
-			//		}
-			//		//u.videos[video.Bangumi] = video
-			//		for _, v := range vs {
-			//			if v == nil {
-			//				continue
-			//			}
-			//			vc <- v
-			//		}
-			//	}
-			//}
-		case UpdateMethodUnfinished:
-			for _, unfin := range u.unfinished {
-
-				video, b := u.videos[unfin.Relate]
-				if !b {
-					relate := onlyNo(unfin.Relate)
-					video, b := u.videos[relate]
-					if b {
-						video.Clone()
-					}
-
-					video, e = model.FindVideo(nil, unfin.Relate)
-					if e != nil {
-						log.With("id", unfin.ID).Error(e)
-						continue
-					}
-				}
-				vs, e := doContent(nil, video, u.content)
-				if e != nil {
-					log.With("id", unfin.ID).Error(e)
-					continue
-				}
-				for _, v := range vs {
-					if v == nil {
-						continue
-					}
-					vc <- v
-				}
-			}
-		case UpdateMethodVideo:
-			for _, video := range u.videos {
-				vs, e := doContent(nil, video, u.content)
-				if e != nil {
-					log.With("video", video.Bangumi).Error(e)
-					continue
-				}
-				for _, v := range vs {
-					if v == nil {
-						continue
-					}
-					vc <- v
-				}
-			}
-		}
-		vc <- nil
-	}(videoChan)
-
+UpdateEnd:
 	for {
 		select {
-		case v := <-videoChan:
-			if v == nil {
-				goto END
+		case <-ctx.Done():
+			u.SetState(StateStop)
+		case cb := <-u.cb:
+			if cb == nil {
+				u.SetState(StateStop)
+				break UpdateEnd
 			}
-			log.With("bangumi", v.Bangumi, "m3u8_hash", v.M3U8Hash).Info("update")
-			e := model.AddOrUpdateVideo(nil, v)
+			u.SetState(StateRunning)
+			e := cb.Call(u)
 			if e != nil {
 				log.Error(e)
-				continue
 			}
+		case <-time.After(30 * time.Second):
+			u.SetState(StateWaiting)
 		}
 	}
-
-END:
-	log.Info("update end")
+	close(u.cb)
+	u.Finished()
 }

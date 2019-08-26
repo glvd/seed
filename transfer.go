@@ -31,7 +31,7 @@ const (
 	// TransferStatusFromOld ...
 	TransferStatusFromOld TransferStatus = "old"
 	// TransferStatusUpdate ...
-	TransferStatusUpdate TransferStatus = "update"
+	TransferStatusUpdate TransferStatus = "Update"
 	// TransferStatusDelete ...
 	TransferStatusDelete TransferStatus = "delete"
 )
@@ -173,7 +173,7 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 			continue
 		}
 
-		log.With("bangumi", v.Bangumi, "v", vd).Info("v update")
+		log.With("bangumi", v.Bangumi, "v", vd).Info("v Update")
 		if vd.ID == "" {
 			vd = oldToVideo(v)
 		}
@@ -343,13 +343,13 @@ func (transfer *transfer) Run(ctx context.Context) {
 				log.Error(err)
 				return
 			}
-		//update flag video flag other sqlite3
+		//Update flag video flag other sqlite3
 		case TransferStatusFromOther:
 
 			if err := transferFromOther(fromDB); err != nil {
 				return
 			}
-		//update flag unfinished flag other sqlite3
+		//Update flag unfinished flag other sqlite3
 		case TransferStatusUpdate:
 			if err := transferUpdate(fromDB); err != nil {
 				return

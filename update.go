@@ -47,6 +47,24 @@ type Update struct {
 	//content UpdateContent
 }
 
+type UpdateCallFunc func(u *Update, f *xorm.Engine) error
+
+type updateCall struct {
+	cb       UpdateCallFunc
+	database *xorm.Engine
+}
+
+func (uc *updateCall) Call(u *Update) error {
+	return uc.cb(u, uc.database)
+}
+
+func UpdateCall(engine *xorm.Engine, cb UpdateCallFunc) (Stepper, UpdateCaller) {
+	return StepperUpdate, &updateCall{
+		cb:       cb,
+		database: engine,
+	}
+}
+
 // Push ...
 func (u *Update) Push(interface{}) error {
 	return nil
@@ -93,7 +111,7 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 	case UpdateContentHash:
 		log.With("bangumi", video.Bangumi).Info("Update hash")
 		unfins := new([]*model.Unfinished)
-		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"-%").FindAndCount(unfins)
+		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"@%").FindAndCount(unfins)
 		if e != nil {
 			return nil, e
 		}

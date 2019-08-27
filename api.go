@@ -33,7 +33,7 @@ func (api *API) Option(s Seeder) {
 
 func apiOption(api *API) Options {
 	return func(seeder Seeder) {
-		seeder.SetThread(StepperAPI, api)
+		seeder.SetBaseThread(StepperAPI, api)
 	}
 }
 
@@ -96,6 +96,7 @@ APIEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("api time out")
 			api.SetState(StateWaiting)
 		}
 	}

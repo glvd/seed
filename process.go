@@ -189,53 +189,6 @@ ProcessEnd:
 			}
 		case <-time.After(30 * time.Second):
 			p.SetState(StateWaiting)
-			//log.With("file", file).Info("process run")
-			//unfin = defaultUnfinished(file)
-			//unfin.Relate = onlyName(file)
-			//var format *cmd.StreamFormat
-			//var e error
-			//if isPicture(file) {
-			//	unfin.Type = model.TypePoster
-			//	p.unfinished[unfin.Hash] = unfin
-			//} else {
-			//	//fix name and get format
-			//	format, e = parseUnfinishedFromStreamFormat(file, unfin)
-			//	if e != nil {
-			//		log.Error(e)
-			//		continue
-			//	}
-			//}
-			//log.Infof("%+v", format)
-			//log.Info("adding:", file)
-			//
-			//if SkipTypeVerify("video", p.skipType...) {
-			//	if !model.IsExist(nil, unfin) || !p.skipExist {
-			//		err := p.fileAdd(unfin, file)
-			//		if err != nil {
-			//			log.With("add file", file).Error(err)
-			//			continue
-			//		}
-			//		p.unfinished[unfin.Hash] = unfin
-			//	}
-			//
-			//}
-			//
-			//if unfin.Type == model.TypeVideo && !p.skip(format) {
-			//	unfinSlice := unfin.Clone()
-			//	unfinSlice.Type = model.TypeSlice
-			//	if !model.IsExist(nil, unfinSlice) || !p.skipExist {
-			//		if p.noSlice {
-			//			continue
-			//		}
-			//		err := p.sliceAdd(unfinSlice, format, file)
-			//		if err != nil {
-			//			log.With("add slice", file).Error(err)
-			//			continue
-			//		}
-			//		p.unfinished[unfinSlice.Hash] = unfinSlice
-			//	}
-			//
-			//}
 		}
 	}
 	close(p.cb)

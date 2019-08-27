@@ -139,8 +139,8 @@ func GetFiles(p string) (files []string) {
 
 type unfinishedSlice struct {
 	unfinished *model.Unfinished
-	format     *cmd.StreamFormat
-	file       string
+	//format     *cmd.StreamFormat
+	file string
 	//sliceCall
 }
 
@@ -190,9 +190,6 @@ func skip(format *cmd.StreamFormat) bool {
 	if audio == nil || video == nil {
 		return true
 	}
-	//if video.CodecName != "h264" || audio.CodecName != "aac" {
-	//	return true
-	//}
 	return false
 }
 
@@ -308,33 +305,30 @@ func (c *sliceCall) Call(s *Slice) (e error) {
 }
 
 func sliceVideo(slice *Slice, us *unfinishedSlice) (sa *cmd.SplitArgs, e error) {
+	format, e := cmd.FFProbeStreamFormat(us.file)
+	if e != nil {
+		return nil, e
+	}
+	if skip(format) {
+		return nil, xerrors.New("format video/audio not found")
+	}
+
+	us.unfinished.Type = model.TypeSlice
 	s := slice.Scale
 	if s != 0 {
-		res := us.format.ResolutionInt()
+		res := format.ResolutionInt()
 		if int64(res) < s {
 			s = int64(res)
 		}
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.ScaleOption(s), cmd.OutputOption(slice.SliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(slice.SliceOutput))
 		us.unfinished.Sharpness = scaleStr(s)
 	} else {
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.OutputOption(slice.SliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.OutputOption(slice.SliceOutput))
+		us.unfinished.Sharpness = format.Resolution() + "P"
 	}
 
 	log.Infof("%+v", sa)
 	return
-}
-
-func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *cmd.StreamFormat, e error) {
-	format, e = cmd.FFProbeStreamFormat(file)
-	if e != nil {
-		return nil, e
-	}
-
-	if format.IsVideo() {
-		u.Type = model.TypeVideo
-		u.Sharpness = format.Resolution()
-	}
-	return format, nil
 }
 
 type sliceCall struct {

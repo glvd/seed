@@ -145,7 +145,7 @@ type unfinishedSlice struct {
 }
 
 // SliceCallbackFunc ...
-type SliceCallbackFunc func(s *Slice, v interface{}) (e error)
+type SliceCallbackFunc func(s *Slice, sa *cmd.SplitArgs, v interface{}) (e error)
 
 // SliceOptions ...
 type SliceOptions func(call *sliceCall)
@@ -171,6 +171,19 @@ func SliceCall(slice *unfinishedSlice, cb SliceCallbackFunc, sliceOption ...Slic
 	}
 }
 
+func scale(scale int64) int {
+	switch scale {
+	case 480, 1080:
+		return int(scale)
+	default:
+		return 720
+	}
+}
+
+func scaleStr(s int64) string {
+	return fmt.Sprintf("%dP", scale(s))
+}
+
 func skip(format *cmd.StreamFormat) bool {
 	video := format.Video()
 	audio := format.Audio()
@@ -185,9 +198,11 @@ func skip(format *cmd.StreamFormat) bool {
 
 // Call ...
 func (c *sliceCall) Call(s *Slice) (e error) {
-	sliceVideo(s, c.slice, c.slice)
-
-	return c.cb(s, c.slice)
+	sa, e := sliceVideo(s, c.slice)
+	if e != nil {
+		return e
+	}
+	return c.cb(s, sa, c.slice.unfinished)
 	//u := new(unfinishedSlice)
 	//u.file = path
 	//u.sliceCall = *c
@@ -300,7 +315,7 @@ func sliceVideo(slice *Slice, us *unfinishedSlice) (sa *cmd.SplitArgs, e error) 
 			s = int64(res)
 		}
 		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.ScaleOption(s), cmd.OutputOption(slice.SliceOutput))
-		us.unfinished.Sharpness = fmt.Sprintf("%dP", scale(s))
+		us.unfinished.Sharpness = scaleStr(s)
 	} else {
 		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.OutputOption(slice.SliceOutput))
 	}

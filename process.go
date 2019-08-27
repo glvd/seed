@@ -64,15 +64,6 @@ func (p *Process) Option(seed *seed) {
 	processOption(p)(seed)
 }
 
-func scale(scale int64) int {
-	switch scale {
-	case 480, 1080:
-		return int(scale)
-	default:
-		return 720
-	}
-}
-
 func (p *Process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
 	var sa *cmd.SplitArgs
 	s := p.scale
@@ -82,7 +73,7 @@ func (p *Process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, fi
 			s = int64(res)
 		}
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(p.workspace))
-		unfin.Sharpness = fmt.Sprintf("%dP", scale(s))
+
 	} else {
 		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
 	}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
+	cmd "github.com/godcong/go-ffmpeg-cmd"
 )
 
 // TestSliceCall ...
@@ -25,9 +26,8 @@ func TestNewSlice(t *testing.T) {
 	s := seed.NewSeed(info, sdb, api, sli)
 	s.Start()
 	fmt.Println("waiting end")
-	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos", func(s *seed.Slice, v interface{}) (e error) {
-		fmt.Println("slice call")
-		return
+	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos\\MIAA-086.wmv", func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
+		return nil
 	}))
 	if e != nil {
 		t.Error(e)

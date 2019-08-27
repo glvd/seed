@@ -26,24 +26,14 @@ func TestNewSlice(t *testing.T) {
 	s := seed.NewSeed(info, sdb, api, sli)
 	s.Start()
 	fmt.Println("waiting end")
-	e := s.PushTo(seed.SliceCall("D:\\videoall\\MIAA-086.avi", &model.Unfinished{}, func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
+	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos\\MIAA-087.mp4", &model.Unfinished{}, func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
 		fmt.Println(*sa, v)
 		return nil
 	}))
 	if e != nil {
 		t.Error(e)
 	}
-	e = s.PushTo(seed.SliceCall("D:\\videoall\\MIAA-086A.avi", &model.Unfinished{}, func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
-		fmt.Println(*sa, v)
-		return nil
-	}))
-	if e != nil {
-		t.Error(e)
-	}
-	e = s.PushTo(seed.InformationCall(info.InfoType, info.Path))
-	if e != nil {
-		t.Error(e)
-	}
+
 	s.Wait()
 	fmt.Println("waiting db end")
 	fmt.Println("db end")

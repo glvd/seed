@@ -18,14 +18,6 @@ type API struct {
 	cb     chan APICaller
 }
 
-// Done ...
-func (api *API) Done() <-chan bool {
-	go func() {
-		api.cb <- nil
-	}()
-	return api.Thread.Done()
-}
-
 // Option ...
 func (api *API) Option(s Seeder) {
 	apiOption(api)(s)

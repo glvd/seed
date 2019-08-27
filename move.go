@@ -2,12 +2,17 @@ package seed
 
 import (
 	"context"
-	"os"
-	"path/filepath"
+	"time"
 )
+
+type MoveCaller interface {
+	Call(*Move) error
+}
 
 // Move ...
 type Move struct {
+	*Thread
+	cb    chan MoveCaller
 	to    string
 	Moves map[string]string
 }
@@ -24,35 +29,36 @@ func (m *Move) Push(interface{}) error {
 
 // NewMove ...
 func NewMove() *Move {
-	return &Move{}
+	return &Move{
+		Thread: NewThread(),
+	}
 }
 
 // Run ...
-func (m *Move) Run(context.Context) {
-	var e error
-	s, e := filepath.Abs(m.to)
-	if e != nil {
-		return
-	}
-	for v, hash := range m.Moves {
-		//_, name := filepath.Split(v)
-		to := hash + filepath.Ext(v)
-		path := filepath.Join(s, to)
-		log.With("from", v, "to", to).Info("Move")
-		e = os.Rename(v, path)
-		if e != nil {
-			log.Error(e, path)
-			continue
+func (m *Move) Run(ctx context.Context) {
+	log.Info("move running")
+
+InfoEnd:
+	for {
+		select {
+		case <-ctx.Done():
+			break InfoEnd
+		case cb := <-m.cb:
+			if cb == nil {
+				break InfoEnd
+			}
+			m.SetState(StateRunning)
+			e := cb.Call(m)
+			if e != nil {
+				log.Error(e)
+			}
+		case <-time.After(30 * time.Second):
+			log.Info("info time out")
+			m.SetState(StateWaiting)
 		}
 	}
-}
-
-// BeforeRun ...
-func (m *Move) BeforeRun(seed Seeder) {
-}
-
-// AfterRun ...
-func (m *Move) AfterRun(seed Seeder) {
+	close(m.cb)
+	m.Finished()
 }
 
 // MoveInfo ...

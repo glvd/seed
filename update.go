@@ -40,15 +40,11 @@ const (
 	UpdateContentDelete UpdateContent = "delete"
 )
 
-type UpdateCaller interface {
-	Call(*Update) error
-}
-
 type Update struct {
 	*Thread
-	cb      chan UpdateCaller
-	method  UpdateMethod
-	content UpdateContent
+	cb chan UpdateCaller
+	//method  UpdateMethod
+	//content UpdateContent
 }
 
 // Push ...
@@ -179,10 +175,9 @@ UpdateEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			u.SetState(StateStop)
+			break UpdateEnd
 		case cb := <-u.cb:
 			if cb == nil {
-				u.SetState(StateStop)
 				break UpdateEnd
 			}
 			u.SetState(StateRunning)
@@ -191,6 +186,7 @@ UpdateEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("update time out")
 			u.SetState(StateWaiting)
 		}
 	}

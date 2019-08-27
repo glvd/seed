@@ -153,3 +153,7 @@ type PinCaller interface {
 
 type pinCall struct {
 }
+
+type UpdateCaller interface {
+	Call(*Update) error
+}

@@ -147,18 +147,8 @@ type unfinishedSlice struct {
 // SliceCallbackFunc ...
 type SliceCallbackFunc func(s *Slice, sa *cmd.SplitArgs, v interface{}) (e error)
 
-// SliceOptions ...
-type SliceOptions func(call *sliceCall)
-
-// SliceOutputOption ...
-func SliceOutputOption(path string) SliceOptions {
-	return func(call *sliceCall) {
-		call.sliceOutput = path
-	}
-}
-
 // SliceCall ...
-func SliceCall(slice *unfinishedSlice, cb SliceCallbackFunc, sliceOption ...SliceOptions) (Stepper, SliceCaller) {
+func SliceCall(slice *unfinishedSlice, cb SliceCallbackFunc) (Stepper, SliceCaller) {
 	return StepperSlice, &sliceCall{
 		cb:    cb,
 		slice: slice,
@@ -332,15 +322,16 @@ func sliceVideo(slice *Slice, us *unfinishedSlice) (sa *cmd.SplitArgs, e error) 
 }
 
 type sliceCall struct {
-	cb    SliceCallbackFunc
-	slice *unfinishedSlice
-
+	cb         SliceCallbackFunc
+	slice      *unfinishedSlice
+	unfinished *model.Unfinished
+	file       string
 	//*Slice
-	skipType    []interface{}
-	skipExist   bool
-	skipSlice   bool
-	scale       int64
-	sliceOutput string
+	//skipType    []interface{}
+	//skipExist   bool
+	//skipSlice   bool
+	//scale       int64
+	//sliceOutput string
 }
 
 var _ SliceCaller = &sliceCall{}

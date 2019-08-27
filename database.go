@@ -50,11 +50,9 @@ DatabaseEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			db.SetState(StateStop)
 			return
 		case v := <-db.cb:
 			if v == nil {
-				db.SetState(StateStop)
 				break DatabaseEnd
 			}
 			db.SetState(StateRunning)

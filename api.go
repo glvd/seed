@@ -83,11 +83,9 @@ APIEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			api.SetState(StateStop)
 			return
 		case c := <-api.cb:
 			if c == nil {
-				api.SetState(StateStop)
 				break APIEnd
 			}
 			api.SetState(StateRunning)

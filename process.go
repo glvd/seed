@@ -166,11 +166,9 @@ ProcessEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			p.SetState(StateStop)
 			break ProcessEnd
 		case v := <-p.cb:
 			if v == nil {
-				p.SetState(StateStop)
 				break ProcessEnd
 			}
 			p.SetState(StateRunning)

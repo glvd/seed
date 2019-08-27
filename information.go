@@ -183,6 +183,7 @@ InfoEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("info time out")
 			info.SetState(StateWaiting)
 		}
 	}
@@ -359,7 +360,7 @@ type VideoSource struct {
 // InformationOption ...
 func informationOption(info *Information) Options {
 	return func(seed Seeder) {
-		seed.SetThread(StepperInformation, info)
+		seed.SetBaseThread(StepperInformation, info)
 	}
 }
 

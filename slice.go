@@ -20,8 +20,7 @@ type SliceCaller interface {
 
 // Slice ...
 type Slice struct {
-	Seeder
-	Threader
+	*Thread
 	Scale       int64
 	SliceOutput string
 	SkipType    []interface{}
@@ -40,7 +39,7 @@ func (s *Slice) Done() <-chan bool {
 	go func() {
 		s.cb <- nil
 	}()
-	return s.Threader.Done()
+	return s.Thread.Done()
 }
 
 // Option ...
@@ -50,7 +49,7 @@ func (s *Slice) Option(seed Seeder) {
 
 func sliceOption(slice *Slice) Options {
 	return func(seeder Seeder) {
-		seeder.SetThread(StepperSlice, slice)
+		seeder.SetBaseThread(StepperSlice, slice)
 	}
 }
 
@@ -66,8 +65,8 @@ func (s *Slice) push(cb interface{}) error {
 // NewSlice ...
 func NewSlice() *Slice {
 	return &Slice{
-		cb:       make(chan SliceCaller),
-		Threader: NewThread(),
+		cb:     make(chan SliceCaller),
+		Thread: NewThread(),
 	}
 }
 
@@ -91,21 +90,12 @@ SliceEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("slice time out")
 			s.SetState(StateWaiting)
 		}
 	}
 	close(s.cb)
 	s.Finished()
-}
-
-// BeforeRun ...
-func (s *Slice) BeforeRun(seed Seeder) {
-	s.Seeder = seed
-
-}
-
-// AfterRun ...
-func (s *Slice) AfterRun(seed Seeder) {
 }
 
 // GetFiles ...

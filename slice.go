@@ -34,14 +34,6 @@ func (s *Slice) Push(v interface{}) error {
 	return s.push(v)
 }
 
-// Done ...
-func (s *Slice) Done() <-chan bool {
-	go func() {
-		s.cb <- nil
-	}()
-	return s.Thread.Done()
-}
-
 // Option ...
 func (s *Slice) Option(seed Seeder) {
 	sliceOption(s)(seed)

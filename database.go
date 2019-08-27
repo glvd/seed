@@ -17,14 +17,6 @@ type Database struct {
 	cb        chan DatabaseCaller
 }
 
-// Done ...
-func (db *Database) Done() <-chan bool {
-	go func() {
-		db.cb <- nil
-	}()
-	return db.Thread.Done()
-}
-
 // DatabaseCallback ...
 func DatabaseCallback(v interface{}, cb DatabaseCallbackFunc) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &databaseCall{

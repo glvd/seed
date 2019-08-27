@@ -63,6 +63,7 @@ DatabaseEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("database time out")
 			db.SetState(StateWaiting)
 		}
 	}
@@ -163,7 +164,7 @@ func DatabaseShowExecTimeArg() DatabaseArgs {
 // databaseOption ...
 func databaseOption(db *Database) Options {
 	return func(seed Seeder) {
-		seed.SetThread(StepperDatabase, db)
+		seed.SetBaseThread(StepperDatabase, db)
 		//seed.SetNormalThread(StepperRDatabase, db)
 	}
 }

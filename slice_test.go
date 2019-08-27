@@ -26,7 +26,7 @@ func TestNewSlice(t *testing.T) {
 	s := seed.NewSeed(info, sdb, api, sli)
 	s.Start()
 	fmt.Println("waiting end")
-	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos\\MIAA-086.wmv", &model.Unfinished{}, func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
+	e := s.PushTo(seed.SliceCall("D:\\videoall\\videos\\MIAA-087.mp4", &model.Unfinished{}, func(s *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
 		fmt.Println(*sa, v)
 		return nil
 	}))
@@ -35,7 +35,5 @@ func TestNewSlice(t *testing.T) {
 	}
 	s.Wait()
 	fmt.Println("waiting db end")
-	sdb.Done()
-	api.Done()
 	fmt.Println("db end")
 }

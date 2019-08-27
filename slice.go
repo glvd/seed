@@ -73,6 +73,7 @@ func NewSlice() *Slice {
 // Run ...
 func (s *Slice) Run(ctx context.Context) {
 	log.Info("slice running")
+	//t := time.NewTimer(30 * time.Second)
 SliceEnd:
 	for {
 		select {
@@ -83,10 +84,12 @@ SliceEnd:
 				break SliceEnd
 			}
 			s.SetState(StateRunning)
+			//t.Stop()
 			e := v.Call(s)
 			if e != nil {
 				log.Error(e)
 			}
+			//t.Reset(30 * time.Second)
 		case <-time.After(30 * time.Second):
 			log.Info("slice time out")
 			s.SetState(StateWaiting)

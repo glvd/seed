@@ -165,13 +165,13 @@ func (s *seed) GetNumberArg(key string) (v int64) {
 func (s *seed) Done() {
 	count := atomic.NewInt32(0)
 	for i := range s.base {
-		func(base ThreadBase) {
-			if base.State() != StateStop {
-				base.Finished()
-				<-base.Done()
-			}
+		go func(base ThreadBase) {
+			//if base.State() != StateStop {
+			<-base.Done()
+			//}
 			count.Add(1)
 		}(s.base[i])
+		s.base[i].Finished()
 	}
 	for {
 		if count.Load() == int32(len(s.base)) {

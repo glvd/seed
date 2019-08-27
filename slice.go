@@ -77,11 +77,9 @@ SliceEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			s.SetState(StateStop)
 			break SliceEnd
 		case v := <-s.cb:
 			if v == nil {
-				s.SetState(StateStop)
 				break SliceEnd
 			}
 			s.SetState(StateRunning)

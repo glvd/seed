@@ -170,11 +170,9 @@ InfoEnd:
 	for {
 		select {
 		case <-ctx.Done():
-			info.SetState(StateStop)
 			break InfoEnd
 		case cb := <-info.cb:
 			if cb == nil {
-				info.SetState(StateStop)
 				break InfoEnd
 			}
 			info.SetState(StateRunning)

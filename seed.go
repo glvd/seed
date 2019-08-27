@@ -230,9 +230,9 @@ func (s *seed) Wait() {
 			}
 		}
 		if state == 2 {
-			state = 0
-		} else {
 			state = 1
+		} else {
+			state = 0
 		}
 	}
 	log.Info("base done")

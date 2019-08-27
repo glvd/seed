@@ -15,8 +15,7 @@ import (
 
 // SliceCaller ...
 type SliceCaller interface {
-	Path() string
-	Call(*Slice, string) error
+	Call(*Slice) error
 }
 
 // Slice ...
@@ -87,12 +86,9 @@ SliceEnd:
 				break SliceEnd
 			}
 			s.SetState(StateRunning)
-			files := GetFiles(v.Path())
-			for _, file := range files {
-				e := v.Call(s, file)
-				if e != nil {
-					log.With("file", file).Error(e)
-				}
+			e := v.Call(s)
+			if e != nil {
+				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
 			s.SetState(StateWaiting)
@@ -145,7 +141,7 @@ type unfinishedSlice struct {
 	unfinished *model.Unfinished
 	format     *cmd.StreamFormat
 	file       string
-	sliceCall
+	//sliceCall
 }
 
 // SliceCallbackFunc ...
@@ -162,10 +158,11 @@ func SliceOutputOption(path string) SliceOptions {
 }
 
 // SliceCall ...
-func SliceCall(path string, cb SliceCallbackFunc, sliceOption ...SliceOptions) (Stepper, SliceCaller) {
+func SliceCall(slice *unfinishedSlice, cb SliceCallbackFunc, sliceOption ...SliceOptions) (Stepper, SliceCaller) {
 	return StepperSlice, &sliceCall{
-		cb:   cb,
-		path: path,
+		cb:    cb,
+		slice: slice,
+		//path: path,
 		//skipType:    call.SkipType,
 		//skipExist:   call.SkipExist,
 		//skipSlice:   call.SkipSlice,
@@ -187,9 +184,10 @@ func skip(format *cmd.StreamFormat) bool {
 }
 
 // Call ...
-func (c *sliceCall) Call(s *Slice, path string) (e error) {
+func (c *sliceCall) Call(s *Slice) (e error) {
+	sliceVideo(s, c.slice, c.slice)
 
-	return c.cb(s, path)
+	return c.cb(s, c.slice)
 	//u := new(unfinishedSlice)
 	//u.file = path
 	//u.sliceCall = *c
@@ -294,18 +292,17 @@ func (c *sliceCall) Call(s *Slice, path string) (e error) {
 	//return
 }
 
-func sliceVideo(us *unfinishedSlice, format *cmd.StreamFormat) (sa *cmd.SplitArgs, e error) {
-	s := us.scale
+func sliceVideo(slice *Slice, us *unfinishedSlice) (sa *cmd.SplitArgs, e error) {
+	s := slice.Scale
 	if s != 0 {
-		res := format.ResolutionInt()
+		res := us.format.ResolutionInt()
 		if int64(res) < s {
 			s = int64(res)
 		}
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(us.sliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.ScaleOption(s), cmd.OutputOption(slice.SliceOutput))
 		us.unfinished.Sharpness = fmt.Sprintf("%dP", scale(s))
-
 	} else {
-		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(format), cmd.OutputOption(us.sliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, us.file, cmd.StreamFormatOption(us.format), cmd.OutputOption(slice.SliceOutput))
 	}
 
 	log.Infof("%+v", sa)
@@ -326,19 +323,15 @@ func parseUnfinishedFromStreamFormat(file string, u *model.Unfinished) (format *
 }
 
 type sliceCall struct {
-	cb   SliceCallbackFunc
-	path string
+	cb    SliceCallbackFunc
+	slice *unfinishedSlice
+
 	//*Slice
 	skipType    []interface{}
 	skipExist   bool
 	skipSlice   bool
 	scale       int64
 	sliceOutput string
-}
-
-// Path ...
-func (c *sliceCall) Path() string {
-	return c.path
 }
 
 var _ SliceCaller = &sliceCall{}

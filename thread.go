@@ -15,6 +15,7 @@ type Thread struct {
 
 // Finished ...
 func (t *Thread) Finished() {
+	t.SetState(StateStop)
 	t.done <- true
 }
 
@@ -49,6 +50,7 @@ func (t *Thread) State() State {
 
 // Done ...
 func (t *Thread) Done() <-chan bool {
+
 	return t.done
 }
 

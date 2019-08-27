@@ -166,7 +166,10 @@ func (s *seed) Done() {
 	count := atomic.NewInt32(0)
 	for i := range s.base {
 		func(base ThreadBase) {
-			<-base.Done()
+			if base.State() != StateStop {
+				base.Finished()
+				<-base.Done()
+			}
 			count.Add(1)
 		}(s.base[i])
 	}
@@ -194,6 +197,7 @@ func (s *seed) Start() {
 		}
 		s.thread[i].BeforeRun(s)
 		if s.IsNormal(i) || s.IsBase(i) {
+			log.With("thread", i).Info("run base/normal")
 			go func(t ThreadRun, s *seed) {
 				t.Run(s.ctx)
 				t.AfterRun(s)
@@ -201,11 +205,11 @@ func (s *seed) Start() {
 			continue
 		} else {
 			s.wg.Add(1)
+			log.With("thread", i).Info("run thread")
 			go func(t ThreadRun, s *seed) {
 				defer s.wg.Done()
 				t.Run(s.ctx)
 				t.AfterRun(s)
-
 			}(s.thread[i], s)
 		}
 	}
@@ -231,7 +235,7 @@ func (s *seed) Wait() {
 			state = 1
 		}
 	}
-
+	log.Info("base done")
 	s.Done()
 }
 

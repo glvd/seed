@@ -16,35 +16,30 @@ type UpdateContent string
 // UpdateMethod ...
 type UpdateMethod string
 
-// UpdateMethodVideo ...
-const UpdateMethodVideo UpdateMethod = "video"
-
-// UpdateMethodAll ...
-const UpdateMethodAll UpdateMethod = "all"
-
-// UpdateMethodUnfinished ...
-const UpdateMethodUnfinished UpdateMethod = "unfinished"
-
-// UpdateStatusNone ...
+// UpdateMethod ...
 const (
-	// UpdateContentNone ...
-	UpdateContentNone UpdateContent = "none"
-	// UpdateContentVerify ...
-	UpdateContentVerify UpdateContent = "verify"
+	UpdateMethodVideo UpdateMethod = "video"
+	// UpdateMethodAll ...
+	UpdateMethodAll UpdateMethod = "all"
+	// UpdateMethodUnfinished ...
+	UpdateMethodUnfinished UpdateMethod = "unfinished"
+)
+
+// UpdateStatus ...
+const (
 	// UpdateContentAll ...
 	UpdateContentAll UpdateContent = "all"
 	// UpdateContentInfo ...
-	UpdateContentInfo UpdateContent = "Info"
+	UpdateContentInfo UpdateContent = "info"
 	// UpdateContentHash ...
 	UpdateContentHash UpdateContent = "hash"
-	// UpdateContentDelete ...
-	UpdateContentDelete UpdateContent = "delete"
 )
 
 // Update ...
 type Update struct {
 	*Thread
-	cb chan UpdateCaller
+	cb         chan UpdateCaller
+	updateFunc map[UpdateMethod]func(*Update)
 	//method  UpdateMethod
 	//content UpdateContent
 }
@@ -63,11 +58,15 @@ func (uc *updateCall) Call(u *Update) error {
 }
 
 // UpdateCall ...
-func UpdateCall(engine *xorm.Engine, cb UpdateCallFunc) (Stepper, UpdateCaller) {
+func UpdateCall(engine *xorm.Engine) (Stepper, UpdateCaller) {
 	return StepperUpdate, &updateCall{
-		cb:       cb,
+		cb:       callUpdate,
 		database: engine,
 	}
+}
+
+func callUpdate(u *Update, engine *xorm.Engine) error {
+	return nil
 }
 
 // Push ...

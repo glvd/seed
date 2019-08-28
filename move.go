@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// MoveCaller ...
 type MoveCaller interface {
 	Call(*Move) error
 }

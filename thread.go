@@ -4,11 +4,16 @@ import (
 	"context"
 
 	"go.uber.org/atomic"
+	"golang.org/x/xerrors"
 )
+
+// PushFunc ...
+type PushFunc func(interface{}) error
 
 // Thread ...
 type Thread struct {
 	Seeder
+	push  PushFunc
 	state *atomic.Int32
 	done  chan bool
 }
@@ -30,8 +35,11 @@ func (t *Thread) SetState(state State) {
 }
 
 // Push ...
-func (t *Thread) Push(interface{}) error {
-	panic("implement me")
+func (t *Thread) Push(v interface{}) error {
+	if t.push != nil {
+		return t.push(v)
+	}
+	return xerrors.New("null push function")
 }
 
 // BeforeRun ...
@@ -50,7 +58,6 @@ func (t *Thread) State() State {
 
 // Done ...
 func (t *Thread) Done() <-chan bool {
-
 	return t.done
 }
 

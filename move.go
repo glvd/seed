@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-// MoveCaller ...
-type MoveCaller interface {
-	Call(*Move) error
-}
-
 // Move ...
 type Move struct {
 	*Thread

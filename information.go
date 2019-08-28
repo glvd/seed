@@ -358,7 +358,7 @@ type VideoSource struct {
 // InformationOption ...
 func informationOption(info *Information) Options {
 	return func(seed Seeder) {
-		seed.SetBaseThread(StepperInformation, info)
+		seed.SetThread(StepperInformation, info)
 	}
 }
 

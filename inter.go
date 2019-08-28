@@ -145,8 +145,11 @@ type Runnable interface {
 type Pusher interface {
 	Push(interface{}) error
 }
+
+// PinCallFunc ...
 type PinCallFunc func(*Pin) error
 
+// PinCaller ...
 type PinCaller interface {
 	Call()
 }
@@ -154,6 +157,12 @@ type PinCaller interface {
 type pinCall struct {
 }
 
+// UpdateCaller ...
 type UpdateCaller interface {
 	Call(*Update) error
+}
+
+// MoveCaller ...
+type MoveCaller interface {
+	Call(*Move) error
 }

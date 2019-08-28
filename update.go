@@ -7,6 +7,7 @@ import (
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
+	"golang.org/x/xerrors"
 )
 
 // UpdateContent ...
@@ -70,8 +71,8 @@ func UpdateCall(engine *xorm.Engine, cb UpdateCallFunc) (Stepper, UpdateCaller) 
 }
 
 // Push ...
-func (u *Update) Push(interface{}) error {
-	return nil
+func (u *Update) Push(v interface{}) error {
+	return u.push(v)
 }
 
 // NewUpdate ...
@@ -214,4 +215,14 @@ UpdateEnd:
 	}
 	close(u.cb)
 	u.Finished()
+}
+
+func (u *Update) push(v interface{}) error {
+	if cb, b := v.(UpdateCaller); b {
+		go func(caller UpdateCaller) {
+			u.cb <- caller
+		}(cb)
+		return nil
+	}
+	return xerrors.New("not update callback")
 }

@@ -67,6 +67,7 @@ func (info *Information) push(cb interface{}) error {
 		go func(cb InformationCaller) {
 			info.cb <- cb
 		}(v)
+		return nil
 	}
 	return xerrors.New("not information callback")
 }

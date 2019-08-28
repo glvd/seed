@@ -294,7 +294,7 @@ func (p *processCall) Call(process *Process) error {
 }
 
 // ProcessCall ...
-func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) *processCall {
+func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) ProcessCaller {
 	return &processCall{
 		video: v,
 		cb:    callbackFunc,

@@ -40,6 +40,7 @@ const (
 	UpdateContentDelete UpdateContent = "delete"
 )
 
+// Update ...
 type Update struct {
 	*Thread
 	cb chan UpdateCaller
@@ -47,6 +48,7 @@ type Update struct {
 	//content UpdateContent
 }
 
+// UpdateCallFunc ...
 type UpdateCallFunc func(u *Update, f *xorm.Engine) error
 
 type updateCall struct {
@@ -54,10 +56,12 @@ type updateCall struct {
 	database *xorm.Engine
 }
 
+// Call ...
 func (uc *updateCall) Call(u *Update) error {
 	return uc.cb(u, uc.database)
 }
 
+// UpdateCall ...
 func UpdateCall(engine *xorm.Engine, cb UpdateCallFunc) (Stepper, UpdateCaller) {
 	return StepperUpdate, &updateCall{
 		cb:       cb,

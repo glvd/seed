@@ -2,6 +2,7 @@ package seed
 
 import (
 	"context"
+	"sync"
 )
 
 // TaskCaller ...
@@ -12,12 +13,15 @@ type TaskCaller interface {
 // Task ...
 type Task struct {
 	*Thread
-	tasks []TaskCaller
+	taskMutex sync.RWMutex
+	tasks     []TaskCaller
 }
 
 // AddTask ...
-func (t *Task) AddTask() {
-	log.Info("add task")
+func (t *Task) AddTask(caller TaskCaller) {
+	t.taskMutex.Lock()
+	t.tasks = append(t.tasks, caller)
+	t.taskMutex.Unlock()
 }
 
 // Option ...
@@ -27,7 +31,7 @@ func (t *Task) Option(seeder Seeder) {
 
 func taskOption(t *Task) Options {
 	return func(seeder Seeder) {
-		seeder.SetBaseThread(StepperTask, t)
+		seeder.SetThread(StepperTask, t)
 	}
 }
 
@@ -40,5 +44,13 @@ func NewTask() Threader {
 
 // Run ...
 func (t *Task) Run(ctx context.Context) {
+	t.taskMutex.RLock()
+	for i, tsk := range t.tasks {
+		e := tsk.Call(t)
+		if e != nil {
+			log.With("index", i).Error(e)
+		}
+	}
+	t.taskMutex.RUnlock()
 
 }

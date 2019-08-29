@@ -25,7 +25,7 @@ type Process struct {
 	*Thread
 	//taskMutex *sync.RWMutex
 	//tasks     map[string]*Task
-	cb chan ProcessCaller
+	cb chan TaskProcessor
 	//workspace   string
 	//path        string
 	//moves       map[string]string
@@ -43,7 +43,7 @@ func (p *Process) Push(v interface{}) error {
 }
 
 func (p *Process) push(cb interface{}) error {
-	if v, b := cb.(ProcessCaller); b {
+	if v, b := cb.(TaskProcessor); b {
 		p.cb <- v
 		return nil
 	}
@@ -283,7 +283,7 @@ func (p *processCall) Call(process *Process) error {
 }
 
 // ProcessCall ...
-func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) ProcessCaller {
+func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) TaskProcessor {
 	return &processCall{
 		video: v,
 		cb:    callbackFunc,

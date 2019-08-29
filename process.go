@@ -54,6 +54,7 @@ func (p *Process) push(cb interface{}) error {
 
 // AddTask ...
 func (p *Process) AddTask(task *Task) {
+	log.Info("add task")
 	p.taskMutex.Lock()
 	defer p.taskMutex.Unlock()
 	if p.tasks == nil {
@@ -91,22 +92,10 @@ func (p *Process) Task(name string) (t *Task, b bool) {
 	return
 }
 
-// TaskCall ...
-func (p *Process) TaskCall() (e error) {
-	p.taskMutex.RLock()
-	defer p.taskMutex.RUnlock()
-	for _, tsk := range p.tasks {
-		e = p.push(tsk)
-		if e != nil {
-			return e
-		}
-	}
-	return e
-}
-
 // NewProcess ...
 func NewProcess() *Process {
 	process := &Process{}
+	process.taskMutex = &sync.RWMutex{}
 	process.Thread = NewThread()
 	return process
 }
@@ -321,7 +310,7 @@ func Load(path string) []*VideoSource {
 // processOption ...
 func processOption(process *Process) Options {
 	return func(seed Seeder) {
-		seed.SetThread(StepperProcess, process)
+		seed.SetBaseThread(StepperProcess, process)
 	}
 }
 

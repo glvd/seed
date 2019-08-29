@@ -55,3 +55,8 @@ func (t *Task) Run(ctx context.Context) {
 	t.taskMutex.RUnlock()
 
 }
+
+// Process ...
+func (t *Task) Process() {
+
+}

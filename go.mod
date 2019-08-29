@@ -21,5 +21,4 @@ require (
 	github.com/multiformats/go-multiaddr v0.0.4
 	github.com/pelletier/go-toml v1.4.0
 	go.uber.org/atomic v1.4.0
-	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 )

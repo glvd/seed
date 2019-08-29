@@ -62,6 +62,29 @@ func (p *Process) AddTask(task *Task) {
 	p.tasks[task.Name] = task
 }
 
+// HasTask ...
+func (p *Process) HasTask(name string) bool {
+	_, b := p.tasks[name]
+	return b
+}
+
+// MustTask ...
+func (p *Process) MustTask(name string) *Task {
+	if v, b := p.Task(name); b {
+		return v
+	}
+	panic(fmt.Errorf("task[%s] not found", name))
+}
+
+// Task ...
+func (p *Process) Task(name string) (t *Task, b bool) {
+	if p.tasks == nil {
+		return nil, false
+	}
+	t, b = p.tasks[name]
+	return
+}
+
 // BeforeRun ...
 func (p *Process) BeforeRun(seed Seeder) {
 

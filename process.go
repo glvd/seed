@@ -24,6 +24,7 @@ func dummy(process *Process) (e error) {
 // Process ...
 type Process struct {
 	*Thread
+	tasks       map[string]*Task
 	cb          chan ProcessCaller
 	workspace   string
 	path        string
@@ -51,6 +52,14 @@ func (p *Process) push(cb interface{}) error {
 	}
 	return errors.New("not api callback")
 
+}
+
+// AddTask ...
+func (p *Process) AddTask(task *Task) {
+	if p.tasks == nil {
+		p.tasks = make(map[string]*Task)
+	}
+	p.tasks[task.Name] = task
 }
 
 // BeforeRun ...

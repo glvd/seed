@@ -10,7 +10,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -34,43 +33,25 @@ const InfoTypeBSON InfoType = "bson"
 
 // Information ...
 type Information struct {
-	*Thread
+	//*Thread
 	InfoType     InfoType
 	Path         string
 	ResourcePath string
 	ProcList     []string
 	Start        int
-	cb           chan InformationCaller
-}
-
-// Push ...
-func (info *Information) Push(v interface{}) error {
-	return info.push(v)
-}
-
-// Option ...
-func (info *Information) Option(seed Seeder) {
-	informationOption(info)(seed)
-}
-
-// NewInformation ...
-func NewInformation() *Information {
-	info := new(Information)
-	info.cb = make(chan InformationCaller)
-	info.Thread = NewThread()
-	return info
+	//cb           chan InformationCaller
 }
 
 // PushCallback ...
-func (info *Information) push(cb interface{}) error {
-	if v, b := cb.(InformationCaller); b {
-		go func(cb InformationCaller) {
-			info.cb <- cb
-		}(v)
-		return nil
-	}
-	return xerrors.New("not information callback")
-}
+//func (info *Information) push(cb interface{}) error {
+//	if v, b := cb.(InformationCaller); b {
+//		go func(cb InformationCaller) {
+//			info.cb <- cb
+//		}(v)
+//		return nil
+//	}
+//	return xerrors.New("not information callback")
+//}
 
 func fixBson(s []byte) []byte {
 	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
@@ -163,33 +144,34 @@ func checkFileNotExist(path string) bool {
 	return false
 }
 
-// Run ...
-func (info *Information) Run(ctx context.Context) {
-	log.Info("information running")
-
-InfoEnd:
-	for {
-		select {
-		case <-ctx.Done():
-			break InfoEnd
-		case cb := <-info.cb:
-			if cb == nil {
-				break InfoEnd
-			}
-			info.SetState(StateRunning)
-			e := cb.Call(info)
-			if e != nil {
-				log.Error(e)
-			}
-		case <-time.After(30 * time.Second):
-			log.Info("info time out")
-			info.SetState(StateWaiting)
-		}
-	}
-	close(info.cb)
-	info.Finished()
-
-}
+//
+//// Run ...
+//func (info *Information) Run(ctx context.Context) {
+//	log.Info("information running")
+//
+//InfoEnd:
+//	for {
+//		select {
+//		case <-ctx.Done():
+//			break InfoEnd
+//		case cb := <-info.cb:
+//			if cb == nil {
+//				break InfoEnd
+//			}
+//			info.SetState(StateRunning)
+//			e := cb.Call(info)
+//			if e != nil {
+//				log.Error(e)
+//			}
+//		case <-time.After(30 * time.Second):
+//			log.Info("info time out")
+//			info.SetState(StateWaiting)
+//		}
+//	}
+//	close(info.cb)
+//	info.Finished()
+//
+//}
 
 func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
 	if a.IsFailed() {
@@ -356,12 +338,12 @@ type VideoSource struct {
 	Uncensored   bool      `json:"uncensored"`    //有码,无码
 }
 
-// InformationOption ...
-func informationOption(info *Information) Options {
-	return func(seed Seeder) {
-		seed.SetThread(StepperInformation, info)
-	}
-}
+//// InformationOption ...
+//func informationOption(info *Information) Options {
+//	return func(seed Seeder) {
+//		seed.SetThread(StepperInformation, info)
+//	}
+//}
 
 func bsonVideoSource(path string) (vs []*VideoSource, e error) {
 	var bs []byte
@@ -394,14 +376,15 @@ var infoCallList = map[InfoType]func(string) ([]*VideoSource, error){
 }
 
 type informationCall struct {
-	infoType InfoType
-	path     string
-	list     []string
-	start    int
+	infoType     InfoType
+	resourcePath string
+	path         string
+	list         []string
+	start        int
 }
 
 // SplitCall ...
-func SplitCall(information *Information, limit int) (e error) {
+func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 	var vs []*VideoSource
 	if v, b := infoCallList[information.InfoType]; b {
 		vs, e = v(information.Path)
@@ -438,7 +421,9 @@ func SplitCall(information *Information, limit int) (e error) {
 				continue
 			}
 			log.With("path", open).Info("json")
-			e = information.PushTo(InformationCall(InfoTypeJSON, open))
+			newinfo := information.Clone()
+			newinfo.Path = open
+			e = seeder.PushTo(newinfo.Caller())
 			if e != nil {
 				log.Error(e)
 				continue
@@ -448,7 +433,7 @@ func SplitCall(information *Information, limit int) (e error) {
 	return
 }
 
-func splitCall(information *Information, c *informationCall, vs []*VideoSource, limit int) (b bool) {
+func splitCall(seeder Seeder, c *informationCall, vs []*VideoSource, limit int) (b bool) {
 	size := len(vs)
 	var vstmp []*VideoSource
 	if size > limit {
@@ -474,7 +459,12 @@ func splitCall(information *Information, c *informationCall, vs []*VideoSource, 
 				continue
 			}
 			log.With("path", open).Info("json")
-			e = information.PushTo(InformationCall(InfoTypeJSON, open, c.list...))
+			info := &Information{
+				InfoType: InfoTypeJSON,
+				Path:     open,
+				ProcList: c.list,
+			}
+			e = seeder.PushTo(info.Caller())
 			if e != nil {
 				log.Error(e)
 				continue
@@ -486,7 +476,7 @@ func splitCall(information *Information, c *informationCall, vs []*VideoSource, 
 }
 
 // Call ...
-func (i *informationCall) Call(information *Information) error {
+func (i *informationCall) Call(process *Process) error {
 	var e error
 	var vs []*VideoSource
 	if v, b := infoCallList[i.infoType]; b {
@@ -499,7 +489,7 @@ func (i *informationCall) Call(information *Information) error {
 		return xerrors.New("no video source")
 	}
 
-	if splitCall(information, i, vs, 10000) {
+	if splitCall(process, i, vs, 10000) {
 		log.With("path", i.path).Info("split")
 		return nil
 	}
@@ -516,12 +506,12 @@ func (i *informationCall) Call(information *Information) error {
 			v.PosterHash = source.Poster
 		} else {
 			if source.PosterPath != "" {
-				source.PosterPath = filepath.Join(information.ResourcePath, source.PosterPath)
+				source.PosterPath = filepath.Join(i.resourcePath, source.PosterPath)
 				if checkFileNotExist(source.PosterPath) {
 					log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
 				} else {
 
-					e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+					e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 
 						_, e = addPosterHash(api, api2, v.(*VideoSource))
 						if e != nil {
@@ -540,11 +530,11 @@ func (i *informationCall) Call(information *Information) error {
 		}
 
 		if source.Thumb != "" {
-			source.Thumb = filepath.Join(information.ResourcePath, source.Thumb)
+			source.Thumb = filepath.Join(i.resourcePath, source.Thumb)
 			if checkFileNotExist(source.Thumb) {
 				log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
 			} else {
-				e := information.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+				e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					_, e = addThumbHash(api, api2, v.(*VideoSource))
 					if e != nil {
 						return e
@@ -557,7 +547,7 @@ func (i *informationCall) Call(information *Information) error {
 				}
 			}
 		}
-		e := information.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e := process.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
 		}))
 		if e != nil {
@@ -566,14 +556,22 @@ func (i *informationCall) Call(information *Information) error {
 	}
 }
 
-// InformationCall ...
-func InformationCall(it InfoType, path string, list ...string) (Stepper, InformationCaller) {
+// Caller ...
+func (info *Information) Caller() (Stepper, ProcessCaller) {
 	return StepperInformation, &informationCall{
-		infoType: it,
-		path:     path,
-		list:     list,
-		//start:    0,
+		infoType:     info.InfoType,
+		resourcePath: info.ResourcePath,
+		path:         info.Path,
+		list:         info.ProcList,
+		start:        info.Start,
 	}
 }
 
-var _ InformationCaller = &informationCall{}
+// Clone ...
+func (info *Information) Clone() (newinfo *Information) {
+	newinfo = new(Information)
+	*newinfo = *info
+	return
+}
+
+var _ ProcessCaller = &informationCall{}

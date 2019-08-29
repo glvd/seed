@@ -2,12 +2,11 @@ package seed
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"time"
-
-	"golang.org/x/xerrors"
 
 	"github.com/glvd/seed/model"
 	cmd "github.com/godcong/go-ffmpeg-cmd"

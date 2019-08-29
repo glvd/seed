@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 	"unicode"
 
@@ -55,7 +54,6 @@ func (p *Process) push(cb interface{}) error {
 // NewProcess ...
 func NewProcess() *Process {
 	process := &Process{}
-	process.taskMutex = &sync.RWMutex{}
 	process.Thread = NewThread()
 	return process
 }

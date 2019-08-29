@@ -13,7 +13,7 @@ type TaskCaller interface {
 // Task ...
 type Task struct {
 	*Thread
-	taskMutex sync.RWMutex
+	taskMutex *sync.RWMutex
 	tasks     []TaskCaller
 }
 
@@ -38,6 +38,7 @@ func taskOption(t *Task) Options {
 // NewTask ...
 func NewTask() Threader {
 	tsk := new(Task)
+	tsk.taskMutex = new(sync.RWMutex)
 	tsk.Thread = NewThread()
 	return tsk
 }

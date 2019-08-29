@@ -7,11 +7,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// TestGetFiles ...
-func TestGetFiles(t *testing.T) {
-
-}
-
 // TestProcess ...
 func TestProcess(t *testing.T) {
 	seeder := seed.NewSeed()

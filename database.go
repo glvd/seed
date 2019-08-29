@@ -81,7 +81,7 @@ func (db *Database) push(cb interface{}) (e error) {
 		db.cb <- v
 		return nil
 	}
-	return xerrors.New("not database callback")
+	return errors.New("not database callback")
 }
 
 // Sync ...

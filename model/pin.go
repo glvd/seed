@@ -40,7 +40,7 @@ func FindPin(session *xorm.Session, ph string) (pin *Pin, e error) {
 	pin = new(Pin)
 	b, e := MustSession(session).Where("pin_hash = ?", ph).Get(pin)
 	if e != nil || !b {
-		return nil, xerrors.New("pin not found!")
+		return nil, errors.New("pin not found!")
 	}
 	return pin, nil
 }

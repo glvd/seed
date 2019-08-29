@@ -2,12 +2,12 @@ package seed
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/multiformats/go-multiaddr"
 	"go.uber.org/atomic"
-	"golang.org/x/xerrors"
 )
 
 // API ...
@@ -64,7 +64,7 @@ func (api *API) push(cb interface{}) (e error) {
 		api.cb <- v
 		return
 	}
-	return xerrors.New("not api callback")
+	return errors.New("not api callback")
 }
 
 // Run ...

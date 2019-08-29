@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -16,7 +17,6 @@ import (
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-	"golang.org/x/xerrors"
 )
 
 // InfoType ...
@@ -175,7 +175,7 @@ func checkFileNotExist(path string) bool {
 
 func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
 	if a.IsFailed() {
-		return nil, xerrors.New("ipfs failed")
+		return nil, errors.New("ipfs failed")
 	}
 	file, e := os.Open(source.PosterPath)
 	if e != nil {
@@ -203,12 +203,12 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 		return unfinThumb, nil
 	}
 
-	return nil, xerrors.New("no thumb")
+	return nil, errors.New("no thumb")
 }
 
 func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
 	if a.IsFailed() {
-		return nil, xerrors.New("ipfs failed")
+		return nil, errors.New("ipfs failed")
 	}
 
 	file, err := os.Open(source.PosterPath)
@@ -235,7 +235,7 @@ func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *mode
 		}
 		return unfinPoster, nil
 	}
-	return nil, xerrors.New("no poster")
+	return nil, errors.New("no poster")
 }
 
 func addVideo(a *API, api *httpapi.HttpApi, video *model.Video, path string) {
@@ -393,7 +393,7 @@ func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 		}
 	}
 	if vs == nil {
-		return xerrors.New("no video source")
+		return errors.New("no video source")
 	}
 
 	size := len(vs)
@@ -486,7 +486,7 @@ func (i *informationCall) Call(process *Process) error {
 		}
 	}
 	if vs == nil {
-		return xerrors.New("no video source")
+		return errors.New("no video source")
 	}
 
 	if splitCall(process, i, vs, 10000) {

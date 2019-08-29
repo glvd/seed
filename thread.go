@@ -39,7 +39,7 @@ func (t *Thread) Push(v interface{}) error {
 	if t.push != nil {
 		return t.push(v)
 	}
-	return xerrors.New("null push function")
+	return errors.New("null push function")
 }
 
 // BeforeRun ...

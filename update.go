@@ -2,12 +2,12 @@ package seed
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	"golang.org/x/xerrors"
 )
 
 // UpdateContent ...
@@ -223,5 +223,5 @@ func (u *Update) push(v interface{}) error {
 		}(cb)
 		return nil
 	}
-	return xerrors.New("not update callback")
+	return errors.New("not update callback")
 }

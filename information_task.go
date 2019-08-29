@@ -42,6 +42,7 @@ type Information struct {
 
 // Call ...
 func (info *Information) Call(process *Process) error {
+	log.Info("call me information")
 	panic("implement me")
 }
 

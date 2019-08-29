@@ -14,7 +14,18 @@ func TestProcess(t *testing.T) {
 	seeder.Register(proc)
 
 	seeder.Start()
-
+	info := &seed.Information{
+		InfoType:     seed.InfoTypeBSON,
+		Path:         "D:\\videoall\\videos",
+		ResourcePath: "",
+		ProcList:     nil,
+		Start:        0,
+	}
+	//proc.AddTask(seed.InformationTask(info))seed.InformationTask(info)
+	e := seed.TaskCall(seeder, seed.InformationTask(info))
+	if e != nil {
+		t.Error(e)
+	}
 	seeder.Wait()
 
 }

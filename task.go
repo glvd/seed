@@ -2,8 +2,14 @@ package seed
 
 // Task ...
 type Task struct {
-	Name string
-	ProcessCaller
+	Threader
+}
+
+// NewTask ...
+func NewTask() Threader {
+	tsk := new(Task)
+	tsk.Threader = NewThread()
+	return tsk
 }
 
 // TaskCall ...

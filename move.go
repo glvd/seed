@@ -15,7 +15,6 @@ type Move struct {
 
 // Register ...
 func (m *Move) Register(ops ...Optioner) {
-	panic("implement me")
 }
 
 // Push ...

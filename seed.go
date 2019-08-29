@@ -4,15 +4,11 @@ import (
 	"context"
 	"crypto/sha1"
 	"fmt"
-	"math"
 	"sync"
 	"time"
 
-	"github.com/glvd/seed/model"
-	shell "github.com/godcong/go-ipfs-restapi"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/atomic"
-	"golang.org/x/xerrors"
 )
 
 // Options ...
@@ -23,40 +19,21 @@ type AfterInitOptions func(Seeder)
 
 // seed ...
 type seed struct {
-	Shell       *shell.Shell
-	API         *API
-	Move        *Move
-	Workspace   string
-	Scale       int64
-	NoCheck     bool
-	Unfinished  map[string]*model.Unfinished
-	Videos      map[string]*model.Video
-	Moves       map[string]string
-	MaxLimit    int
-	From        string
-	args        map[string]interface{}
-	wg          *sync.WaitGroup
-	ctx         context.Context
-	cancel      context.CancelFunc
-	skipConvert bool
-	preAdd      bool
-	noSlice     bool
-	Database    ThreadRun
-	thread      map[Stepper]ThreadRun
-	base        map[Stepper]ThreadBase
-	normal      map[Stepper][]byte
+	args   map[string]interface{}
+	wg     *sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+	thread map[Stepper]ThreadRun
+	base   map[Stepper]ThreadBase
+	normal map[Stepper][]byte
 }
 
 func defaultSeed() *seed {
 	return &seed{
-		Unfinished: make(map[string]*model.Unfinished),
-		Videos:     make(map[string]*model.Video),
-		Moves:      make(map[string]string),
-		MaxLimit:   math.MaxUint16,
-		wg:         &sync.WaitGroup{},
-		thread:     make(map[Stepper]ThreadRun, StepperMax),
-		base:       make(map[Stepper]ThreadBase, StepperMax),
-		normal:     make(map[Stepper][]byte, StepperMax),
+		wg:     &sync.WaitGroup{},
+		thread: make(map[Stepper]ThreadRun, StepperMax),
+		base:   make(map[Stepper]ThreadBase, StepperMax),
+		normal: make(map[Stepper][]byte, StepperMax),
 	}
 }
 
@@ -113,7 +90,7 @@ func (s *seed) PushTo(stepper Stepper, v interface{}) (e error) {
 	if val, b := s.thread[stepper]; b {
 		return val.Push(v)
 	}
-	return xerrors.Errorf("thread(%d) is not exist", stepper)
+	return fmt.Errorf("thread(%d) is not exist", stepper)
 }
 
 // Args ...

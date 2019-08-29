@@ -51,7 +51,7 @@ func (s *Slice) push(cb interface{}) error {
 		s.cb <- v
 		return nil
 	}
-	return xerrors.New("not slice callback")
+	return errors.New("not slice callback")
 }
 
 // NewSlice ...
@@ -278,7 +278,7 @@ func sliceVideo(slice *Slice, file string, u *model.Unfinished) (sa *cmd.SplitAr
 		return nil, e
 	}
 	if skip(format) {
-		return nil, xerrors.New("format video/audio not found")
+		return nil, errors.New("format video/audio not found")
 	}
 
 	u.Type = model.TypeSlice

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/glvd/seed/model"
 	"github.com/glvd/seed/old"
 	"github.com/go-xorm/xorm"
-	"golang.org/x/xerrors"
 )
 
 // TransferStatus ...
@@ -370,7 +370,7 @@ func TransferTo(eng *xorm.Engine, limit int) (e error) {
 	for x := 0; x <= int(i); x += limit {
 		var videos []*model.Video
 		if e = eng.Limit(limit, x).Find(&videos); e != nil {
-			return xerrors.Errorf("transfer error with:%d,%+v", x, e)
+			return fmt.Errorf("transfer error with:%d,%+v", x, e)
 		}
 		for _, v := range videos {
 			log.Info("get:", v.Bangumi)

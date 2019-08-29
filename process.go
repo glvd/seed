@@ -24,9 +24,9 @@ func dummy(process *Process) (e error) {
 // Process ...
 type Process struct {
 	*Thread
-	taskMutex *sync.RWMutex
-	tasks     map[string]*Task
-	cb        chan ProcessCaller
+	//taskMutex *sync.RWMutex
+	//tasks     map[string]*Task
+	cb chan ProcessCaller
 	//workspace   string
 	//path        string
 	//moves       map[string]string
@@ -50,46 +50,6 @@ func (p *Process) push(cb interface{}) error {
 	}
 	return errors.New("not process callback")
 
-}
-
-// AddTask ...
-func (p *Process) AddTask(task *Task) {
-	log.Info("add task")
-	p.taskMutex.Lock()
-	defer p.taskMutex.Unlock()
-	if p.tasks == nil {
-		p.tasks = make(map[string]*Task)
-	}
-	p.tasks[task.Name] = task
-}
-
-// HasTask ...
-func (p *Process) HasTask(name string) bool {
-	p.taskMutex.RLock()
-	_, b := p.tasks[name]
-	p.taskMutex.RUnlock()
-	return b
-}
-
-// MustTask ...
-func (p *Process) MustTask(name string) *Task {
-	p.taskMutex.RLock()
-	defer p.taskMutex.RUnlock()
-	if v, b := p.Task(name); b {
-		return v
-	}
-	panic(fmt.Errorf("task[%s] not found", name))
-}
-
-// Task ...
-func (p *Process) Task(name string) (t *Task, b bool) {
-	p.taskMutex.RLock()
-	defer p.taskMutex.RUnlock()
-	if p.tasks == nil {
-		return nil, false
-	}
-	t, b = p.tasks[name]
-	return
 }
 
 // NewProcess ...

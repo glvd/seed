@@ -3,6 +3,7 @@ package seed
 import (
 	"context"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -39,8 +40,17 @@ type Process struct {
 }
 
 // Push ...
-func (p *Process) Push(interface{}) error {
-	panic("implement me")
+func (p *Process) Push(v interface{}) error {
+	return p.push(v)
+}
+
+func (p *Process) push(cb interface{}) error {
+	if v, b := cb.(ProcessCaller); b {
+		p.cb <- v
+		return nil
+	}
+	return errors.New("not api callback")
+
 }
 
 // BeforeRun ...

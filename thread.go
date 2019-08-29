@@ -2,9 +2,9 @@ package seed
 
 import (
 	"context"
+	"errors"
 
 	"go.uber.org/atomic"
-	"golang.org/x/xerrors"
 )
 
 // PushFunc ...

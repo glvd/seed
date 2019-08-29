@@ -87,7 +87,7 @@ func FindUnfinished(session *xorm.Session, checksum string) (unfin *Unfinished, 
 	unfin = new(Unfinished)
 	b, e := MustSession(session).Where("checksum = ?", checksum).Get(unfin)
 	if e != nil || !b {
-		return nil, errors.New("unfinished not found!")
+		return nil, errors.New("unfinished not found")
 	}
 	return unfin, nil
 }

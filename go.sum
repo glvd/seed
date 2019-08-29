@@ -48,8 +48,6 @@ github.com/coreos/go-semver v0.3.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3Ee
 github.com/coreos/go-systemd v0.0.0-20181012123002-c6f51f82210d/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/cskr/pubsub v1.0.2 h1:vlOzMhl6PFn60gRlTQQsIfVwaPB/B/8MziK8FhEPt/0=
 github.com/cskr/pubsub v1.0.2/go.mod h1:/8MzYXk/NJAz782G8RPkFzXTZVu63VotefPnR9TIRis=
-github.com/cuonglm/gocmt v0.0.0-20190806024510-2db7ffb0dcb1 h1:ld4uc1JoO3vzDRWpiCY9eAV1jNe7Or5JV9XqAv3rbew=
-github.com/cuonglm/gocmt v0.0.0-20190806024510-2db7ffb0dcb1/go.mod h1:mbs7O0sjpjkP54lruBSiRyx/IlpvGM5hZiwGPYFs1WM=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -100,8 +98,6 @@ github.com/godcong/go-ffmpeg-cmd v0.0.0-20190717070803-3a229b146550/go.mod h1:yk
 github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0 h1:SNOVCf60QIR1XR27ushBT6qzQzn9de4NKKIQm7iZNUQ=
 github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0/go.mod h1:DcAfZ1BxuymL+UEkVQQ+w8GM+ygTnqFPuJsvicVntww=
 github.com/godcong/go-trait v0.0.0-20190528080809-9a857488365f/go.mod h1:6jeg8XXxKAgCqhEdvgN7aUBllFo3Q79HN7lPbS54uGQ=
-github.com/godcong/go-trait v0.0.0-20190815074314-36e949cd13e4 h1:+AuD/OuG1d/uiZjhulLwCHwXxbW84Cy6csoVnchMJoE=
-github.com/godcong/go-trait v0.0.0-20190815074314-36e949cd13e4/go.mod h1:0zkS5jLUrtgFZ9aueRL6usiDj2RVBr+McIC25muuHCQ=
 github.com/godcong/go-trait v0.0.0-20190816072228-f216e906756e h1:dt/R+PmVSV4FY6UGysHtePBaQCaRZIEDvgm6hhveEDg=
 github.com/godcong/go-trait v0.0.0-20190816072228-f216e906756e/go.mod h1:0zkS5jLUrtgFZ9aueRL6usiDj2RVBr+McIC25muuHCQ=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=

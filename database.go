@@ -2,11 +2,11 @@ package seed
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	"golang.org/x/xerrors"
 )
 
 // Database ...

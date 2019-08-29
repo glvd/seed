@@ -1,10 +1,9 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"strings"
-
-	"golang.org/x/xerrors"
 
 	"github.com/go-xorm/xorm"
 	"github.com/ipfs/interface-go-ipfs-core/path"
@@ -40,7 +39,7 @@ func FindPin(session *xorm.Session, ph string) (pin *Pin, e error) {
 	pin = new(Pin)
 	b, e := MustSession(session).Where("pin_hash = ?", ph).Get(pin)
 	if e != nil || !b {
-		return nil, errors.New("pin not found!")
+		return nil, errors.New("pin not found")
 	}
 	return pin, nil
 }

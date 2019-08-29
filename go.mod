@@ -3,7 +3,6 @@ module github.com/glvd/seed
 go 1.12
 
 require (
-	github.com/cuonglm/gocmt v0.0.0-20190806024510-2db7ffb0dcb1 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190401154936-ce35bd87d4b3 // indirect
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/go-xorm/xorm v0.7.1

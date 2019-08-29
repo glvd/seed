@@ -31,19 +31,22 @@ const InfoTypeJSON InfoType = "json"
 // InfoTypeBSON ...
 const InfoTypeBSON InfoType = "bson"
 
-// InformationTask ...
-type InformationTask struct {
-	//*Thread
+// Information ...
+type Information struct {
 	InfoType     InfoType
 	Path         string
 	ResourcePath string
 	ProcList     []string
 	Start        int
-	//cb           chan InformationCaller
+}
+
+// Call ...
+func (info *Information) Call(process *Process) error {
+	panic("implement me")
 }
 
 // PushCallback ...
-//func (info *InformationTask) push(cb interface{}) error {
+//func (info *Information) push(cb interface{}) error {
 //	if v, b := cb.(InformationCaller); b {
 //		go func(cb InformationCaller) {
 //			info.cb <- cb
@@ -146,7 +149,7 @@ func checkFileNotExist(path string) bool {
 
 //
 //// Run ...
-//func (info *InformationTask) Run(ctx context.Context) {
+//func (info *Information) Run(ctx context.Context) {
 //	log.Info("information running")
 //
 //InfoEnd:
@@ -339,7 +342,7 @@ type VideoSource struct {
 }
 
 //// InformationOption ...
-//func informationOption(info *InformationTask) Options {
+//func informationOption(info *Information) Options {
 //	return func(seed Seeder) {
 //		seed.SetThread(StepperInformation, info)
 //	}
@@ -384,7 +387,7 @@ type informationCall struct {
 }
 
 // SplitCall ...
-func SplitCall(seeder Seeder, information *InformationTask, limit int) (e error) {
+func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 	var vs []*VideoSource
 	if v, b := infoCallList[information.InfoType]; b {
 		vs, e = v(information.Path)
@@ -459,7 +462,7 @@ func splitCall(seeder Seeder, c *informationCall, vs []*VideoSource, limit int) 
 				continue
 			}
 			log.With("path", open).Info("json")
-			info := &InformationTask{
+			info := &Information{
 				InfoType: InfoTypeJSON,
 				Path:     open,
 				ProcList: c.list,
@@ -557,7 +560,7 @@ func (i *informationCall) Call(process *Process) error {
 }
 
 // Caller ...
-func (info *InformationTask) Caller() (Stepper, ProcessCaller) {
+func (info *Information) Caller() (Stepper, ProcessCaller) {
 	return StepperInformation, &informationCall{
 		infoType:     info.InfoType,
 		resourcePath: info.ResourcePath,
@@ -568,8 +571,8 @@ func (info *InformationTask) Caller() (Stepper, ProcessCaller) {
 }
 
 // Clone ...
-func (info *InformationTask) Clone() (newinfo *InformationTask) {
-	newinfo = new(InformationTask)
+func (info *Information) Clone() (newinfo *Information) {
+	newinfo = new(Information)
 	*newinfo = *info
 	return
 }

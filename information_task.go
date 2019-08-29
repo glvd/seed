@@ -41,10 +41,15 @@ type Information struct {
 }
 
 // Call ...
-func (info *Information) Call(process *Process) error {
-	log.Info("call me information")
+func (info *Information) Call(*Task) error {
 	panic("implement me")
 }
+
+// Call ...
+//func (info *Information) Call(process *Process) error {
+//	log.Info("call me information")
+//	panic("implement me")
+//}
 
 // PushCallback ...
 //func (info *Information) push(cb interface{}) error {

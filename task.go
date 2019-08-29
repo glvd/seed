@@ -36,7 +36,7 @@ func taskOption(t *Task) Options {
 }
 
 // NewTask ...
-func NewTask() Threader {
+func NewTask() *Task {
 	tsk := new(Task)
 	tsk.taskMutex = new(sync.RWMutex)
 	tsk.Thread = NewThread()

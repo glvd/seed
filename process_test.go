@@ -11,6 +11,7 @@ import (
 func TestProcess(t *testing.T) {
 	seeder := seed.NewSeed()
 	proc := seed.NewProcess()
+	tsk := seed.NewTask()
 	seeder.Register(proc)
 
 	seeder.Start()
@@ -21,11 +22,9 @@ func TestProcess(t *testing.T) {
 		ProcList:     nil,
 		Start:        0,
 	}
+
+	tsk.AddTask(info)
 	//proc.AddTask(seed.InformationTask(info))seed.InformationTask(info)
-	e := seed.TaskCall(seeder, seed.InformationTask(info))
-	if e != nil {
-		t.Error(e)
-	}
 	seeder.Wait()
 
 }

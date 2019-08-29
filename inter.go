@@ -106,14 +106,6 @@ type ProcessCaller interface {
 	Call(process *Process) error
 }
 
-// InformationCallbackFunc ...
-type InformationCallbackFunc func(information *InformationTask, v *model.Video)
-
-// InformationCaller ...
-type InformationCaller interface {
-	Call(information *InformationTask) error
-}
-
 // ThreadRun ...
 type ThreadRun interface {
 	Runnable

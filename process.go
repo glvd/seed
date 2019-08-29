@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
 	"github.com/glvd/seed/model"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
-	shell "github.com/godcong/go-ipfs-restapi"
 )
 
 func dummy(process *Process) (e error) {
@@ -24,20 +24,18 @@ func dummy(process *Process) (e error) {
 // Process ...
 type Process struct {
 	*Thread
-	tasks       map[string]*Task
-	cb          chan ProcessCaller
-	workspace   string
-	path        string
-	shell       *shell.Shell
-	ignores     map[string][]byte
-	unfinished  map[string]*model.Unfinished
-	moves       map[string]string
-	scale       int64
-	skipConvert bool
-	skipExist   bool
-	noSlice     bool
-	preAdd      bool
-	skipType    []interface{}
+	taskMutex *sync.RWMutex
+	tasks     map[string]*Task
+	cb        chan ProcessCaller
+	//workspace   string
+	//path        string
+	//moves       map[string]string
+	//scale       int64
+	//skipConvert bool
+	//skipExist   bool
+	//noSlice     bool
+	//preAdd      bool
+	//skipType    []interface {}
 }
 
 // Push ...
@@ -50,12 +48,14 @@ func (p *Process) push(cb interface{}) error {
 		p.cb <- v
 		return nil
 	}
-	return errors.New("not api callback")
+	return errors.New("not process callback")
 
 }
 
 // AddTask ...
 func (p *Process) AddTask(task *Task) {
+	p.taskMutex.Lock()
+	defer p.taskMutex.Unlock()
 	if p.tasks == nil {
 		p.tasks = make(map[string]*Task)
 	}
@@ -64,12 +64,16 @@ func (p *Process) AddTask(task *Task) {
 
 // HasTask ...
 func (p *Process) HasTask(name string) bool {
+	p.taskMutex.RLock()
 	_, b := p.tasks[name]
+	p.taskMutex.RUnlock()
 	return b
 }
 
 // MustTask ...
 func (p *Process) MustTask(name string) *Task {
+	p.taskMutex.RLock()
+	defer p.taskMutex.RUnlock()
 	if v, b := p.Task(name); b {
 		return v
 	}
@@ -78,11 +82,26 @@ func (p *Process) MustTask(name string) *Task {
 
 // Task ...
 func (p *Process) Task(name string) (t *Task, b bool) {
+	p.taskMutex.RLock()
+	defer p.taskMutex.RUnlock()
 	if p.tasks == nil {
 		return nil, false
 	}
 	t, b = p.tasks[name]
 	return
+}
+
+// TaskCall ...
+func (p *Process) TaskCall() (e error) {
+	p.taskMutex.RLock()
+	defer p.taskMutex.RUnlock()
+	for _, tsk := range p.tasks {
+		e = p.push(tsk)
+		if e != nil {
+			return e
+		}
+	}
+	return e
 }
 
 // NewProcess ...
@@ -93,49 +112,49 @@ func NewProcess() *Process {
 }
 
 // Option ...
-func (p *Process) Option(seed *seed) {
-	processOption(p)(seed)
+func (p *Process) Option(seeder Seeder) {
+	processOption(p)(seeder)
 }
 
 func (p *Process) sliceAdd(unfin *model.Unfinished, format *cmd.StreamFormat, file string) (err error) {
-	var sa *cmd.SplitArgs
-	s := p.scale
-	if s != 0 {
-		res := format.ResolutionInt()
-		if int64(res) < s {
-			s = int64(res)
-		}
-		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(p.workspace))
-
-	} else {
-		sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
-	}
-
-	if err != nil {
-		return err
-	}
-	log.Infof("%+v", sa)
-
-	dirs, err := p.shell.AddDir(sa.Output)
-	if err != nil {
-		return err
-	}
-
-	last := unfin.Object.ParseLinks(dirs)
-	if last != nil {
-		unfin.Hash = last.Hash
-	}
+	//var sa *cmd.SplitArgs
+	//s := int64(0) // p.scale
+	//if s != 0 {
+	//	res := format.ResolutionInt()
+	//	if int64(res) < s {
+	//		s = int64(res)
+	//	}
+	//	sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(p.workspace))
+	//
+	//} else {
+	//	sa, err = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(p.workspace))
+	//}
+	//
+	//if err != nil {
+	//	return err
+	//}
+	//log.Infof("%+v", sa)
+	//
+	//dirs, err := p.shell.AddDir(sa.Output)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//last := unfin.Object.ParseLinks(dirs)
+	//if last != nil {
+	//	unfin.Hash = last.Hash
+	//}
 	return model.AddOrUpdateUnfinished(nil, unfin)
 }
 
 func (p *Process) fileAdd(unfin *model.Unfinished, file string) (err error) {
-	object, err := p.shell.AddFile(file)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	unfin.Hash = object.Hash
-	unfin.Object.Link = model.ObjectToVideoLink(object)
+	//object, err := p.shell.AddFile(file)
+	//if err != nil {
+	//	log.Error(err)
+	//	return
+	//}
+	//unfin.Hash = object.Hash
+	//unfin.Object.Link = model.ObjectToVideoLink(object)
 	return model.AddOrUpdateUnfinished(nil, unfin)
 }
 
@@ -223,16 +242,6 @@ func PathMD5(s ...string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(str)))
 }
 
-// CheckIgnore ...
-func (p *Process) CheckIgnore(name string) (b bool) {
-	if p.ignores == nil {
-		return false
-	}
-	log.Info("noCheck ", name)
-	_, b = p.ignores[name]
-	return
-}
-
 func (p *Process) getFiles(ws string) (files []string) {
 	info, e := os.Stat(ws)
 	if e != nil {
@@ -251,9 +260,9 @@ func (p *Process) getFiles(ws string) (files []string) {
 		var fullPath string
 		for _, name := range names {
 			fullPath = filepath.Join(ws, name)
-			if p.CheckIgnore(fullPath) {
-				continue
-			}
+			//if p.CheckIgnore(fullPath) {
+			//	continue
+			//}
 			tmp := p.getFiles(fullPath)
 			if tmp != nil {
 				files = append(files, tmp...)
@@ -265,10 +274,10 @@ func (p *Process) getFiles(ws string) (files []string) {
 }
 
 func (p *Process) skip(format *cmd.StreamFormat) bool {
-	if !p.skipConvert {
-		log.Info("noskip")
-		return p.skipConvert
-	}
+	//if !p.skipConvert {
+	//	log.Info("noskip")
+	//	return p.skipConvert
+	//}
 	video := format.Video()
 	audio := format.Audio()
 	if audio == nil || video == nil {

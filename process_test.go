@@ -3,6 +3,7 @@ package seed_test
 import (
 	"testing"
 
+	"github.com/glvd/seed"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -13,6 +14,13 @@ func TestGetFiles(t *testing.T) {
 
 // TestProcess ...
 func TestProcess(t *testing.T) {
+	seeder := seed.NewSeed()
+	proc := seed.NewProcess()
+	seeder.Register(proc)
+
+	seeder.Start()
+
+	seeder.Wait()
 
 }
 

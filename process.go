@@ -85,15 +85,6 @@ func (p *Process) Task(name string) (t *Task, b bool) {
 	return
 }
 
-// BeforeRun ...
-func (p *Process) BeforeRun(seed Seeder) {
-
-}
-
-// AfterRun ...
-func (p *Process) AfterRun(seed Seeder) {
-}
-
 // NewProcess ...
 func NewProcess() *Process {
 	process := &Process{}

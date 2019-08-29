@@ -52,6 +52,9 @@ const (
 	StepperCheck
 	// StepperUpdate ...
 	StepperUpdate
+	// StepperTask ...
+	StepperTask
+
 	// StepperMax ...
 	StepperMax
 )

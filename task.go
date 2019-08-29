@@ -1,26 +1,20 @@
 package seed
 
+import "context"
+
 // Task ...
 type Task struct {
-	Threader
+	*Thread
 }
 
 // NewTask ...
 func NewTask() Threader {
 	tsk := new(Task)
-	tsk.Threader = NewThread()
+	tsk.Thread = NewThread()
 	return tsk
 }
 
-// TaskCall ...
-func TaskCall(seeder Seeder, task *Task) error {
-	return seeder.PushTo(StepperProcess, task)
-}
+// Run ...
+func (t *Task) Run(ctx context.Context) {
 
-// InformationTask ...
-func InformationTask(task *Information) *Task {
-	return &Task{
-		Name:          "information",
-		ProcessCaller: task,
-	}
 }

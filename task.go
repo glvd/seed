@@ -1,25 +1,30 @@
 package seed
 
+// TaskStep ...
+type TaskStep int
+
+// TaskStep ...
+const (
+	TaskNone TaskStep = iota
+	TaskInformation
+	TaskMax
+)
+
 // TaskAble ...
 type TaskAble interface {
-	Call(*Process, *Task) error
+	CallTask(*Task, *Process) error
 }
 
 // Task ...
 type Task struct {
 	TaskAble
 	*Thread
+	Step TaskStep
 }
 
-// Option ...
-func (t *Task) Option(seeder Seeder) {
-	taskOption(t)(seeder)
-}
-
-func taskOption(t *Task) Options {
-	return func(seeder Seeder) {
-		seeder.SetThread(StepperTask, t)
-	}
+// Call ...
+func (t *Task) Call(process *Process) error {
+	return t.TaskAble.CallTask(t, process)
 }
 
 // NewTask ...

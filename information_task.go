@@ -67,7 +67,7 @@ func fixBson(s []byte) []byte {
 	return reg.ReplaceAll(s, []byte(" "))
 }
 
-func video(source *VideoSource) (video *model.Video) {
+func video(source *VideoSource) (v *model.Video) {
 
 	//always not null
 	alias := *new([]string)
@@ -121,7 +121,7 @@ func video(source *VideoSource) (video *model.Video) {
 func defaultUnfinished(name string) *model.Unfinished {
 	_, file := filepath.Split(name)
 
-	uncat := &model.Unfinished{
+	u := &model.Unfinished{
 		Model:       model.Model{},
 		Checksum:    "",
 		Type:        "other",
@@ -137,9 +137,9 @@ func defaultUnfinished(name string) *model.Unfinished {
 		Sync:        false,
 		Object:      new(model.VideoObject),
 	}
-	log.With("file", name).Info("calculate checksum")
-	uncat.Checksum = model.Checksum(name)
-	return uncat
+	u.Checksum = model.Checksum(name)
+	log.With("file", name, "checksum", u.Checksum).Info("unfinished")
+	return u
 }
 
 func checkFileNotExist(path string) bool {

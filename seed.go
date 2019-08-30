@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
+	json "github.com/json-iterator/go"
 	"go.uber.org/atomic"
 )
 
@@ -231,7 +231,7 @@ type Extend struct {
 
 // Hash ...
 func Hash(v interface{}) string {
-	bytes, e := jsoniter.Marshal(v)
+	bytes, e := json.Marshal(v)
 	if e != nil {
 		return ""
 	}

@@ -21,8 +21,8 @@ func TestInformation2(t *testing.T) {
 	//info.InfoType = seed.InfoTypeBSON
 	inf := &seed.Information{
 		InfoType:     seed.InfoTypeBSON,
-		Path:         "D:\\videoall\\video3.json",
-		ResourcePath: "D:\\videoall",
+		Path:         "D:\\ipfstest\\video\\video.json",
+		ResourcePath: "D:\\ipfstest\\video",
 		//ProcList:     nil,
 		//Start:        0,
 	}

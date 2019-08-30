@@ -161,6 +161,7 @@ func LastSlice(s, sep string) string {
 
 // Run ...
 func (p *Process) Run(ctx context.Context) {
+	log.Info("process running")
 ProcessEnd:
 	for {
 		select {
@@ -176,6 +177,7 @@ ProcessEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
+			log.Info("process time out")
 			p.SetState(StateWaiting)
 		}
 	}

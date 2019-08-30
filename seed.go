@@ -38,7 +38,10 @@ func (s *seed) RunTask(task *Task) {
 	s.wg.Add(1)
 	go func() {
 		defer s.wg.Done()
-		task.Run(s.ctx)
+		e := task.Push(s)
+		if e != nil {
+			log.Error(e)
+		}
 	}()
 }
 

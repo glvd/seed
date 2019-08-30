@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -41,7 +42,17 @@ type Information struct {
 }
 
 // CallTask ...
-func (info *Information) CallTask(*Task, *Process) error {
+func (info *Information) CallTask(seeder Seeder, t *Task) error {
+InfoEnd:
+	for {
+		select {
+		case <-seeder.Context().Done():
+			break InfoEnd
+		default:
+			log.Info("info running")
+			time.Sleep(3 * time.Second)
+		}
+	}
 	return nil
 }
 
@@ -568,7 +579,7 @@ func (i *informationProcess) Call(process *Process) error {
 // Task ...
 func (info *Information) Task() *Task {
 	tsk := NewTask(info)
-	tsk.Step = TaskInformation
+	//tsk.Step = TaskInformation
 	return tsk
 }
 

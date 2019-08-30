@@ -566,7 +566,7 @@ func (i *informationCall) Call(process *Process) error {
 }
 
 // Caller ...
-func (info *Information) Caller() (Stepper, TaskProcessor) {
+func (info *Information) Caller() (Stepper, ProcessCaller) {
 	return StepperInformation, &informationCall{
 		infoType:     info.InfoType,
 		resourcePath: info.ResourcePath,
@@ -583,4 +583,4 @@ func (info *Information) Clone() (newinfo *Information) {
 	return
 }
 
-var _ TaskProcessor = &informationCall{}
+var _ ProcessCaller = &informationCall{}

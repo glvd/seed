@@ -44,8 +44,8 @@ const (
 	// StepperMoveInfo ...
 	StepperMoveInfo
 
-	// StepperMoveproc ...
-	StepperMoveproc
+	// StepperMoveProc ...
+	StepperMoveProc
 	// StepperTransfer ...
 	StepperTransfer
 	// StepperPin ...
@@ -66,6 +66,7 @@ type Seeder interface {
 	Start()
 	Wait()
 	Stop()
+	Context() context.Context
 	PushTo(stepper Stepper, v interface{}) error
 	GetThread(stepper Stepper) ThreadRun
 	SetThread(stepper Stepper, threader ThreadRun)

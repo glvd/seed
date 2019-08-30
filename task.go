@@ -1,27 +1,14 @@
 package seed
 
-import (
-	"context"
-	"sync"
-)
-
-// TaskCaller ...
-type TaskCaller interface {
-	Call(*Task) error
+// TaskAble ...
+type TaskAble interface {
+	Call(*Process, *Task) error
 }
 
 // Task ...
 type Task struct {
+	TaskAble
 	*Thread
-	taskMutex *sync.RWMutex
-	tasks     []TaskCaller
-}
-
-// AddTask ...
-func (t *Task) AddTask(caller TaskCaller) {
-	t.taskMutex.Lock()
-	t.tasks = append(t.tasks, caller)
-	t.taskMutex.Unlock()
 }
 
 // Option ...
@@ -36,27 +23,9 @@ func taskOption(t *Task) Options {
 }
 
 // NewTask ...
-func NewTask() *Task {
+func NewTask(task TaskAble) *Task {
 	tsk := new(Task)
-	tsk.taskMutex = new(sync.RWMutex)
 	tsk.Thread = NewThread()
+	tsk.TaskAble = task
 	return tsk
-}
-
-// Run ...
-func (t *Task) Run(ctx context.Context) {
-	t.taskMutex.RLock()
-	for i, tsk := range t.tasks {
-		e := tsk.Call(t)
-		if e != nil {
-			log.With("index", i).Error(e)
-		}
-	}
-	t.taskMutex.RUnlock()
-
-}
-
-// Process ...
-func (t *Task) Process() {
-
 }

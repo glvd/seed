@@ -28,6 +28,14 @@ type seed struct {
 	normal map[Stepper][]byte
 }
 
+// RunTask ...
+func (s *seed) RunTask(task *Task) {
+	s.wg.Add(1)
+	go func() {
+		s.PushTo(task)
+	}()
+}
+
 func defaultSeed() *seed {
 	return &seed{
 		wg:     &sync.WaitGroup{},
@@ -235,7 +243,7 @@ func Hash(v interface{}) string {
 	if e != nil {
 		return ""
 	}
-	return fmt.Sprintf("%x", sha1.Sum([]byte(bytes)))
+	return fmt.Sprintf("%x", sha1.Sum(bytes))
 }
 
 // SkipTypeVerify ...

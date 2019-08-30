@@ -17,20 +17,20 @@ type TaskAble interface {
 
 // Task ...
 type Task struct {
-	TaskAble
+	ct TaskAble
 	*Thread
 	Step TaskStep
 }
 
 // Call ...
 func (t *Task) Call(process *Process) error {
-	return t.TaskAble.CallTask(t, process)
+	return t.ct.CallTask(t, process)
 }
 
 // NewTask ...
 func NewTask(task TaskAble) *Task {
 	tsk := new(Task)
 	tsk.Thread = NewThread()
-	tsk.TaskAble = task
+	tsk.ct = task
 	return tsk
 }

@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -43,16 +42,16 @@ type Information struct {
 
 // CallTask ...
 func (info *Information) CallTask(seeder Seeder, t *Task) error {
-InfoEnd:
-	for {
-		select {
-		case <-seeder.Context().Done():
-			break InfoEnd
-		default:
-			log.Info("info running")
-			time.Sleep(3 * time.Second)
+	select {
+	case <-seeder.Context().Done():
+		return nil
+	default:
+		e := SplitCall(seeder, info, 500)
+		if e != nil {
+			return e
 		}
 	}
+
 	return nil
 }
 

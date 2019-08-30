@@ -422,12 +422,12 @@ func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 			dir, file := filepath.Split(information.Path)
 			open := filepath.Join(dir, file+"."+strconv.Itoa(i))
 
-			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR, os.ModePerm)
+			openFile, e := os.OpenFile(open, os.O_CREATE|os.O_SYNC|os.O_RDWR|os.O_TRUNC, os.ModePerm)
 			if e != nil {
 				log.Error(e)
 				continue
 			}
-			defer openFile.Close()
+
 			if i+limit >= size {
 				vstmp = vs[i:size]
 			} else {
@@ -435,11 +435,12 @@ func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 			}
 			encoder := json.NewEncoder(openFile)
 			e = encoder.Encode(vstmp)
+			openFile.Close()
 			if e != nil {
 				log.Error(e)
 				continue
 			}
-			log.With("path", open).Info("json")
+
 			newinfo := information.Clone()
 			newinfo.Path = open
 			e = seeder.PushTo(newinfo.ProcessCall())
@@ -447,6 +448,7 @@ func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 				log.Error(e)
 				continue
 			}
+			log.With("path", open).Info("json")
 		}
 	}
 	return
@@ -465,7 +467,7 @@ func splitCall(seeder Seeder, c *informationProcess, vs []*VideoSource, limit in
 				log.Error(e)
 				continue
 			}
-			defer openFile.Close()
+			//defer openFile.Close()
 			if i+limit >= size {
 				vstmp = vs[i:size]
 			} else {
@@ -473,6 +475,7 @@ func splitCall(seeder Seeder, c *informationProcess, vs []*VideoSource, limit in
 			}
 			encoder := json.NewEncoder(openFile)
 			e = encoder.Encode(vstmp)
+			openFile.Close()
 			if e != nil {
 				log.Error(e)
 				continue

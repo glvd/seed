@@ -566,15 +566,10 @@ func (i *informationProcess) Call(process *Process) error {
 }
 
 // Task ...
-func (info *Information) Task() (TaskStep, *Task) {
-	return TaskInformation, NewTask(info)
-	//return StepperInformation, &informationProcess{
-	//	infoType:     info.InfoType,
-	//	resourcePath: info.ResourcePath,
-	//	path:         info.Path,
-	//	list:         info.ProcList,
-	//	start:        info.Start,
-	//}
+func (info *Information) Task() *Task {
+	tsk := NewTask(info)
+	tsk.Step = TaskInformation
+	return tsk
 }
 
 // ProcessCall ...

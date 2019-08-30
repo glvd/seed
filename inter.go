@@ -75,6 +75,7 @@ type Seeder interface {
 	SetNormalThread(stepper Stepper, threader ThreadRun)
 	IsNormal(stepper Stepper) bool
 	Register(ops ...Optioner)
+	RunTask(task *Task)
 }
 
 // Initer ...

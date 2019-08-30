@@ -30,8 +30,8 @@ func TestInformation2(t *testing.T) {
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
 	//
 	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
-	//
-	s := seed.NewSeed(sdb, api)
+	proc := seed.NewProcess()
+	s := seed.NewSeed(sdb, api, proc)
 	//
 	s.Start()
 	fmt.Println("waiting end")

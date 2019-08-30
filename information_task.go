@@ -530,7 +530,7 @@ func (i *informationProcess) Call(process *Process) error {
 			if source.PosterPath != "" {
 				source.PosterPath = filepath.Join(i.resourcePath, source.PosterPath)
 				if checkFileNotExist(source.PosterPath) {
-					log.With("index", i, "bangumi", source.Bangumi).Info("poster not found")
+					log.With("bangumi", source.Bangumi).Info("poster not found")
 				} else {
 
 					e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
@@ -554,7 +554,7 @@ func (i *informationProcess) Call(process *Process) error {
 		if source.Thumb != "" {
 			source.Thumb = filepath.Join(i.resourcePath, source.Thumb)
 			if checkFileNotExist(source.Thumb) {
-				log.With("index", i, "bangumi", source.Bangumi).Info("thumb not found")
+				log.With("bangumi", source.Bangumi).Info("thumb not found")
 			} else {
 				e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					_, e = addThumbHash(api, api2, v.(*VideoSource))

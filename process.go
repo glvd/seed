@@ -55,6 +55,7 @@ func (p *Process) push(cb interface{}) error {
 func NewProcess() *Process {
 	process := &Process{}
 	process.Thread = NewThread()
+	process.cb = make(chan ProcessCaller)
 	return process
 }
 

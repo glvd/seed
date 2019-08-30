@@ -40,8 +40,7 @@ const (
 	StepperSlice
 	// StepperProcess ...
 	StepperProcess
-	// StepperInformation ...
-	StepperInformation
+
 	// StepperMoveInfo ...
 	StepperMoveInfo
 

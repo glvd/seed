@@ -28,11 +28,17 @@ type seed struct {
 	normal map[Stepper][]byte
 }
 
+// Context ...
+func (s *seed) Context() context.Context {
+	return s.ctx
+}
+
 // RunTask ...
 func (s *seed) RunTask(task *Task) {
 	s.wg.Add(1)
 	go func() {
-		s.PushTo(task)
+		defer s.wg.Done()
+		task.Run(s.ctx)
 	}()
 }
 

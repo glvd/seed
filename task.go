@@ -12,25 +12,31 @@ const (
 
 // TaskAble ...
 type TaskAble interface {
-	CallTask(*Task, *Process) error
+	Step() Stepper
+	CallTask(*Task, Seeder) error
 }
 
 // Task ...
 type Task struct {
-	ct TaskAble
-	*Thread
-	Step TaskStep
+	ct       TaskAble
+	taskStep TaskStep
+	//*Thread
+}
+
+// Push ...
+func (t *Task) Push(seeder Seeder) error {
+	e := t.ct.CallTask(t, seeder)
+	return e
 }
 
 // Call ...
-func (t *Task) Call(process *Process) error {
-	return t.ct.CallTask(t, process)
+func (t *Task) Call(seeder Seeder) error {
+	return t.ct.CallTask(t, seeder)
 }
 
 // NewTask ...
 func NewTask(task TaskAble) *Task {
 	tsk := new(Task)
-	tsk.Thread = NewThread()
 	tsk.ct = task
 	return tsk
 }

@@ -69,7 +69,7 @@ func MoveProc(path string) Options {
 	proc := &Move{
 		to: path,
 	}
-	return MoveOption(StepperMoveproc, proc)
+	return MoveOption(StepperMoveProc, proc)
 }
 
 // MoveOption ...

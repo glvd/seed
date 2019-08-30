@@ -46,7 +46,7 @@ func (info *Information) CallTask(seeder Seeder, t *Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		e := SplitCall(seeder, info, 500)
+		e := SplitCall(seeder, info, 5000)
 		if e != nil {
 			return e
 		}
@@ -508,10 +508,10 @@ func (i *informationProcess) Call(process *Process) error {
 		return errors.New("no video source")
 	}
 
-	if splitCall(process, i, vs, 10000) {
-		log.With("path", i.path).Info("split")
-		return nil
-	}
+	//if splitCall(process, i, vs, 10000) {
+	//	log.With("path", i.path).Info("split")
+	//	return nil
+	//}
 
 	vsc := filterProcList(vs, i.list)
 	log.With("path", i.path).Info("info")

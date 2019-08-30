@@ -12,8 +12,8 @@ const (
 
 // TaskAble ...
 type TaskAble interface {
-	Step() Stepper
-	CallTask(*Task, Seeder) error
+	//Step() Stepper
+	CallTask(Seeder, *Task) error
 }
 
 // Task ...
@@ -25,13 +25,8 @@ type Task struct {
 
 // Push ...
 func (t *Task) Push(seeder Seeder) error {
-	e := t.ct.CallTask(t, seeder)
+	e := t.ct.CallTask(seeder, t)
 	return e
-}
-
-// Call ...
-func (t *Task) Call(seeder Seeder) error {
-	return t.ct.CallTask(t, seeder)
 }
 
 // NewTask ...

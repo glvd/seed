@@ -20,8 +20,19 @@ type Check struct {
 	skipType  []interface{}
 }
 
+func (c *Check) CallTask(seeder Seeder, taks *Task) error {
+	select {
+	case <-seeder.Context().Done():
+		return nil
+	default:
+		e := SplitCall(seeder, info, 5000)
+		if e != nil {
+			return e
+		}
+	}
 
-type (c *Check)CallTask()
+	return nil
+}
 
 // Push ...
 func (c *Check) Push(interface{}) error {

@@ -12,13 +12,16 @@ import (
 
 // Check ...
 type Check struct {
-	Seeder
+	// Seeder
 	myID      *PeerID
 	Type      string
 	checkType CheckType
 	from      []string
 	skipType  []interface{}
 }
+
+
+type (c *Check)CallTask()
 
 // Push ...
 func (c *Check) Push(interface{}) error {

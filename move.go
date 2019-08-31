@@ -18,8 +18,12 @@ func (m *Move) Register(ops ...Optioner) {
 }
 
 // Push ...
-func (m *Move) Push(interface{}) error {
-	return nil
+func (m *Move) Push(v interface{}) error {
+	return m.push(v)
+}
+
+func (m *Move)push(v interface)error{
+
 }
 
 // NewMove ...

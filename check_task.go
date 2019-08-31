@@ -12,10 +12,9 @@ import (
 
 // Check ...
 type Check struct {
-	// Seeder
-	myID      *PeerID
+	MyID      *PeerID
 	Type      string
-	checkType CheckType
+	CheckType CheckType
 	from      []string
 	skipType  []interface{}
 }
@@ -25,23 +24,9 @@ func (c *Check) CallTask(seeder Seeder, taks *Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		e := SplitCall(seeder, info, 5000)
-		if e != nil {
-			return e
-		}
 	}
 
 	return nil
-}
-
-// Push ...
-func (c *Check) Push(interface{}) error {
-	return nil
-}
-
-// Option ...
-func (c *Check) Option(seed Seeder) {
-	checkOption(c)(seed)
 }
 
 // Run ...

@@ -10,6 +10,15 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
 
+// CheckType ...
+type CheckType string
+
+// CheckTypePin ...
+const CheckTypePin CheckType = "Pin"
+
+// CheckTypeUnpin ...
+const CheckTypeUnpin CheckType = "unpin"
+
 // Check ...
 type Check struct {
 	MyID      *PeerID

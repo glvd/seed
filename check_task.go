@@ -33,10 +33,7 @@ func (c *Check) CallTask(seeder Seeder, task *Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		done := make(chan bool)
-		defer close(done)
 		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-			done <- true
 			pid := v.(*PeerID)
 			e = api2.Request("id").Exec(seeder.Context(), pid)
 			if e != nil {
@@ -56,8 +53,19 @@ func (c *Check) CallTask(seeder Seeder, task *Task) error {
 			return e
 		}
 		//waiting for result
-		<-done
-
+		for _, value := range <-pins {
+			p := &model.Pin{
+				PinHash: model.PinHash(value.Path()),
+				PeerID:  []string{c.MyID.ID},
+				VideoID: "",
+			}
+			e = seeder.PushTo(DatabaseCallback(p, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+				return nil
+			}))
+			if e != nil {
+				log.Error(e)
+			}
+		}
 	}
 
 	return nil

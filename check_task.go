@@ -2,7 +2,6 @@ package seed
 
 import (
 	"context"
-
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
@@ -37,11 +36,14 @@ func (c *Check) CallTask(seeder Seeder, task *Task) error {
 		defer close(done)
 		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 			done <- true
-			return nil
+			pid := v.(*PeerID)
+			return api2.Request("id").Exec(seeder.Context(), pid)
 		}))
 		if e != nil {
 			return e
 		}
+		//waiting for result
+		<-done
 
 	}
 

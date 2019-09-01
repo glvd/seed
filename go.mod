@@ -9,27 +9,13 @@ require (
 	github.com/godcong/go-ffmpeg-cmd v0.0.0-20190717070803-3a229b146550
 	github.com/godcong/go-ipfs-restapi v0.0.3-0.20190422054229-f13eeaa39df0
 	github.com/godcong/go-trait v0.0.0-20190816072228-f216e906756e
-	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/websocket v1.4.1 // indirect
-	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/ipfs/go-cid v0.0.2
 	github.com/ipfs/go-ipfs-files v0.0.3
 	github.com/ipfs/go-ipfs-http-client v0.0.3
 	github.com/ipfs/interface-go-ipfs-core v0.1.0
-	github.com/json-iterator/go v1.1.7
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/mattn/go-isatty v0.0.9 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/multiformats/go-multiaddr v0.0.4
-	github.com/onsi/ginkgo v1.10.0 // indirect
-	github.com/onsi/gomega v1.7.0 // indirect
 	github.com/pelletier/go-toml v1.4.0
-	github.com/sirupsen/logrus v1.4.2 // indirect
-	github.com/stretchr/testify v1.4.0 // indirect
 	go.uber.org/atomic v1.4.0
-	golang.org/x/sys v0.0.0-20190826192305-c7b8b68b1456 // indirect
 )

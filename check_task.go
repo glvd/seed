@@ -13,7 +13,7 @@ import (
 type CheckType string
 
 // CheckTypePin ...
-const CheckTypePin CheckType = "Pin"
+const CheckTypePin CheckType = "pin"
 
 // CheckTypeUnpin ...
 const CheckTypeUnpin CheckType = "unpin"

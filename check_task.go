@@ -28,6 +28,7 @@ type Check struct {
 }
 
 func (c *Check) CallTask(seeder Seeder, task *Task) error {
+	pins := make(chan []iface.Pin)
 	select {
 	case <-seeder.Context().Done():
 		return nil
@@ -37,7 +38,19 @@ func (c *Check) CallTask(seeder Seeder, task *Task) error {
 		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 			done <- true
 			pid := v.(*PeerID)
-			return api2.Request("id").Exec(seeder.Context(), pid)
+			e = api2.Request("id").Exec(seeder.Context(), pid)
+			if e != nil {
+				return e
+			}
+			plist, err := api2.Pin().Ls(seeder.Context(), func(settings *options.PinLsSettings) error {
+				settings.Type = c.Type
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			pins <- plist
+			return nil
 		}))
 		if e != nil {
 			return e

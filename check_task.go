@@ -33,6 +33,13 @@ func (c *Check) CallTask(seeder Seeder, taks *Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
+		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+			return nil
+		}))
+		if e != nil {
+			return e
+		}
+
 	}
 
 	return nil

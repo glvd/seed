@@ -28,12 +28,15 @@ type Check struct {
 	skipType  []interface{}
 }
 
-func (c *Check) CallTask(seeder Seeder, taks *Task) error {
+func (c *Check) CallTask(seeder Seeder, task *Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
 	default:
+		done := make(chan bool)
+		defer close(done)
 		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+			done <- true
 			return nil
 		}))
 		if e != nil {

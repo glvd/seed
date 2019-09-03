@@ -218,9 +218,7 @@ UpdateEnd:
 
 func (u *Update) push(v interface{}) error {
 	if cb, b := v.(UpdateCaller); b {
-		//go func(caller UpdateCaller) {
 		u.cb <- cb
-		//}(cb)
 		return nil
 	}
 	return errors.New("not update callback")

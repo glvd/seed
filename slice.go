@@ -64,7 +64,6 @@ func NewSlice() *Slice {
 // Run ...
 func (s *Slice) Run(ctx context.Context) {
 	log.Info("slice running")
-	//t := time.NewTimer(30 * time.Second)
 SliceEnd:
 	for {
 		select {
@@ -75,12 +74,10 @@ SliceEnd:
 				break SliceEnd
 			}
 			s.SetState(StateRunning)
-			//t.Stop()
 			e := v.Call(s)
 			if e != nil {
 				log.Error(e)
 			}
-			//t.Reset(30 * time.Second)
 		case <-time.After(30 * time.Second):
 			log.Info("slice time out")
 			s.SetState(StateWaiting)
@@ -121,9 +118,7 @@ func GetFiles(p string) (files []string) {
 
 type unfinishedSlice struct {
 	unfinished *model.Unfinished
-	//format     *cmd.StreamFormat
-	file string
-	//sliceCall
+	file       string
 }
 
 // SliceCallbackFunc ...
@@ -167,108 +162,6 @@ func (c *sliceCall) Call(s *Slice) (e error) {
 		return e
 	}
 	return c.cb(s, sa, c.unfinished)
-	//u := new(unfinishedSlice)
-	//u.file = path
-	//u.sliceCall = *c
-	//u.unfinished = defaultUnfinished(path)
-	//u.unfinished.Relate = onlyName(path)
-	//if isPicture(path) {
-	//	u.unfinished.Type = model.TypePoster
-	//} else {
-	//	//fix name and get format
-	//	u.format, e = parseUnfinishedFromStreamFormat(path, u.unfinished)
-	//	if e != nil {
-	//		return e
-	//	}
-	//}
-	//log.Infof("%+v", u.format)
-	//if !SkipTypeVerify("video", c.skipType...) {
-	//	e = s.PushTo(DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-	//		u := v.(*unfinishedSlice)
-	//		session := eng.Where("checksum = ?", u.unfinished.Checksum).
-	//			Where("type = ?", u.unfinished.Type)
-	//		if !model.IsExist(session, model.Unfinished{}) || !u.skipExist {
-	//			log.With("file", u.file).Info("video")
-	//			e = s.PushTo(APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-	//				us := v.(*unfinishedSlice)
-	//				file, err := os.Open(us.file)
-	//				if err != nil {
-	//					return err
-	//				}
-	//
-	//				resolved, err := api2.Unixfs().Add(context.Background(),
-	//					files.NewReaderFile(file),
-	//					func(settings *options.UnixfsAddSettings) error {
-	//						settings.Pin = true
-	//						return nil
-	//					})
-	//				if err != nil {
-	//					return err
-	//				}
-	//				u.unfinished.Hash = model.PinHash(resolved)
-	//				e = api.PushTo(DatabaseCallback(u.unfinished, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-	//					u := v.(*model.Unfinished)
-	//					log.With("hash", u.Hash, "relate", u.Relate).Info("Update unfinished")
-	//					return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
-	//				}))
-	//				return
-	//			}))
-	//		}
-	//		return
-	//	}))
-	//	if e != nil {
-	//		log.Error(e)
-	//	}
-	//}
-	//log.With("type", u.unfinished.Type).Info("video info")
-	//if u.unfinished.Type == model.TypeVideo /*&& !skip(u.format) */ {
-	//	u1 := new(unfinishedSlice)
-	//	u1.file = path
-	//	u1.sliceCall = *c
-	//	u1.unfinished = u.unfinished.Clone()
-	//	u1.unfinished.Type = model.TypeSlice
-	//	log.Info("slice run")
-	//	e = s.PushTo(DatabaseCallback(u1, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-	//		u := v.(*unfinishedSlice)
-	//		session := eng.Where("checksum = ?", u.unfinished.Checksum).
-	//			Where("type = ?", u.unfinished.Type)
-	//		if !model.IsExist(session, model.Unfinished{}) || !u1.skipExist {
-	//			log.With("file", u.file).Info("slice")
-	//			e = database.PushTo(APICallback(u, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-	//				var sa *cmd.SplitArgs
-	//				sa, e = sliceVideo(u, u.format)
-	//				if e != nil {
-	//					return e
-	//				}
-	//				stat, err := os.Lstat(sa.Output)
-	//				if err != nil {
-	//					return err
-	//				}
-	//
-	//				sf, err := files.NewSerialFile(sa.Output, false, stat)
-	//				if err != nil {
-	//					return err
-	//				}
-	//				resolved, err := api2.Unixfs().Add(context.Background(), sf, func(settings *options.UnixfsAddSettings) error {
-	//					settings.Pin = true
-	//					return nil
-	//				})
-	//				if err != nil {
-	//					return err
-	//				}
-	//				u.unfinished.Hash = model.PinHash(resolved)
-	//				e = api.PushTo(DatabaseCallback(u, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
-	//					u := v.(*unfinishedSlice)
-	//					e = model.AddOrUpdateUnfinished(eng.NewSession(), u.unfinished)
-	//					return
-	//				}))
-	//				return
-	//			}))
-	//		}
-	//		return
-	//	}))
-	//}
-	//return
 }
 
 func sliceVideo(slice *Slice, file string, u *model.Unfinished) (sa *cmd.SplitArgs, e error) {
@@ -299,16 +192,9 @@ func sliceVideo(slice *Slice, file string, u *model.Unfinished) (sa *cmd.SplitAr
 }
 
 type sliceCall struct {
-	cb SliceCallbackFunc
-	//slice      *unfinishedSlice
+	cb         SliceCallbackFunc
 	unfinished *model.Unfinished
 	file       string
-	//*Slice
-	//skipType    []interface{}
-	//skipExist   bool
-	//skipSlice   bool
-	//scale       int64
-	//sliceOutput string
 }
 
 var _ SliceCaller = &sliceCall{}

@@ -88,3 +88,12 @@ func MoveOption(stepper Stepper, Move *Move) Options {
 		seed.SetThread(stepper, Move)
 	}
 }
+
+type moveCall struct {
+	fromPath string
+	toPath   string
+}
+
+// MoveCall ...
+func MoveCall() (Stepper, MoveCaller) {
+}

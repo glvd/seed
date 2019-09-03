@@ -58,7 +58,7 @@ InfoEnd:
 				log.Error(e)
 			}
 		case <-time.After(30 * time.Second):
-			log.Info("info time out")
+			log.Info("move time out")
 			m.SetState(StateWaiting)
 		}
 	}

@@ -13,13 +13,13 @@ import (
 // Move ...
 type Move struct {
 	*Thread
-	cb    chan MoveCaller
-	to    string
-	Moves map[string]string
+	cb     chan MoveCaller
+	ToPath string
 }
 
 // Register ...
 func (m *Move) Register(ops ...Optioner) {
+
 }
 
 // Push ...
@@ -69,26 +69,10 @@ InfoEnd:
 	m.Finished()
 }
 
-// MoveInfo ...
-func MoveInfo(path string) Options {
-	info := &Move{
-		to: path,
-	}
-	return MoveOption(StepperMoveInfo, info)
-}
-
-// MoveProc ...
-func MoveProc(path string) Options {
-	proc := &Move{
-		to: path,
-	}
-	return MoveOption(StepperMoveProc, proc)
-}
-
 // MoveOption ...
 func MoveOption(stepper Stepper, Move *Move) Options {
 	return func(seed Seeder) {
-		seed.SetThread(stepper, Move)
+		seed.SetBaseThread(stepper, Move)
 	}
 }
 

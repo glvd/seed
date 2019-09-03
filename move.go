@@ -76,13 +76,17 @@ func MoveOption(stepper Stepper, Move *Move) Options {
 	}
 }
 
+// MoveCallbackFunc ...
+type MoveCallbackFunc func(move *Move) error
+
 type moveCall struct {
+	cb       MoveCallbackFunc
 	fromPath string
 	toPath   string
 }
 
 // Call ...
-func (m *moveCall) Call(*Move) error {
+func (m *moveCall) Call(move *Move) error {
 	inputFile, err := os.Open(m.fromPath)
 	if err != nil {
 		return fmt.Errorf("couldn't open source file: %s", err)
@@ -102,7 +106,7 @@ func (m *moveCall) Call(*Move) error {
 	if err != nil {
 		return fmt.Errorf("failed removing original file: %s", err)
 	}
-	return nil
+	return m.cb(move)
 }
 
 // MoveCall ...

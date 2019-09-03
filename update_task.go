@@ -38,19 +38,24 @@ type Update struct {
 	//*Thread
 	cb         chan UpdateCaller
 	updateFunc map[UpdateMethod]func(*Update)
+	database   *xorm.Engine
+	filter     []interface{}
 	//method  UpdateMethod
 	//content UpdateContent
 }
 
 // CallTask ...
 func (u *Update) CallTask(seeder Seeder, task *Task) error {
-
 	select {
 	case <-seeder.Context().Done():
 		return nil
 		//TODO
 	default:
 
+		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"@%").FindAndCount(unfins)
+		if e != nil {
+			return nil, e
+		}
 	}
 
 	return nil
@@ -71,12 +76,12 @@ func (uc *updateCall) Call(u *Update) error {
 }
 
 // UpdateCall ...
-func UpdateCall(engine *xorm.Engine) (Stepper, UpdateCaller) {
-	return StepperUpdate, &updateCall{
-		cb:       callUpdate,
-		database: engine,
-	}
-}
+//func UpdateCall(engine *xorm.Engine) (Stepper, UpdateCaller) {
+//	return StepperUpdate, &updateCall{
+//		cb:       callUpdate,
+//		database: engine,
+//	}
+//}
 
 func callUpdate(u *Update, engine *xorm.Engine) error {
 	return nil
@@ -93,11 +98,12 @@ func (u *Update) Task() *Task {
 }
 
 // NewUpdate ...
-func NewUpdate() *Update {
+func NewUpdate(eng *xorm.Engine) *Update {
 	update := &Update{
 		//method:  method,
 		//content: content,
 		//Thread: NewThread(),
+		database: eng,
 	}
 	return update
 }

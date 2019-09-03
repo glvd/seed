@@ -29,11 +29,6 @@ func apiOption(api *API) Options {
 	}
 }
 
-// IsFailed ...
-func (api *API) IsFailed() bool {
-	return api.failed.Load()
-}
-
 // Push ...
 func (api *API) Push(v interface{}) error {
 	return api.push(v)

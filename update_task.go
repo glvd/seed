@@ -49,6 +49,8 @@ func (u *Update) CallTask(seeder Seeder, task *Task) error {
 	case <-seeder.Context().Done():
 		return nil
 		//TODO
+	default:
+
 	}
 
 	return nil

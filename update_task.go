@@ -42,6 +42,18 @@ type Update struct {
 	//content UpdateContent
 }
 
+// CallTask ...
+func (u *Update) CallTask(seeder Seeder, task *Task) error {
+
+	select {
+	case <-seeder.Context().Done():
+		return nil
+		//TODO
+	}
+
+	return nil
+}
+
 // UpdateCallFunc ...
 type UpdateCallFunc func(u *Update, f *xorm.Engine) error
 
@@ -71,6 +83,11 @@ func callUpdate(u *Update, engine *xorm.Engine) error {
 // Push ...
 func (u *Update) Push(v interface{}) error {
 	return u.push(v)
+}
+
+// Task ...
+func (u *Update) Task() *Task {
+	return NewTask(u)
 }
 
 // NewUpdate ...

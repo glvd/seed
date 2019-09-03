@@ -48,6 +48,7 @@ type UpdateCallFunc func(u *Update, f *xorm.Engine) error
 type updateCall struct {
 	cb       UpdateCallFunc
 	database *xorm.Engine
+	filter   []interface{}
 }
 
 // Call ...
@@ -64,7 +65,8 @@ func UpdateCall(engine *xorm.Engine) (Stepper, UpdateCaller) {
 }
 
 func callUpdate(u *Update, engine *xorm.Engine) error {
-	return nil
+	engine.Where("unfinished.")
+	return
 }
 
 // Push ...

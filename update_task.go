@@ -51,10 +51,15 @@ func (u *Update) CallTask(seeder Seeder, task *Task) error {
 		return nil
 	default:
 		videos := new([]*model.Video)
+
 		e := u.database.In("relate", u.filter...).Find(videos)
 		if e != nil {
 			return e
 		}
+		for _, video := range *videos {
+			log.Info(video)
+		}
+
 	}
 
 	return nil

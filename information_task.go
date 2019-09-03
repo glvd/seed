@@ -579,7 +579,6 @@ func (i *informationProcess) Call(process *Process) error {
 // Task ...
 func (info *Information) Task() *Task {
 	tsk := NewTask(info)
-	//tsk.Step = TaskInformation
 	return tsk
 }
 

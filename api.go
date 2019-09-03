@@ -119,7 +119,6 @@ type apiCall struct {
 // Callback ...
 func (a *apiCall) Call(api *API, api2 *httpapi.HttpApi) error {
 	return a.cb(api, api2, a.v)
-
 }
 
 var _ APICaller = &apiCall{}

@@ -61,6 +61,11 @@ const (
 	StepperMax
 )
 
+// Tasker ...
+type Tasker interface {
+	Task() *Task
+}
+
 // Seeder ...
 type Seeder interface {
 	Start()
@@ -77,6 +82,7 @@ type Seeder interface {
 	IsNormal(stepper Stepper) bool
 	Register(ops ...Optioner)
 	RunTask(task *Task)
+	AddTasker(tasker Tasker)
 }
 
 // Initer ...

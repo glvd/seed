@@ -22,7 +22,7 @@ func NewVerify(path string) *Verify {
 }
 
 func isPicture(name string) bool {
-	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.WMF,.webp"
+	picture := ".bmp,.jpg,.png,.tif,.gif,.pcx,.tga,.exif,.fpx,.svg,.psd,.cdr,.pcd,.dxf,.ufo,.eps,.ai,.raw,.wmf,.webp"
 	ext := filepath.Ext(name)
 	return strings.Index(picture, ext) != -1
 }

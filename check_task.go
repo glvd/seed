@@ -109,13 +109,6 @@ func CheckPinTypeArg(t string) CheckArgs {
 	}
 }
 
-// CheckFromArg ...
-func CheckFromArg(from ...string) CheckArgs {
-	return func(c *Check) {
-		c.from = from
-	}
-}
-
 // NewCheck ...
 func NewCheck(args ...CheckArgs) *Check {
 	check := new(Check)

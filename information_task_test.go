@@ -36,7 +36,7 @@ func TestInformation2(t *testing.T) {
 	s.Start()
 	fmt.Println("waiting end")
 
-	s.RunTask(inf.Task())
+	s.AddTasker(inf)
 	////e := seed.SplitCall(info, 10000)
 	////if e != nil {
 	////	t.Error(e)

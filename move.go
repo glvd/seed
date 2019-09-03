@@ -2,6 +2,9 @@ package seed
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -94,6 +97,32 @@ type moveCall struct {
 	toPath   string
 }
 
+// Call ...
+func (m *moveCall) Call(*Move) error {
+	inputFile, err := os.Open(m.fromPath)
+	if err != nil {
+		return fmt.Errorf("couldn't open source file: %s", err)
+	}
+	defer inputFile.Close()
+	outputFile, err := os.Create(m.toPath)
+	if err != nil {
+		return fmt.Errorf("couldn't open dest file: %s", err)
+	}
+	defer outputFile.Close()
+	_, err = io.Copy(outputFile, inputFile)
+	if err != nil {
+		return fmt.Errorf("writing to output file failed: %s", err)
+	}
+	// The copy was successful, so now delete the original file
+	err = os.Remove(m.fromPath)
+	if err != nil {
+		return fmt.Errorf("failed removing original file: %s", err)
+	}
+	return nil
+}
+
 // MoveCall ...
-func MoveCall() (Stepper, MoveCaller) {
+func MoveCall(from, to string) (Stepper, MoveCaller) {
+	return StepperMove, &moveCall{fromPath: from, toPath: to}
+
 }

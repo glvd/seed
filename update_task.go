@@ -65,8 +65,7 @@ func UpdateCall(engine *xorm.Engine) (Stepper, UpdateCaller) {
 }
 
 func callUpdate(u *Update, engine *xorm.Engine) error {
-	engine.Where("unfinished.")
-	return
+	return nil
 }
 
 // Push ...

@@ -196,7 +196,7 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 	if a.IsFailed() {
 		return nil, errors.New("ipfs failed")
 	}
-	file, e := os.Open(source.PosterPath)
+	file, e := os.Open(source.Thumb)
 	if e != nil {
 		return nil, e
 	}
@@ -533,7 +533,6 @@ func (i *informationProcess) Call(process *Process) error {
 				} else {
 
 					e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-
 						_, e = addPosterHash(api, api2, v.(*VideoSource))
 						if e != nil {
 							return e

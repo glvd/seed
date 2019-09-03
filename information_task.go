@@ -55,23 +55,6 @@ func (info *Information) CallTask(seeder Seeder, t *Task) error {
 	return nil
 }
 
-// Call ...
-//func (info *Information) Call(process *Process) error {
-//	log.Info("call me information")
-//	panic("implement me")
-//}
-
-// PushCallback ...
-//func (info *Information) push(cb interface{}) error {
-//	if v, b := cb.(InformationCaller); b {
-//		go func(cb InformationCaller) {
-//			info.cb <- cb
-//		}(v)
-//		return nil
-//	}
-//	return xerrors.New("not information callback")
-//}
-
 func fixBson(s []byte) []byte {
 	reg := regexp.MustCompile(`("_id")[ ]*[:][ ]*(ObjectId\(")[\w]{24}("\))[ ]*(,)[ ]*`)
 	return reg.ReplaceAll(s, []byte(" "))

@@ -27,6 +27,7 @@ type Check struct {
 	skipType  []interface{}
 }
 
+// CallTask ...
 func (c *Check) CallTask(seeder Seeder, task *Task) error {
 	pins := make(chan []iface.Pin)
 	select {

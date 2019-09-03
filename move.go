@@ -3,6 +3,8 @@ package seed
 import (
 	"context"
 	"time"
+
+	"golang.org/x/xerrors"
 )
 
 // Move ...
@@ -22,8 +24,12 @@ func (m *Move) Push(v interface{}) error {
 	return m.push(v)
 }
 
-func (m *Move)push(v interface)error{
-
+func (m *Move) push(v interface{}) error {
+	if mc, b := v.(MoveCaller); b {
+		m.cb <- mc
+		return nil
+	}
+	return xerrors.New("not move callback")
 }
 
 // NewMove ...

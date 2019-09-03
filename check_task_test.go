@@ -17,8 +17,12 @@ func TestCheck(t *testing.T) {
 
 	check := seed.NewCheck(seed.CheckPinTypeArg("recursive"))
 
-	s := seed.NewSeed(data, check)
+	s := seed.NewSeed(data)
+
 	s.Start()
+
+	s.RunTask(seed.NewTask(check))
+
 	s.Wait()
 
 }

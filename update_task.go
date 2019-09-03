@@ -1,10 +1,8 @@
 package seed
 
 import (
-	"context"
 	"errors"
 	"strconv"
-	"time"
 
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -37,7 +35,7 @@ const (
 
 // Update ...
 type Update struct {
-	*Thread
+	//*Thread
 	cb         chan UpdateCaller
 	updateFunc map[UpdateMethod]func(*Update)
 	//method  UpdateMethod
@@ -79,17 +77,17 @@ func NewUpdate() *Update {
 	update := &Update{
 		//method:  method,
 		//content: content,
-		Thread: NewThread(),
+		//Thread: NewThread(),
 	}
 	return update
 }
 
-// updateOption ...
-func updateOption(update *Update) Options {
-	return func(seed Seeder) {
-		seed.SetBaseThread(StepperUpdate, update)
-	}
-}
+//updateOption ...
+//func updateOption(update *Update) Options {
+//	return func(seed Seeder) {
+//		seed.SetBaseThread(StepperUpdate, update)
+//	}
+//}
 
 func parseInfo(video *model.Video, unfin *model.Unfinished) {
 	switch unfin.Type {
@@ -191,30 +189,30 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 }
 
 // Run ...
-func (u *Update) Run(ctx context.Context) {
-	log.Info("update running")
-UpdateEnd:
-	for {
-		select {
-		case <-ctx.Done():
-			break UpdateEnd
-		case cb := <-u.cb:
-			if cb == nil {
-				break UpdateEnd
-			}
-			u.SetState(StateRunning)
-			e := cb.Call(u)
-			if e != nil {
-				log.Error(e)
-			}
-		case <-time.After(30 * time.Second):
-			log.Info("update time out")
-			u.SetState(StateWaiting)
-		}
-	}
-	close(u.cb)
-	u.Finished()
-}
+//func (u *Update) Run(ctx context.Context) {
+//	log.Info("update running")
+//UpdateEnd:
+//	for {
+//		select {
+//		case <-ctx.Done():
+//			break UpdateEnd
+//		case cb := <-u.cb:
+//			if cb == nil {
+//				break UpdateEnd
+//			}
+//			u.SetState(StateRunning)
+//			e := cb.Call(u)
+//			if e != nil {
+//				log.Error(e)
+//			}
+//		case <-time.After(30 * time.Second):
+//			log.Info("update time out")
+//			u.SetState(StateWaiting)
+//		}
+//	}
+//	close(u.cb)
+//	u.Finished()
+//}
 
 func (u *Update) push(v interface{}) error {
 	if cb, b := v.(UpdateCaller); b {

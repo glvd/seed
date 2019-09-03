@@ -87,7 +87,7 @@ func NewUpdate() *Update {
 // updateOption ...
 func updateOption(update *Update) Options {
 	return func(seed Seeder) {
-		seed.SetThread(StepperUpdate, update)
+		seed.SetBaseThread(StepperUpdate, update)
 	}
 }
 
@@ -218,9 +218,9 @@ UpdateEnd:
 
 func (u *Update) push(v interface{}) error {
 	if cb, b := v.(UpdateCaller); b {
-		go func(caller UpdateCaller) {
-			u.cb <- caller
-		}(cb)
+		//go func(caller UpdateCaller) {
+		u.cb <- cb
+		//}(cb)
 		return nil
 	}
 	return errors.New("not update callback")

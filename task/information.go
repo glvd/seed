@@ -504,11 +504,9 @@ func splitCall(seeder seed.Seeder, c *informationProcess, vs []*VideoSource, lim
 func (i *informationProcess) Call(process *seed.Process) error {
 	var e error
 	var vs []*VideoSource
-	if v, b := infoCallList[i.infoType]; b {
-		vs, e = v(i.path)
-		if e != nil {
-			return e
-		}
+	vs, e = i.fn(i.path)
+	if e != nil {
+		return e
 	}
 	if vs == nil {
 		return errors.New("no video source")

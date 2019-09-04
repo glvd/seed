@@ -1,10 +1,19 @@
 package task
 
-import "os"
+import (
+	"os"
+
+	"github.com/glvd/seed"
+)
 
 // VideoProcess ...
 type VideoProcess struct {
 	Path string
+}
+
+// CallTask ...
+func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
+	return nil
 }
 
 // NewVideoProcess ...
@@ -13,4 +22,9 @@ func NewVideoProcess() *VideoProcess {
 	return &VideoProcess{
 		Path: path,
 	}
+}
+
+// Task ...
+func (v *VideoProcess) Task() *seed.Task {
+	return seed.NewTask(v)
 }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
+	"github.com/glvd/seed/task"
 	"github.com/godcong/go-trait"
 )
 
@@ -15,7 +16,7 @@ import (
 func TestCheck(t *testing.T) {
 	data := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")), seed.DatabaseShowSQLArg())
 
-	check := NewCheck(CheckPinTypeArg("recursive"))
+	check := task.NewCheck(task.CheckPinTypeArg("recursive"))
 
 	s := seed.NewSeed(data)
 

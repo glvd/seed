@@ -1,4 +1,4 @@
-package seed
+package task
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/glvd/seed/old"
 	"github.com/go-xorm/xorm"
@@ -44,9 +45,9 @@ const TransferFlagSQLite3 TransferFlag = "sqlite3"
 // TransferFlagJSON ...
 const TransferFlagJSON TransferFlag = "json"
 
-// transfer ...
-type transfer struct {
-	*Thread
+// Transfer ...
+type Transfer struct {
+	*seed.Thread
 	workspace string
 	status    TransferStatus
 	path      string
@@ -55,25 +56,18 @@ type transfer struct {
 }
 
 // Push ...
-func (transfer transfer) Push(interface{}) error {
+func (transfer *Transfer) Push(interface{}) error {
 	return nil
 }
 
-// TransferOption ...
-func TransferOption(t *transfer) Options {
-	return func(seed Seeder) {
-		seed.SetThread(StepperTransfer, t)
-	}
-}
-
-// Transfer ...
-func Transfer(path string, from TransferFlag, status TransferStatus) Options {
-	t := &transfer{
+// NewTransfer ...
+func NewTransfer(path string, from TransferFlag, status TransferStatus) *Transfer {
+	t := &Transfer{
 		path: path,
 		// flag:   from,
 		status: status,
 	}
-	return TransferOption(t)
+	return t
 }
 
 func insertOldToUnfinished(ban string, obj *old.Object) error {
@@ -242,9 +236,9 @@ func transferFromOther(engine *xorm.Engine) (e error) {
 		if video.ID == "" {
 			continue
 		}
-		video.M3U8Hash = MustString(from.M3U8Hash, video.M3U8Hash)
-		video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-		video.SourceHash = MustString(from.SourceHash, video.SourceHash)
+		video.M3U8Hash = seed.MustString(from.M3U8Hash, video.M3U8Hash)
+		video.Sharpness = seed.MustString(from.Sharpness, video.Sharpness)
+		video.SourceHash = seed.MustString(from.SourceHash, video.SourceHash)
 		if video.M3U8Hash == "" {
 			video.Season = from.Season
 			video.Episode = from.Episode
@@ -267,18 +261,18 @@ func transferUpdate(engine *xorm.Engine) (e error) {
 		return
 	}
 	for _, from := range *fromList {
-		video, e := model.FindVideo(engine.Where("episode = ?", NumberIndex(from.Relate)), onlyName(from.Relate))
+		video, e := model.FindVideo(engine.Where("episode = ?", seed.NumberIndex(from.Relate)), seed.OnlyName(from.Relate))
 		if e != nil {
 			log.Error(e)
 			continue
 		}
 
 		if from.Type == model.TypeSlice {
-			video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-			video.M3U8Hash = MustString(from.Hash, video.M3U8Hash)
+			video.Sharpness = seed.MustString(from.Sharpness, video.Sharpness)
+			video.M3U8Hash = seed.MustString(from.Hash, video.M3U8Hash)
 		} else if from.Type == model.TypeVideo {
-			video.Sharpness = MustString(from.Sharpness, video.Sharpness)
-			video.SourceHash = MustString(from.Hash, video.SourceHash)
+			video.Sharpness = seed.MustString(from.Sharpness, video.Sharpness)
+			video.SourceHash = seed.MustString(from.Hash, video.SourceHash)
 		} else {
 
 		}
@@ -311,7 +305,7 @@ func transferToJSON(engine *xorm.Engine, to string) (e error) {
 }
 
 // Run ...
-func (transfer *transfer) Run(ctx context.Context) {
+func (transfer *Transfer) Run(ctx context.Context) {
 	if transfer.flag == TransferFlagSQLite3 {
 		fromDB, e := model.InitSQLite3(transfer.path)
 		if e != nil {

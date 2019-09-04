@@ -18,6 +18,16 @@ type API struct {
 	cb     chan APICaller
 }
 
+// Failed ...
+func (api *API) Failed() bool {
+	return api.failed.Load()
+}
+
+// SetFailed ...
+func (api *API) SetFailed(failed bool) {
+	api.failed.Store(failed)
+}
+
 // Option ...
 func (api *API) Option(s Seeder) {
 	apiOption(api)(s)

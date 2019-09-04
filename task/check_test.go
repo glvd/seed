@@ -1,4 +1,4 @@
-package seed_test
+package task_test
 
 import (
 	"math/rand"
@@ -15,7 +15,7 @@ import (
 func TestCheck(t *testing.T) {
 	data := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")), seed.DatabaseShowSQLArg())
 
-	check := seed.NewCheck(seed.CheckPinTypeArg("recursive"))
+	check := NewCheck(CheckPinTypeArg("recursive"))
 
 	s := seed.NewSeed(data)
 

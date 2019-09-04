@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/glvd/seed"
+	"github.com/glvd/seed/task"
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 		return
 	}
 
-	var vs []*seed.VideoSource
+	var vs []*task.VideoSource
 	err = json.Unmarshal(fixed, &vs)
 	if err != nil {
 		log.Println(err)

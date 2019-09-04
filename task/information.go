@@ -1,4 +1,4 @@
-package seed
+package task
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
@@ -41,7 +42,7 @@ type Information struct {
 }
 
 // CallTask ...
-func (info *Information) CallTask(seeder Seeder, t *Task) error {
+func (info *Information) CallTask(seeder seed.Seeder, t *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
@@ -99,10 +100,10 @@ func video(source *VideoSource) (v *model.Video) {
 		Tags:         source.Tags,
 		Date:         source.Date,
 		SourceHash:   source.SourceHash,
-		Season:       MustString(source.Season, "1"),
-		Episode:      MustString(source.Episode, "1"),
-		TotalEpisode: MustString(source.TotalEpisode, "1"),
-		Format:       MustString(source.Format, "2D"),
+		Season:       seed.MustString(source.Season, "1"),
+		Episode:      seed.MustString(source.Episode, "1"),
+		TotalEpisode: seed.MustString(source.TotalEpisode, "1"),
+		Format:       seed.MustString(source.Format, "2D"),
 		Publisher:    source.Publisher,
 		Length:       source.Length,
 		MagnetLinks:  source.MagnetLinks,
@@ -175,8 +176,8 @@ func checkFileNotExist(path string) bool {
 //
 //}
 
-func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
-	if a.IsFailed() {
+func addThumbHash(a *seed.API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
+	if a.Failed() {
 		return nil, errors.New("ipfs failed")
 	}
 	file, e := os.Open(source.Thumb)
@@ -188,7 +189,7 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 		return nil
 	})
 	if e != nil {
-		a.failed.Store(true)
+		a.SetFailed(true)
 		return nil, e
 	}
 	unfinThumb := defaultUnfinished(source.Thumb)
@@ -196,7 +197,7 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 	unfinThumb.Relate = source.Bangumi
 	if source.Thumb != "" {
 		unfinThumb.Hash = model.PinHash(resolved)
-		e = a.PushTo(DatabaseCallback(unfinThumb, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = a.PushTo(seed.DatabaseCallback(unfinThumb, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {
@@ -208,8 +209,8 @@ func addThumbHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model
 	return nil, errors.New("no thumb")
 }
 
-func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
-	if a.IsFailed() {
+func addPosterHash(a *seed.API, api *httpapi.HttpApi, source *VideoSource) (unf *model.Unfinished, e error) {
+	if a.Failed() {
 		return nil, errors.New("ipfs failed")
 	}
 
@@ -219,7 +220,7 @@ func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *mode
 	}
 	resolved, err := api.Unixfs().Add(context.Background(), files.NewReaderFile(file))
 	if err != nil {
-		a.failed.Store(true)
+		a.SetFailed(true)
 		return nil, err
 	}
 
@@ -229,7 +230,7 @@ func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *mode
 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = model.PinHash(resolved)
-		e = a.PushTo(DatabaseCallback(unfinPoster, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e = a.PushTo(seed.DatabaseCallback(unfinPoster, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 		}))
 		if e != nil {
@@ -240,7 +241,7 @@ func addPosterHash(a *API, api *httpapi.HttpApi, source *VideoSource) (unf *mode
 	return nil, errors.New("no poster")
 }
 
-func addVideo(a *API, api *httpapi.HttpApi, video *model.Video, path string) {
+func addVideo(a *seed.API, api *httpapi.HttpApi, video *model.Video, path string) {
 	//file, e := os.Open(source.PosterPath)
 	//if e != nil {
 	//	return nil, e
@@ -299,45 +300,45 @@ func filterProcList(sources []*VideoSource, filterList []string) <-chan *VideoSo
 
 // VideoSource ...
 type VideoSource struct {
-	Bangumi      string    `json:"bangumi"`       //番号 no
-	SourceHash   string    `json:"source_hash"`   //原片hash
-	Type         string    `json:"type"`          //类型：film，FanDrama
-	Format       string    `json:"format"`        //输出：3D，2D
-	VR           string    `json:"vr"`            //VR格式：左右，上下，平面
-	Thumb        string    `json:"thumb"`         //缩略图
-	Intro        string    `json:"intro"`         //简介 title
-	Alias        []string  `json:"alias"`         //别名，片名
-	VideoEncode  string    `json:"video_encode"`  //视频编码
-	AudioEncode  string    `json:"audio_encode"`  //音频编码
-	Files        []string  `json:"files"`         //存放路径
-	HashFiles    []string  `json:"hash_files"`    //已上传Hash
-	CheckFiles   []string  `json:"check_files"`   //Unfinished checksum
-	Slice        bool      `json:"sliceAdd"`      //是否HLS切片
-	Encrypt      bool      `json:"encrypt"`       //加密
-	Key          string    `json:"key"`           //秘钥
-	M3U8         string    `json:"m3u8"`          //M3U8名
-	SegmentFile  string    `json:"segment_file"`  //ts切片名
-	PosterPath   string    `json:"poster_path"`   //海报路径
-	Poster       string    `json:"poster"`        //海报HASH
-	ExtendList   []*Extend `json:"extend_list"`   //扩展信息
-	Role         []string  `json:"role"`          //角色列表 stars
-	Director     string    `json:"director"`      //导演
-	Systematics  string    `json:"systematics"`   //分级
-	Season       string    `json:"season"`        //季
-	Episode      string    `json:"episode"`       //集数
-	TotalEpisode string    `json:"total_episode"` //总集数
-	Sharpness    string    `json:"sharpness"`     //清晰度
-	Publish      string    `json:"publish"`       //发行日
-	Date         string    `json:"date"`          //发行日
-	Length       string    `json:"length"`        //片长
-	Producer     string    `json:"producer"`      //制片商
-	Series       string    `json:"series"`        //系列
-	Tags         []string  `json:"tags"`          //标签
-	Publisher    string    `json:"publisher"`     //发行商
-	Language     string    `json:"language"`      //语言
-	Caption      string    `json:"caption"`       //字幕
-	MagnetLinks  []string  `json:"magnet_links"`  //磁链
-	Uncensored   bool      `json:"uncensored"`    //有码,无码
+	Bangumi      string         `json:"bangumi"`       //番号 no
+	SourceHash   string         `json:"source_hash"`   //原片hash
+	Type         string         `json:"type"`          //类型：film，FanDrama
+	Format       string         `json:"format"`        //输出：3D，2D
+	VR           string         `json:"vr"`            //VR格式：左右，上下，平面
+	Thumb        string         `json:"thumb"`         //缩略图
+	Intro        string         `json:"intro"`         //简介 title
+	Alias        []string       `json:"alias"`         //别名，片名
+	VideoEncode  string         `json:"video_encode"`  //视频编码
+	AudioEncode  string         `json:"audio_encode"`  //音频编码
+	Files        []string       `json:"files"`         //存放路径
+	HashFiles    []string       `json:"hash_files"`    //已上传Hash
+	CheckFiles   []string       `json:"check_files"`   //Unfinished checksum
+	Slice        bool           `json:"sliceAdd"`      //是否HLS切片
+	Encrypt      bool           `json:"encrypt"`       //加密
+	Key          string         `json:"key"`           //秘钥
+	M3U8         string         `json:"m3u8"`          //M3U8名
+	SegmentFile  string         `json:"segment_file"`  //ts切片名
+	PosterPath   string         `json:"poster_path"`   //海报路径
+	Poster       string         `json:"poster"`        //海报HASH
+	ExtendList   []*seed.Extend `json:"extend_list"`   //扩展信息
+	Role         []string       `json:"role"`          //角色列表 stars
+	Director     string         `json:"director"`      //导演
+	Systematics  string         `json:"systematics"`   //分级
+	Season       string         `json:"season"`        //季
+	Episode      string         `json:"episode"`       //集数
+	TotalEpisode string         `json:"total_episode"` //总集数
+	Sharpness    string         `json:"sharpness"`     //清晰度
+	Publish      string         `json:"publish"`       //发行日
+	Date         string         `json:"date"`          //发行日
+	Length       string         `json:"length"`        //片长
+	Producer     string         `json:"producer"`      //制片商
+	Series       string         `json:"series"`        //系列
+	Tags         []string       `json:"tags"`          //标签
+	Publisher    string         `json:"publisher"`     //发行商
+	Language     string         `json:"language"`      //语言
+	Caption      string         `json:"caption"`       //字幕
+	MagnetLinks  []string       `json:"magnet_links"`  //磁链
+	Uncensored   bool           `json:"uncensored"`    //有码,无码
 }
 
 //// InformationOption ...
@@ -386,7 +387,7 @@ type informationProcess struct {
 }
 
 // SplitCall ...
-func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
+func SplitCall(seeder seed.Seeder, information *Information, limit int) (e error) {
 	var vs []*VideoSource
 	if v, b := infoCallList[information.InfoType]; b {
 		vs, e = v(information.Path)
@@ -437,7 +438,7 @@ func SplitCall(seeder Seeder, information *Information, limit int) (e error) {
 	return
 }
 
-func splitCall(seeder Seeder, c *informationProcess, vs []*VideoSource, limit int) (b bool) {
+func splitCall(seeder seed.Seeder, c *informationProcess, vs []*VideoSource, limit int) (b bool) {
 	size := len(vs)
 	var vstmp []*VideoSource
 	if size > limit {
@@ -480,7 +481,7 @@ func splitCall(seeder Seeder, c *informationProcess, vs []*VideoSource, limit in
 }
 
 // Call ...
-func (i *informationProcess) Call(process *Process) error {
+func (i *informationProcess) Call(process *seed.Process) error {
 	var e error
 	var vs []*VideoSource
 	if v, b := infoCallList[i.infoType]; b {
@@ -492,11 +493,6 @@ func (i *informationProcess) Call(process *Process) error {
 	if vs == nil {
 		return errors.New("no video source")
 	}
-
-	//if splitCall(process, i, vs, 10000) {
-	//	log.With("path", i.path).Info("split")
-	//	return nil
-	//}
 
 	vsc := filterProcList(vs, i.list)
 	log.With("path", i.path).Info("info")
@@ -515,7 +511,7 @@ func (i *informationProcess) Call(process *Process) error {
 					log.With("bangumi", source.Bangumi, "path", source.PosterPath).Info("poster not found")
 				} else {
 
-					e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+					e := process.PushTo(seed.APICallback(source, func(api *seed.API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 						_, e = addPosterHash(api, api2, v.(*VideoSource))
 						if e != nil {
 							return e
@@ -537,7 +533,7 @@ func (i *informationProcess) Call(process *Process) error {
 			if checkFileNotExist(source.Thumb) {
 				log.With("bangumi", source.Bangumi, "path", source.PosterPath).Info("thumb not found")
 			} else {
-				e := process.PushTo(APICallback(source, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+				e := process.PushTo(seed.APICallback(source, func(api *seed.API, api2 *httpapi.HttpApi, v interface{}) (e error) {
 					_, e = addThumbHash(api, api2, v.(*VideoSource))
 					if e != nil {
 						return e
@@ -550,7 +546,7 @@ func (i *informationProcess) Call(process *Process) error {
 				}
 			}
 		}
-		e := process.PushTo(DatabaseCallback(v, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+		e := process.PushTo(seed.DatabaseCallback(v, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			return model.AddOrUpdateVideo(eng.NewSession(), v.(*model.Video))
 		}))
 		if e != nil {
@@ -560,14 +556,14 @@ func (i *informationProcess) Call(process *Process) error {
 }
 
 // Task ...
-func (info *Information) Task() *Task {
-	tsk := NewTask(info)
+func (info *Information) Task() *seed.Task {
+	tsk := seed.NewTask(info)
 	return tsk
 }
 
 // ProcessCall ...
-func (info *Information) ProcessCall() (Stepper, ProcessCaller) {
-	return StepperProcess, &informationProcess{
+func (info *Information) ProcessCall() (seed.Stepper, seed.ProcessCaller) {
+	return seed.StepperProcess, &informationProcess{
 		infoType:     info.InfoType,
 		resourcePath: info.ResourcePath,
 		path:         info.Path,
@@ -583,4 +579,4 @@ func (info *Information) Clone() (newinfo *Information) {
 	return
 }
 
-var _ ProcessCaller = &informationProcess{}
+var _ seed.ProcessCaller = &informationProcess{}

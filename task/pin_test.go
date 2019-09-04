@@ -1,4 +1,4 @@
-package seed_test
+package task_test
 
 import (
 	"github.com/glvd/seed"

@@ -1,8 +1,9 @@
-package seed
+package task
 
 import (
 	"context"
 
+	"github.com/glvd/seed"
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
@@ -29,7 +30,7 @@ const (
 
 // Pin ...
 type Pin struct {
-	*Thread
+	*seed.Thread
 	PinType    PinType
 	CheckType  CheckType
 	SkipType   []interface{}
@@ -113,21 +114,21 @@ func PinStatusArg(s PinStatus) PinArgs {
 }
 
 // NewPin ...
-func NewPin(args ...PinArgs) Options {
+func NewPin(args ...PinArgs) *Pin {
 	pin := &Pin{
 		PinStatus: PinStatusAll,
 	}
-	pin.Thread = NewThread()
+	pin.Thread = seed.NewThread()
 
 	for _, argFn := range args {
 		argFn(pin)
 	}
-	return pinOption(pin)
+	return pin
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 	cPin := make(chan iface.Pin)
-	e := p.PushTo(StepperAPI, func(api *API, api2 *httpapi.HttpApi) (e error) {
+	e := p.PushTo(seed.StepperAPI, func(api *seed.API, api2 *httpapi.HttpApi) (e error) {
 		defer func() {
 			cPin <- nil
 		}()
@@ -155,7 +156,7 @@ func unfinishedList(ctx context.Context, p *Pin) <-chan *model.Unfinished {
 	defer func() {
 		u <- nil
 	}()
-	p.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+	p.PushTo(seed.StepperDatabase, func(database *seed.Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		if len(p.SkipType) > 0 {
 			session = session.NotIn("type", p.SkipType...)
@@ -184,7 +185,7 @@ func videoList(ctx context.Context, p *Pin) chan<- *model.Video {
 		video <- nil
 	}()
 
-	p.PushTo(StepperDatabase, func(database *Database, eng *xorm.Engine) (e error) {
+	p.PushTo(seed.StepperDatabase, func(database *seed.Database, eng *xorm.Engine) (e error) {
 		session := eng.NewSession()
 		i, e := session.Clone().Count(model.Video{})
 		if e != nil {
@@ -207,7 +208,7 @@ func videoList(ctx context.Context, p *Pin) chan<- *model.Video {
 
 // Run ...
 func (p *Pin) Run(ctx context.Context) {
-	log.Info("Pin running")
+	log.Info("pin running")
 	switch p.PinType {
 	case PinTypeAdd:
 		//pin := listPin(ctx, p.API, p.Type)
@@ -352,9 +353,13 @@ func (p *Pin) pinHash(hash string) (e error) {
 	return
 }
 
-// pinOption ...
-func pinOption(pin *Pin) Options {
-	return func(seed Seeder) {
-		seed.SetThread(StepperPin, pin)
-	}
+// PinCallFunc ...
+type PinCallFunc func(*Pin) error
+
+// PinCaller ...
+type PinCaller interface {
+	Call()
+}
+
+type pinCall struct {
 }

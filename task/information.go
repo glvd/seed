@@ -51,8 +51,9 @@ func NewInformation() *Information {
 		InfoType: InfoTypeBSON,
 		ProcList: nil,
 		Start:    0,
-		Limit:    0,
+		Limit:    DefaultLimit,
 	}
+	return inf
 }
 
 // CallTask ...
@@ -61,7 +62,7 @@ func (info *Information) CallTask(seeder seed.Seeder, t *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		e := SplitCall(seeder, info, info.Limit)
+		e := SplitCall(seeder, info)
 		if e != nil {
 			return e
 		}
@@ -392,19 +393,24 @@ var infoCallList = map[InfoType]func(string) ([]*VideoSource, error){
 	InfoTypeJSON: jsonVideoSource,
 }
 
+// InformationProcessFunction ...
+type InformationProcessFunction func(string) ([]*VideoSource, error)
+
 type informationProcess struct {
 	infoType     InfoType
 	resourcePath string
+	fn           InformationProcessFunction
 	path         string
 	list         []string
 	start        int
 }
 
 // SplitCall ...
-func SplitCall(seeder seed.Seeder, information *Information, limit int) (e error) {
+func SplitCall(seeder seed.Seeder, information *Information) (e error) {
 	var vs []*VideoSource
-	if v, b := infoCallList[information.InfoType]; b {
-		vs, e = v(information.Path)
+	fn, b := infoCallList[information.InfoType]
+	if b {
+		vs, e = fn(information.Path)
 		if e != nil {
 			return e
 		}
@@ -415,8 +421,8 @@ func SplitCall(seeder seed.Seeder, information *Information, limit int) (e error
 
 	size := len(vs)
 	var vstmp []*VideoSource
-	if size > limit {
-		for i := 0; i < size; i += limit {
+	if size > information.Limit {
+		for i := 0; i < size; i += information.Limit {
 			dir, file := filepath.Split(information.Path)
 			open := filepath.Join(dir, file+"."+strconv.Itoa(i))
 
@@ -426,10 +432,10 @@ func SplitCall(seeder seed.Seeder, information *Information, limit int) (e error
 				continue
 			}
 
-			if i+limit >= size {
+			if i+information.Limit >= size {
 				vstmp = vs[i:size]
 			} else {
-				vstmp = vs[i : i+limit]
+				vstmp = vs[i : i+information.Limit]
 			}
 			encoder := json.NewEncoder(openFile)
 			e = encoder.Encode(vstmp)
@@ -441,7 +447,7 @@ func SplitCall(seeder seed.Seeder, information *Information, limit int) (e error
 
 			newinfo := information.Clone()
 			newinfo.Path = open
-			e = seeder.PushTo(newinfo.ProcessCall())
+			e = seeder.PushTo(newinfo.ProcessCall(fn))
 			if e != nil {
 				log.Error(e)
 				continue
@@ -575,9 +581,10 @@ func (info *Information) Task() *seed.Task {
 }
 
 // ProcessCall ...
-func (info *Information) ProcessCall() (seed.Stepper, seed.ProcessCaller) {
+func (info *Information) ProcessCall(fn InformationProcessFunction) (seed.Stepper, seed.ProcessCaller) {
 	return seed.StepperProcess, &informationProcess{
 		infoType:     info.InfoType,
+		fn:           fn,
 		resourcePath: info.ResourcePath,
 		path:         info.Path,
 		list:         info.ProcList,

@@ -109,6 +109,29 @@ func (m *moveCall) Call(move *Move) error {
 	return m.cb(move)
 }
 
+func moveFile(from, to string) error {
+	inputFile, err := os.Open(from)
+	if err != nil {
+		return fmt.Errorf("couldn't open source file: %s", err)
+	}
+	defer inputFile.Close()
+	outputFile, err := os.Create(to)
+	if err != nil {
+		return fmt.Errorf("couldn't open dest file: %s", err)
+	}
+	defer outputFile.Close()
+	_, err = io.Copy(outputFile, inputFile)
+	if err != nil {
+		return fmt.Errorf("writing to output file failed: %s", err)
+	}
+	// The copy was successful, so now delete the original file
+	err = os.Remove(from)
+	if err != nil {
+		return fmt.Errorf("failed removing original file: %s", err)
+	}
+	return nil
+}
+
 // MoveCall ...
 func MoveCall(from, to string) (Stepper, MoveCaller) {
 	return StepperMove, &moveCall{fromPath: from, toPath: to}

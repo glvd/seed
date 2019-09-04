@@ -1,4 +1,4 @@
-package seed_test
+package task_test
 
 import (
 	"fmt"
@@ -19,8 +19,8 @@ func TestInformation2(t *testing.T) {
 	//info.ResourcePath =
 	//info.Path =
 	//info.InfoType = seed.InfoTypeBSON
-	inf := &seed.Information{
-		InfoType:     seed.InfoTypeBSON,
+	inf := &Information{
+		InfoType:     InfoTypeBSON,
 		Path:         "D:\\ipfstest\\video.json",
 		ResourcePath: "D:\\ipfstest\\",
 		//ProcList:     nil,

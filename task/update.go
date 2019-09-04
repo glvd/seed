@@ -1,9 +1,10 @@
-package seed
+package task
 
 import (
 	"errors"
 	"strconv"
 
+	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 )
@@ -45,7 +46,7 @@ type Update struct {
 }
 
 // CallTask ...
-func (u *Update) CallTask(seeder Seeder, task *Task) error {
+func (u *Update) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
@@ -89,8 +90,8 @@ func (u *Update) Push(v interface{}) error {
 }
 
 // Task ...
-func (u *Update) Task() *Task {
-	return NewTask(u)
+func (u *Update) Task() *seed.Task {
+	return seed.NewTask(u)
 }
 
 // NewUpdate ...
@@ -121,7 +122,7 @@ func parseInfo(video *model.Video, unfin *model.Unfinished) {
 		video.Sharpness = unfin.Sharpness
 		video.M3U8Hash = unfin.Hash
 	case model.TypeVideo:
-		video.Sharpness = MustString(video.Sharpness, unfin.Sharpness)
+		video.Sharpness = seed.MustString(video.Sharpness, unfin.Sharpness)
 		video.SourceHash = unfin.Hash
 	}
 }
@@ -153,7 +154,7 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
 			log.With("checksum", unfin.Checksum, "relate", unfin.Relate, "type", unfin.Type, "sharpness", unfin.Sharpness).Infof("unfinished")
-			if idx := NumberIndex(unfin.Relate); idx != -1 {
+			if idx := seed.NumberIndex(unfin.Relate); idx != -1 {
 				if vs[idx] == nil {
 					vs[idx] = video.Clone()
 					vs[idx].Episode = strconv.Itoa(idx + 1)
@@ -195,7 +196,7 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 
 		for j := i; j > 0; j-- {
 			unfin = (*unfins)[j-1]
-			if idx := NumberIndex(unfin.Relate); idx != -1 {
+			if idx := seed.NumberIndex(unfin.Relate); idx != -1 {
 				if strconv.Itoa(idx) == video.Episode {
 					parseInfo(video, unfin)
 				}
@@ -242,4 +243,9 @@ func (u *Update) push(v interface{}) error {
 		return nil
 	}
 	return errors.New("not update callback")
+}
+
+// UpdateCaller ...
+type UpdateCaller interface {
+	Call(*Update) error
 }

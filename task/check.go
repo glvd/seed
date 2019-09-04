@@ -1,7 +1,9 @@
-package seed
+package task
 
 import (
 	"context"
+
+	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
@@ -20,7 +22,7 @@ const CheckTypeUnpin CheckType = "unpin"
 
 // Check ...
 type Check struct {
-	MyID      *PeerID
+	MyID      *seed.PeerID
 	Type      string
 	CheckType CheckType
 	from      []string
@@ -28,14 +30,14 @@ type Check struct {
 }
 
 // CallTask ...
-func (c *Check) CallTask(seeder Seeder, task *Task) error {
+func (c *Check) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	pins := make(chan []iface.Pin)
 	select {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		e := seeder.PushTo(APICallback(c.MyID, func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error) {
-			pid := v.(*PeerID)
+		e := seeder.PushTo(seed.APICallback(c.MyID, func(api *seed.API, api2 *httpapi.HttpApi, v interface{}) (e error) {
+			pid := v.(*seed.PeerID)
 			e = api2.Request("id").Exec(seeder.Context(), pid)
 			if e != nil {
 				return e
@@ -60,7 +62,7 @@ func (c *Check) CallTask(seeder Seeder, task *Task) error {
 				PeerID:  []string{c.MyID.ID},
 				VideoID: "",
 			}
-			e = seeder.PushTo(DatabaseCallback(p, func(database *Database, eng *xorm.Engine, v interface{}) (e error) {
+			e = seeder.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 				return nil
 			}))
 			if e != nil {
@@ -78,7 +80,7 @@ func (c *Check) Run(ctx context.Context) {
 }
 
 // BeforeRun ...
-func (c *Check) BeforeRun(seed Seeder) {
+func (c *Check) BeforeRun(seed seed.Seeder) {
 	//c.myID = APIPeerID(seed)
 	if c.Type == "" {
 		c.Type = "recursive"
@@ -86,7 +88,7 @@ func (c *Check) BeforeRun(seed Seeder) {
 }
 
 // AfterRun ...
-func (c *Check) AfterRun(seed Seeder) {
+func (c *Check) AfterRun(seed seed.Seeder) {
 
 }
 

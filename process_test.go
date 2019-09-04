@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/glvd/seed"
+	"github.com/glvd/seed/task"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -15,8 +16,8 @@ func TestProcess(t *testing.T) {
 	seeder.Register(proc)
 
 	seeder.Start()
-	info := &seed.Information{
-		InfoType:     seed.InfoTypeBSON,
+	info := &task.Information{
+		InfoType:     task.InfoTypeBSON,
 		Path:         "D:\\videoall\\videos",
 		ResourcePath: "",
 		ProcList:     nil,

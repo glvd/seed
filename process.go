@@ -106,7 +106,8 @@ func (p *Process) fileAdd(unfin *model.Unfinished, file string) (err error) {
 	return model.AddOrUpdateUnfinished(nil, unfin)
 }
 
-func onlyName(name string) string {
+// OnlyName ...
+func OnlyName(name string) string {
 	_, name = filepath.Split(name)
 	for i := len(name) - 1; i >= 0 && !os.IsPathSeparator(name[i]); i-- {
 		if name[i] == '.' {
@@ -116,8 +117,9 @@ func onlyName(name string) string {
 	return ""
 }
 
-func onlyNo(name string) string {
-	s := []rune(onlyName(name))
+// OnlyNo ...
+func OnlyNo(name string) string {
+	s := []rune(OnlyName(name))
 	last := len(s) - 1
 	if last > 0 && unicode.IsLetter(s[last]) {
 		if s[last-1] == rune('-') {
@@ -256,16 +258,6 @@ func MustString(val, src string) string {
 		return val
 	}
 	return src
-}
-
-// Load ...
-func Load(path string) []*VideoSource {
-	var vs []*VideoSource
-	e := ReadJSON(path, &vs)
-	if e != nil {
-		return nil
-	}
-	return vs
 }
 
 // processOption ...

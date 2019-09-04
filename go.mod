@@ -18,6 +18,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/multiformats/go-multiaddr v0.0.4
 	github.com/olivere/elastic v6.2.23+incompatible // indirect
+	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pelletier/go-toml v1.4.0
 	go.uber.org/atomic v1.4.0
 	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522

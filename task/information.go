@@ -32,6 +32,9 @@ const InfoTypeJSON InfoType = "json"
 // InfoTypeBSON ...
 const InfoTypeBSON InfoType = "bson"
 
+// DefaultLimit ...
+const DefaultLimit = 5000
+
 // Information ...
 type Information struct {
 	InfoType     InfoType
@@ -39,6 +42,17 @@ type Information struct {
 	ResourcePath string
 	ProcList     []string
 	Start        int
+	Limit        int
+}
+
+// NewInformation ...
+func NewInformation() *Information {
+	inf := &Information{
+		InfoType: InfoTypeBSON,
+		ProcList: nil,
+		Start:    0,
+		Limit:    0,
+	}
 }
 
 // CallTask ...
@@ -47,7 +61,7 @@ func (info *Information) CallTask(seeder seed.Seeder, t *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		e := SplitCall(seeder, info, 5000)
+		e := SplitCall(seeder, info, info.Limit)
 		if e != nil {
 			return e
 		}
@@ -557,8 +571,7 @@ func (i *informationProcess) Call(process *seed.Process) error {
 
 // Task ...
 func (info *Information) Task() *seed.Task {
-	tsk := seed.NewTask(info)
-	return tsk
+	return seed.NewTask(info)
 }
 
 // ProcessCall ...

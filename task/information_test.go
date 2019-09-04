@@ -6,6 +6,8 @@ import (
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
+	"github.com/glvd/seed/task"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // TestInformation ...
@@ -19,8 +21,8 @@ func TestInformation2(t *testing.T) {
 	//info.ResourcePath =
 	//info.Path =
 	//info.InfoType = seed.InfoTypeBSON
-	inf := &Information{
-		InfoType:     InfoTypeBSON,
+	inf := &task.Information{
+		InfoType:     task.InfoTypeBSON,
 		Path:         "D:\\ipfstest\\video.json",
 		ResourcePath: "D:\\ipfstest\\",
 		//ProcList:     nil,

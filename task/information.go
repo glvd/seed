@@ -447,7 +447,7 @@ func SplitCall(seeder seed.Seeder, information *Information) (e error) {
 
 			newinfo := information.Clone()
 			newinfo.Path = open
-			e = seeder.PushTo(newinfo.ProcessCall(fn))
+			e = seeder.PushTo(newinfo.ProcessCall())
 			if e != nil {
 				log.Error(e)
 				continue
@@ -579,7 +579,11 @@ func (info *Information) Task() *seed.Task {
 }
 
 // ProcessCall ...
-func (info *Information) ProcessCall(fn InformationProcessFunction) (seed.Stepper, seed.ProcessCaller) {
+func (info *Information) ProcessCall() (seed.Stepper, seed.ProcessCaller) {
+	fn, b := infoCallList[info.InfoType]
+	if !b {
+		fn = jsonVideoSource
+	}
 	return seed.StepperProcess, &informationProcess{
 		infoType:     info.InfoType,
 		fn:           fn,

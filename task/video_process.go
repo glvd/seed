@@ -77,6 +77,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 				return e
 			}
 			u.Hash = model.PinHash(resolved)
+			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("video")
 			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 				return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 			}))
@@ -96,6 +97,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 				return e
 			}
 			u.Hash = model.PinHash(resolved)
+			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("slice")
 			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 				return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
 			}))

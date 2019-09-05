@@ -8,7 +8,9 @@ import (
 
 // VideoProcess ...
 type VideoProcess struct {
-	Path string
+	Path  string
+	Scale int64
+	Skip  []interface{}
 }
 
 // CallTask ...
@@ -20,7 +22,12 @@ func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
 		files := seed.GetFiles(v.Path)
 		for _, f := range files {
 			if seed.IsVideo(f) {
-				seeder.PushTo()
+				call := videoCall{
+					path:  f,
+					scale: v.Scale,
+					skip:  v.Skip,
+				}
+				call.PushCall(seeder)
 			}
 		}
 	}
@@ -39,4 +46,20 @@ func NewVideoProcess() *VideoProcess {
 // Task ...
 func (v *VideoProcess) Task() *seed.Task {
 	return seed.NewTask(v)
+}
+
+type videoCall struct {
+	path  string
+	scale int64
+	skip  []interface{}
+}
+
+// Call ...
+func (v *videoCall) Call(process *seed.Process) error {
+
+}
+
+// Call ...
+func (v *videoCall) PushCall(seeder seed.Seeder) (seed.Stepper, seed.ProcessCaller) {
+	return seed.StepperProcess, v
 }

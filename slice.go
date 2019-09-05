@@ -12,6 +12,18 @@ import (
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 )
 
+// Scale ...
+type Scale int64
+
+// HighScale ...
+const HighScale Scale = 1080
+
+// MiddleScale ...
+const MiddleScale Scale = 720
+
+// LowScale ...
+const LowScale Scale = 480
+
 // SliceCaller ...
 type SliceCaller interface {
 	Call(*Slice) error
@@ -20,7 +32,7 @@ type SliceCaller interface {
 // Slice ...
 type Slice struct {
 	*Thread
-	Scale       int64
+	Scale       Scale
 	SliceOutput string
 	SkipType    []interface{}
 	SkipExist   bool
@@ -135,7 +147,7 @@ func SliceCall(file string, u *model.Unfinished, cb SliceCallbackFunc) (Stepper,
 	}
 }
 
-func scale(scale int64) int {
+func scale(scale Scale) int {
 	switch scale {
 	case 480, 1080:
 		return int(scale)
@@ -144,7 +156,7 @@ func scale(scale int64) int {
 	}
 }
 
-func scaleStr(s int64) string {
+func scaleStr(s Scale) string {
 	return fmt.Sprintf("%dP", scale(s))
 }
 
@@ -179,10 +191,10 @@ func sliceVideo(slice *Slice, file string, u *model.Unfinished) (sa *cmd.SplitAr
 	s := slice.Scale
 	if s != 0 {
 		res := format.ResolutionInt()
-		if int64(res) < s {
-			s = int64(res)
+		if int64(res) < int64(s) {
+			s = Scale(res)
 		}
-		sa, e = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(s), cmd.OutputOption(slice.SliceOutput))
+		sa, e = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.ScaleOption(int64(s)), cmd.OutputOption(slice.SliceOutput))
 		u.Sharpness = scaleStr(s)
 	} else {
 		sa, e = cmd.FFMpegSplitToM3U8(nil, file, cmd.StreamFormatOption(format), cmd.OutputOption(slice.SliceOutput))

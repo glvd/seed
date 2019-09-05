@@ -3,9 +3,13 @@ package seed
 import (
 	"context"
 	"errors"
+	"os"
 	"time"
 
+	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/interface-go-ipfs-core/options"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 	"github.com/multiformats/go-multiaddr"
 	"go.uber.org/atomic"
 )
@@ -67,7 +71,7 @@ func NewAPI(path string) *API {
 func (api *API) push(cb interface{}) (e error) {
 	if v, b := cb.(APICaller); b {
 		api.cb <- v
-		return
+		return nil
 	}
 	return errors.New("not api callback")
 }
@@ -127,3 +131,17 @@ func (a *apiCall) Call(api *API, api2 *httpapi.HttpApi) error {
 }
 
 var _ APICaller = &apiCall{}
+
+// AddFile ...
+func AddFile(api *API, filename string) (path.Resolved, error) {
+	file, e := os.Open(filename)
+	if e != nil {
+		return nil, e
+	}
+	resolved, e := api.api.Unixfs().Add(api.Context(), files.NewReaderFile(file),
+		func(settings *options.UnixfsAddSettings) error {
+			settings.Pin = true
+			return nil
+		})
+	return resolved, e
+}

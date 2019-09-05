@@ -24,13 +24,19 @@ func TestApiAdd(t *testing.T) {
 		t.Error(e)
 		return
 	}
-	file, e := os.Open("D:\\videoall\\videos\\MIAA-086.wmv")
+	file, e := os.Open("d:\\video\\temp\\9df762a1-b1ae-478f-82c6-462d7b3a2286\\")
 	if e != nil {
 		t.Error(e)
 		return
 	}
-	resolved, e := api.Unixfs().Add(context.Background(), files.NewReaderFile(file), func(settings *options.UnixfsAddSettings) error {
+	np, e := files.NewReaderPathFile("d:\\video\\temp\\9df762a1-b1ae-478f-82c6-462d7b3a2286\\", file, nil)
+	if e != nil {
+		t.Error(e)
+		return
+	}
+	resolved, e := api.Unixfs().Add(context.Background(), np, func(settings *options.UnixfsAddSettings) error {
 		settings.Pin = true
+
 		return nil
 	})
 	if e != nil {

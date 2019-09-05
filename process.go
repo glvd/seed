@@ -233,11 +233,11 @@ func (p *Process) skip(format *cmd.StreamFormat) bool {
 	video := format.Video()
 	audio := format.Audio()
 	if audio == nil || video == nil {
-		log.Info("skip")
+		log.Info("isMedia")
 		return true
 	}
 	if video.CodecName != "h264" || audio.CodecName != "aac" {
-		log.Info("skip")
+		log.Info("isMedia")
 		return true
 	}
 	log.Info("noskip")

@@ -11,7 +11,7 @@ import (
 // TestNewVideoProcess ...
 func TestNewVideoProcess(t *testing.T) {
 	process := NewVideoProcess()
-	process.SkipType = []interface{}{"video"}
+	process.SkipType = []interface{}{""}
 	process.Path = "D:\\video\\test"
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
@@ -20,6 +20,8 @@ func TestNewVideoProcess(t *testing.T) {
 	proc := seed.NewProcess()
 
 	slice := seed.NewSlice()
+	slice.Scale = 360
+	slice.SliceOutput = "d:\\video\\temp"
 	s := seed.NewSeed(sdb, api, proc, slice)
 	//
 	s.Start()

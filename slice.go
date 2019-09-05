@@ -55,9 +55,11 @@ func (s *Slice) push(cb interface{}) error {
 
 // NewSlice ...
 func NewSlice() *Slice {
+	output := os.TempDir()
 	return &Slice{
-		cb:     make(chan SliceCaller),
-		Thread: NewThread(),
+		SliceOutput: output,
+		cb:          make(chan SliceCaller),
+		Thread:      NewThread(),
 	}
 }
 
@@ -146,13 +148,13 @@ func scaleStr(s int64) string {
 	return fmt.Sprintf("%dP", scale(s))
 }
 
-func skip(format *cmd.StreamFormat) bool {
+func isMedia(format *cmd.StreamFormat) bool {
 	video := format.Video()
 	audio := format.Audio()
 	if audio == nil || video == nil {
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 // Call ...
@@ -169,7 +171,7 @@ func sliceVideo(slice *Slice, file string, u *model.Unfinished) (sa *cmd.SplitAr
 	if e != nil {
 		return nil, e
 	}
-	if skip(format) {
+	if !isMedia(format) {
 		return nil, errors.New("format video/audio not found")
 	}
 

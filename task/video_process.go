@@ -63,9 +63,15 @@ type videoCall struct {
 func (call *videoCall) Call(process *seed.Process) (e error) {
 	u := defaultUnfinished(call.path)
 	u.Type = model.TypeVideo
+	f, err := cmd.FFProbeStreamFormat(call.path)
+	if err != nil {
+		return err
+	}
+	u.Sharpness = f.Resolution() + "P"
+
 	if !seed.SkipTypeVerify(u.Type, call.skipType...) {
 		e = process.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
-			u := v.(model.Unfinished)
+			u := v.(*model.Unfinished)
 			resolved, e := seed.AddFile(api, call.path)
 			if e != nil {
 				return e
@@ -84,8 +90,8 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 	e = process.PushTo(seed.SliceCall(call.path, u.Clone(), func(slice *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
 		u := v.(*model.Unfinished)
 		return slice.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
-			u := v.(model.Unfinished)
-			resolved, e := seed.AddFile(api, call.path)
+			u := v.(*model.Unfinished)
+			resolved, e := seed.AddFile(api, sa.Output)
 			if e != nil {
 				return e
 			}

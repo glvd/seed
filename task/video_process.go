@@ -27,7 +27,11 @@ func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
 					scale: v.Scale,
 					skip:  v.Skip,
 				}
-				call.PushCall(seeder)
+				e := seeder.PushTo(seed.StepperProcess, call)
+				if e != nil {
+					log.Error(e)
+					continue
+				}
 			}
 		}
 	}
@@ -57,9 +61,4 @@ type videoCall struct {
 // Call ...
 func (v *videoCall) Call(process *seed.Process) error {
 
-}
-
-// Call ...
-func (v *videoCall) PushCall(seeder seed.Seeder) (seed.Stepper, seed.ProcessCaller) {
-	return seed.StepperProcess, v
 }

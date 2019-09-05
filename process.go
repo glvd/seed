@@ -266,21 +266,3 @@ func processOption(process *Process) Options {
 		seed.SetBaseThread(StepperProcess, process)
 	}
 }
-
-type processCall struct {
-	video *model.Video
-	cb    ProcessCallbackFunc
-}
-
-// Call ...
-func (p *processCall) Call(process *Process) error {
-	return p.cb(process, p.video)
-}
-
-// ProcessCall ...
-func ProcessCall(v *model.Video, callbackFunc ProcessCallbackFunc) ProcessCaller {
-	return &processCall{
-		video: v,
-		cb:    callbackFunc,
-	}
-}

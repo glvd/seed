@@ -17,7 +17,12 @@ func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-
+		files := seed.GetFiles(v.Path)
+		for _, f := range files {
+			if seed.IsVideo(f) {
+				seeder.PushTo()
+			}
+		}
 	}
 
 	return nil

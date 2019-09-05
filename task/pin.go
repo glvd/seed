@@ -280,7 +280,7 @@ func (p *Pin) Run(ctx context.Context) {
 		//		for _, v := range *videos {
 		//			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("Pin")
 		//
-		//			if !SkipTypeVerify("poster", p.SkipType...) && v.PosterHash != "" {
+		//			if !SkipVerify("poster", p.SkipType...) && v.PosterHash != "" {
 		//				e := p.pinHash(v.PosterHash)
 		//				if e != nil {
 		//					log.Error(e)
@@ -288,7 +288,7 @@ func (p *Pin) Run(ctx context.Context) {
 		//				}
 		//			}
 		//
-		//			if !SkipTypeVerify("thumb", p.SkipType...) && v.ThumbHash != "" {
+		//			if !SkipVerify("thumb", p.SkipType...) && v.ThumbHash != "" {
 		//				e := p.pinHash(v.ThumbHash)
 		//				if e != nil {
 		//					log.Error(e)
@@ -296,14 +296,14 @@ func (p *Pin) Run(ctx context.Context) {
 		//				}
 		//			}
 		//
-		//			if !SkipTypeVerify("source", p.SkipType...) && v.SourceHash != "" {
+		//			if !SkipVerify("source", p.SkipType...) && v.SourceHash != "" {
 		//				e := p.pinHash(v.SourceHash)
 		//				if e != nil {
 		//					log.Error(e)
 		//					return
 		//				}
 		//			}
-		//			if !SkipTypeVerify("slice", p.SkipType...) && v.M3U8Hash != "" {
+		//			if !SkipVerify("slice", p.SkipType...) && v.M3U8Hash != "" {
 		//				e := p.pinHash(v.M3U8Hash)
 		//				if e != nil {
 		//					log.Error(e)

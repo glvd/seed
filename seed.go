@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/glvd/seed/model"
 	json "github.com/json-iterator/go"
 	"go.uber.org/atomic"
 )
@@ -267,11 +268,23 @@ func Hash(v interface{}) string {
 	return fmt.Sprintf("%x", sha1.Sum(bytes))
 }
 
-// SkipTypeVerify ...
-func SkipTypeVerify(tp string, v ...interface{}) bool {
+// SkipVerify ...
+func SkipVerify(tp string, v ...interface{}) bool {
 	for i := range v {
 		if v1, b := (v[i]).(string); b {
 			if v1 == tp {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// SkipTypeVerify ...
+func SkipTypeVerify(tp model.Type, v ...interface{}) bool {
+	for i := range v {
+		if v1, b := (v[i]).(string); b {
+			if v1 == string(tp) {
 				return true
 			}
 		}

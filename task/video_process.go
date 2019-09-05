@@ -12,9 +12,7 @@ import (
 
 // VideoProcess ...
 type VideoProcess struct {
-	Path  string
-	Scale int64
-	Skip  []interface{}
+	Path string
 }
 
 // CallTask ...
@@ -26,10 +24,8 @@ func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
 		files := seed.GetFiles(v.Path)
 		for _, f := range files {
 			if seed.IsVideo(f) {
-				call := videoCall{
-					path:  f,
-					scale: v.Scale,
-					skip:  v.Skip,
+				call := &videoCall{
+					path: f,
 				}
 				e := seeder.PushTo(seed.StepperProcess, call)
 				if e != nil {
@@ -57,36 +53,49 @@ func (v *VideoProcess) Task() *seed.Task {
 }
 
 type videoCall struct {
-	path  string
-	scale int64
-	skip  []interface{}
+	path string
 }
 
 // Call ...
 func (call *videoCall) Call(process *seed.Process) (e error) {
 	u := defaultUnfinished(call.path)
 	u.Type = model.TypeVideo
-	e = process.PushTo(seed.APICallback(u, func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
-		u := v.(model.Unfinished)
-		resolved, e := seed.AddFile(api, call.path)
+	if !seed.SkipTypeVerify(u.Type, call.skipType...) {
+		e = process.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
+			u := v.(model.Unfinished)
+			resolved, e := seed.AddFile(api, call.path)
+			if e != nil {
+				return e
+			}
+			u.Hash = model.PinHash(resolved)
+			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+				return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+			}))
+		}))
 		if e != nil {
 			return e
 		}
-		u.Hash = model.PinHash(resolved)
-		return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-			return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+	}
+
+	u.Type = model.TypeSlice
+	if !seed.SkipTypeVerify(u.Type, call.skip...) {
+		e = process.PushTo(seed.SliceCall(call.path, u.Clone(), func(slice *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
+			u := v.(*model.Unfinished)
+			return slice.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
+				u := v.(model.Unfinished)
+				resolved, e := seed.AddFile(api, call.path)
+				if e != nil {
+					return e
+				}
+				u.Hash = model.PinHash(resolved)
+				return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+					return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+				}))
+			}))
 		}))
-	}))
-	if e != nil {
-		return e
+		if e != nil {
+			return e
+		}
 	}
-
-	e = process.PushTo(seed.SliceCall(call.path, u.Clone(), func(slice *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
-		//TODO:
-		return nil
-	}))
-	if e != nil {
-		return e
-	}
-
+	return nil
 }

@@ -11,8 +11,7 @@ import (
 // TestNewVideoProcess ...
 func TestNewVideoProcess(t *testing.T) {
 	process := NewVideoProcess()
-	process.Scale = 720
-	process.Skip = []interface{}{"video"}
+	process.SkipType = []interface{}{"video"}
 	process.Path = "D:\\video\\test"
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})

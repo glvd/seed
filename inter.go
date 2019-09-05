@@ -104,7 +104,7 @@ type DatabaseCaller interface {
 }
 
 // APICallbackFunc ...
-type APICallbackFunc func(api *API, api2 *httpapi.HttpApi, v interface{}) (e error)
+type APICallbackFunc func(api *API, ipapi *httpapi.HttpApi, v interface{}) (e error)
 
 // APICaller ...
 type APICaller interface {

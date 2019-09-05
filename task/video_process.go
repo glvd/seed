@@ -13,6 +13,13 @@ type VideoProcess struct {
 
 // CallTask ...
 func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
+	select {
+	case <-seeder.Context().Done():
+		return nil
+	default:
+
+	}
+
 	return nil
 }
 

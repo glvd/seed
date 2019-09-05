@@ -14,6 +14,7 @@ import (
 type VideoProcess struct {
 	Path     string
 	SkipType []interface{}
+	Filter   []string
 }
 
 // CallTask ...

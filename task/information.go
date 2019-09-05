@@ -43,6 +43,7 @@ type Information struct {
 	ProcList     []string
 	Start        int
 	Limit        int
+	Filter       []string
 }
 
 // NewInformation ...

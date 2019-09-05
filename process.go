@@ -29,7 +29,7 @@ type Process struct {
 	//workspace   string
 	//path        string
 	//moves       map[string]string
-	//scale       int64
+	//scale int64
 	//skipConvert bool
 	//skipExist   bool
 	//noSlice     bool

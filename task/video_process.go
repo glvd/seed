@@ -69,7 +69,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 		return err
 	}
 	u.Sharpness = f.Resolution() + "P"
-
+	u.Relate = seed.OnlyName(call.path)
 	if !seed.SkipTypeVerify(u.Type, call.skipType...) {
 		e = process.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
 			u := v.(*model.Unfinished)

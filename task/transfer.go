@@ -45,7 +45,7 @@ const TransferFlagSQL TransferFlag = "sql"
 // TransferFlagJSON ...
 const TransferFlagJSON TransferFlag = "json"
 
-// Transfer ...
+// Transfer transfer info from other json,database
 type Transfer struct {
 	flag     TransferFlag
 	database *xorm.Engine

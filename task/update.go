@@ -34,59 +34,9 @@ const (
 	UpdateContentHash UpdateContent = "hash"
 )
 
-// Update ...
+// Update update info from the same db
 type Update struct {
-	//*Thread
-	cb         chan UpdateCaller
-	updateFunc map[UpdateMethod]func(*Update)
-	database   *xorm.Engine
-	filter     []interface{}
-	typeInfo   model.Type
-	//model.Type
-}
-
-// CallTask ...
-func (u *Update) CallTask(seeder seed.Seeder, task *seed.Task) error {
-	select {
-	case <-seeder.Context().Done():
-		return nil
-	default:
-		videos := new([]*model.Video)
-
-		e := u.database.In("relate", u.filter...).Find(videos)
-		if e != nil {
-			return e
-		}
-		for _, video := range *videos {
-			log.Info(video)
-		}
-
-	}
-
-	return nil
-}
-
-// UpdateCallFunc ...
-type UpdateCallFunc func(u *Update, f *xorm.Engine) error
-
-type updateCall struct {
-	cb       UpdateCallFunc
-	database *xorm.Engine
-	filter   []interface{}
-}
-
-// Call ...
-func (uc *updateCall) Call(u *Update) error {
-	return uc.cb(u, uc.database)
-}
-
-func callUpdate(u *Update, engine *xorm.Engine) error {
-	return nil
-}
-
-// Push ...
-func (u *Update) Push(v interface{}) error {
-	return u.push(v)
+	Limit int
 }
 
 // Task ...
@@ -95,120 +45,127 @@ func (u *Update) Task() *seed.Task {
 }
 
 // NewUpdate ...
-func NewUpdate(eng *xorm.Engine) *Update {
+func NewUpdate() *Update {
 	update := &Update{
-		//method:  method,
-		//content: content,
-		//Thread: NewThread(),
-		database: eng,
+		Limit: DefaultLimit,
 	}
 	return update
 }
 
-//updateOption ...
-//func updateOption(update *Update) Options {
-//	return func(seed Seeder) {
-//		seed.SetBaseThread(StepperUpdate, update)
-//	}
-//}
+// CallTask ...
+func (u *Update) CallTask(seeder seed.Seeder, task *seed.Task) error {
+	select {
+	case <-seeder.Context().Done():
+		return nil
+	default:
 
-func parseInfo(video *model.Video, unfin *model.Unfinished) {
-	switch unfin.Type {
-	case model.TypePoster:
-		video.PosterHash = unfin.Hash
-	case model.TypeThumb:
-		video.ThumbHash = unfin.Hash
+	}
+
+	return nil
+}
+
+type updateCall struct {
+	Limit int
+}
+
+// Call ...
+func (u *updateCall) Call(database *seed.Database, eng *xorm.Engine) (e error) {
+	i, e := eng.Table(&model.Unfinished{}).Count()
+	if e != nil {
+		return e
+	}
+	if i == 0 {
+		return errors.New("no data found")
+	}
+
+	return nil
+}
+
+func parseTypeHash(u *model.Unfinished) func(video *model.Video) {
+	switch u.Type {
 	case model.TypeSlice:
-		video.Sharpness = unfin.Sharpness
-		video.M3U8Hash = unfin.Hash
+		return func(video *model.Video) {
+			video.Sharpness = u.Sharpness
+			video.M3U8 = u.Hash
+		}
 	case model.TypeVideo:
-		video.Sharpness = seed.MustString(video.Sharpness, unfin.Sharpness)
-		video.SourceHash = unfin.Hash
+		return func(video *model.Video) {
+			video.Sharpness = seed.MustString(video.Sharpness, u.Sharpness)
+			video.SourceHash = u.Hash
+		}
+	}
+	return func(video *model.Video) {
+
 	}
 }
 
-func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (vs []*model.Video, e error) {
-	//var vs []*model.Video
-	switch content {
-	case UpdateContentAll:
-		log.Info("Update all")
-		fallthrough
-	case UpdateContentHash:
-		log.With("bangumi", video.Bangumi).Info("Update hash")
-		unfins := new([]*model.Unfinished)
-		i, e := engine.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"@%").FindAndCount(unfins)
-		if e != nil {
-			return nil, e
+func parseTypeInfo(u *model.Unfinished) func(video *model.Video) {
+	switch u.Type {
+	case model.TypePoster:
+		return func(video *model.Video) {
+			video.PosterHash = u.Hash
 		}
-		if i <= 0 {
-			return nil, nil
+	case model.TypeThumb:
+		return func(video *model.Video) {
+			video.ThumbHash = u.Hash
 		}
-		var unfin *model.Unfinished
-		for j := i; j > 0; j-- {
-			unfin = (*unfins)[j-1]
-			parseInfo(video, unfin)
-		}
-
-		vs = make([]*model.Video, i)
-		total := 1
-		for j := i; j > 0; j-- {
-			unfin = (*unfins)[j-1]
-			log.With("checksum", unfin.Checksum, "relate", unfin.Relate, "type", unfin.Type, "sharpness", unfin.Sharpness).Infof("unfinished")
-			if idx := seed.NumberIndex(unfin.Relate); idx != -1 {
-				if vs[idx] == nil {
-					vs[idx] = video.Clone()
-					vs[idx].Episode = strconv.Itoa(idx + 1)
-					if total < idx+1 {
-						total = idx + 1
-					}
-				}
-
-				parseInfo(vs[idx], unfin)
-				continue
-			}
-			if vs[0] == nil {
-				vs[0] = video.Clone()
-			}
-			parseInfo(vs[0], unfin)
-		}
-
-		for i := range vs {
-			if vs[i] != nil {
-				vs[i].TotalEpisode = strconv.Itoa(total)
-			}
-		}
-
-		log.Infof("total(%d),value:%+v", len(vs), vs)
-	case UpdateContentInfo:
-		log.With("bangumi", video.Bangumi).Info("Update info")
-		unfins := new([]*model.Unfinished)
-
-		i, e := engine.Where("relate like ?", video.Bangumi+"%").FindAndCount(unfins)
-		if e != nil {
-			return nil, e
-		}
-		var unfin *model.Unfinished
-		for j := i; j > 0; j-- {
-			unfin = (*unfins)[j-1]
-			parseInfo(video, unfin)
-
-		}
-
-		for j := i; j > 0; j-- {
-			unfin = (*unfins)[j-1]
-			if idx := seed.NumberIndex(unfin.Relate); idx != -1 {
-				if strconv.Itoa(idx) == video.Episode {
-					parseInfo(video, unfin)
-				}
-			} else {
-				parseInfo(video, unfin)
-			}
-		}
-		vs = []*model.Video{video}
-		log.Infof("total(%d),value:%+v", len(vs), vs)
 	}
+	return func(video *model.Video) {
 
-	return vs, nil
+	}
+}
+
+func calcTotal(unfinishs []*model.Unfinished, fn func(u *model.Unfinished)) int {
+	total := 1
+	for _, u := range unfinishs {
+		fn(u)
+		if idx := seed.NumberIndex(u.Relate); idx != -1 {
+			if total < idx+1 {
+				total = idx + 1
+			}
+		}
+	}
+	return total
+}
+
+func updateContentAll(source *model.Video, unfinishs []*model.Unfinished) []*model.Video {
+	size := len(unfinishs)
+	//do nothing
+	if unfinishs == nil || size == 0 {
+		return []*model.Video{}
+	}
+	total := calcTotal(unfinishs, func(u *model.Unfinished) {
+		parseTypeInfo(u)(source)
+	})
+	videos := make([]*model.Video, total)
+	for _, u := range unfinishs {
+		log.With("checksum", u.Checksum, "relate", u.Relate, "type", u.Type, "sharpness", u.Sharpness).Infof("unfinished")
+		if idx := seed.NumberIndex(u.Relate); idx != -1 {
+			if videos[idx] == nil {
+				videos[idx] = source.Clone()
+				videos[idx].Episode = strconv.Itoa(idx + 1)
+				videos[idx].TotalEpisode = strconv.Itoa(total)
+			}
+			parseTypeHash(u)(videos[idx])
+			continue
+		}
+		if videos[0] == nil {
+			videos[0] = source.Clone()
+		}
+		parseTypeHash(u)(videos[0])
+	}
+	return videos
+}
+func updateContentInfo(source *model.Video, unfinishs []*model.Unfinished) []*model.Video {
+	size := len(unfinishs)
+	//do nothing
+	if unfinishs == nil || size == 0 {
+		return []*model.Video{}
+	}
+	_ = calcTotal(unfinishs, func(u *model.Unfinished) {
+		parseTypeInfo(u)(source)
+	})
+	return []*model.Video{source}
 }
 
 // Run ...
@@ -236,16 +193,3 @@ func doContent(engine *xorm.Engine, video *model.Video, content UpdateContent) (
 //	close(u.cb)
 //	u.Finished()
 //}
-
-func (u *Update) push(v interface{}) error {
-	if cb, b := v.(UpdateCaller); b {
-		u.cb <- cb
-		return nil
-	}
-	return errors.New("not update callback")
-}
-
-// UpdateCaller ...
-type UpdateCaller interface {
-	Call(*Update) error
-}

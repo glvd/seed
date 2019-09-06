@@ -145,7 +145,7 @@ func IndexNumber(index int) byte {
 func NumberIndex(name string) int {
 	size := len(name)
 	if size > 0 {
-		return strings.Index(relateList, LastSlice(name, "-"))
+		return strings.Index(relateList, LastSlice(name, "@"))
 	}
 	return -1
 }

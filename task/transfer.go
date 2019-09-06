@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
@@ -52,6 +53,8 @@ type Transfer struct {
 	path     string
 	Status   TransferStatus
 	Limit    int
+	Before   *time.Time
+	After    *time.Time
 }
 
 // CallTask ...
@@ -64,6 +67,22 @@ func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	}
 
 	return nil
+}
+
+func flagCall(flag TransferFlag) func() {
+	switch flag {
+	case TransferFlagJSON:
+		return func() {
+
+		}
+	case TransferFlagSQL:
+		return func() {
+
+		}
+	}
+	return func() {
+
+	}
 }
 
 // NewJSONTransfer ...

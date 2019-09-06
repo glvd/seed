@@ -50,6 +50,7 @@ type Transfer struct {
 	flag     TransferFlag
 	database *xorm.Engine
 	path     string
+	Status   TransferStatus
 	Limit    int
 }
 
@@ -157,7 +158,7 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 	log.With("size", len(videos)).Info("videos")
 	for _, v := range videos {
 		obj := old.GetObject(v)
-		e := insertOldToUnfinished(v.Bangumi, obj)
+		e := insertOldToUnfinished(engine, v.Bangumi, obj)
 		if e != nil {
 			log.With("bangumi", v.Bangumi).Error(e)
 			continue
@@ -233,7 +234,7 @@ END:
 }
 
 func transferFromOther(engine *xorm.Engine) (e error) {
-	if err := copyUnfinished(engine); err != nil {
+	if err := copyUnfinished(engine, engine); err != nil {
 		return err
 	}
 
@@ -332,7 +333,7 @@ func (transfer *Transfer) Run(ctx context.Context) {
 			log.Error(e)
 			return
 		}
-		switch transfer.status {
+		switch transfer.Status {
 		case TransferStatusFromOld:
 			if err := transferFromOld(fromDB); err != nil {
 				log.Error(err)
@@ -351,7 +352,7 @@ func (transfer *Transfer) Run(ctx context.Context) {
 			}
 		}
 	} else if transfer.flag == TransferFlagJSON {
-		switch transfer.status {
+		switch transfer.Status {
 		case TransferStatusToJSON:
 			if err := transferToJSON(nil, transfer.path); err != nil {
 				return

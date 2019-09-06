@@ -20,7 +20,7 @@ func TestNewVideoProcess(t *testing.T) {
 	proc := seed.NewProcess()
 
 	slice := seed.NewSlice()
-	slice.Scale = seed.LowScale
+	//slice.Scale = seed.MiddleScale
 	slice.SliceOutput = "d:\\video\\temp"
 	s := seed.NewSeed(sdb, api, proc, slice)
 	//

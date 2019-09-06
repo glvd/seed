@@ -145,3 +145,25 @@ func AddFile(api *API, filename string) (path.Resolved, error) {
 		})
 	return resolved, e
 }
+
+// AddDir ...
+func AddDir(api *API, dir string) (path.Resolved, error) {
+	stat, err := os.Lstat(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	sf, err := files.NewSerialFile(dir, false, stat)
+	if err != nil {
+		return nil, err
+	}
+	//不加目录
+	//slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry(filepath.Base(dir), sf)})
+	//reader := files.NewMultiFileReader(slf, true)
+	resolved, e := api.api.Unixfs().Add(api.Context(), sf,
+		func(settings *options.UnixfsAddSettings) error {
+			settings.Pin = true
+			return nil
+		})
+	return resolved, e
+}

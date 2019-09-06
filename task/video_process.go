@@ -93,7 +93,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 		u := v.(*model.Unfinished)
 		return slice.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
 			u := v.(*model.Unfinished)
-			resolved, e := seed.AddFile(api, sa.Output)
+			resolved, e := seed.AddDir(api, sa.Output)
 			if e != nil {
 				return e
 			}

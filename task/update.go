@@ -89,16 +89,54 @@ func (u *updateCall) Call(database *seed.Database, eng *xorm.Engine) (e error) {
 	if u.Exclude != nil {
 		session = session.NotIn("bangumi", u.Exclude)
 	}
+	v := make(chan *model.Video)
 
-	rows, e := session.Rows(new(model.Video))
-	if e != nil {
-		return e
+	go func(s *xorm.Session, video chan<- *model.Video) {
+		defer s.Close()
+		rows, e := session.Rows(new(model.Video))
+		if e != nil {
+			log.Error(e)
+			return
+		}
+		count := 0
+		defer func() {
+			video <- nil
+		}()
+		for rows.Next() {
+			v := new(model.Video)
+			e := rows.Scan(v)
+			if e != nil {
+				log.Error(e)
+				return
+			}
+			video <- v
+			count++
+			log.With("video", *v).Info("video info")
+		}
+		log.With("count", count).Info("done")
+	}(session, v)
+
+VideoEnd:
+	for {
+		select {
+		case video := <-v:
+			if video == nil {
+				break VideoEnd
+			}
+			allUnfinished, e := model.AllUnfinished(eng.Where("relate = ?", video.Bangumi).Or("relate like ?", video.Bangumi+"@%"), 0)
+			if e != nil {
+				return e
+			}
+			videos := updateContentAll(video, *allUnfinished)
+			for _, newVideo := range videos {
+				e := model.AddOrUpdateVideo(eng.NewSession(), newVideo)
+				if e != nil {
+					log.Error(e)
+				}
+			}
+		}
 	}
-
-	for rows.Next() {
-
-	}
-
+	log.Info("update end")
 	return nil
 }
 
@@ -188,29 +226,3 @@ func updateContentInfo(source *model.Video, unfinishs []*model.Unfinished) []*mo
 	})
 	return []*model.Video{source}
 }
-
-// Run ...
-//func (u *Update) Run(ctx context.Context) {
-//	log.Info("update running")
-//UpdateEnd:
-//	for {
-//		select {
-//		case <-ctx.Done():
-//			break UpdateEnd
-//		case cb := <-u.cb:
-//			if cb == nil {
-//				break UpdateEnd
-//			}
-//			u.SetState(StateRunning)
-//			e := cb.Call(u)
-//			if e != nil {
-//				log.Error(e)
-//			}
-//		case <-time.After(30 * time.Second):
-//			log.Info("update time out")
-//			u.SetState(StateWaiting)
-//		}
-//	}
-//	close(u.cb)
-//	u.Finished()
-//}

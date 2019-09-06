@@ -64,7 +64,7 @@ func (t *Thread) Done() <-chan bool {
 // NewThread ...
 func NewThread() *Thread {
 	return &Thread{
-		state: atomic.NewInt32(int32(StateWaiting)),
+		state: atomic.NewInt32(int32(StateRunning)),
 		done:  make(chan bool),
 	}
 }

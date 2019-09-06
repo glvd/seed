@@ -1,7 +1,6 @@
 package task
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/glvd/seed"
@@ -36,7 +35,9 @@ const (
 
 // Update update info from the same db
 type Update struct {
-	Limit int
+	Limit   int
+	Include []interface{}
+	Exclude []interface{}
 }
 
 // Task ...
@@ -58,24 +59,44 @@ func (u *Update) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-
+		return u.call(seeder)
 	}
-
-	return nil
 }
 
+func (u *Update) call(seeder seed.Seeder) error {
+	c := &updateCall{
+		Limit:   u.Limit,
+		Include: u.Include,
+		Exclude: u.Exclude,
+	}
+	return seeder.PushTo(seed.StepperDatabase, c)
+}
+
+var _ seed.DatabaseCaller = &updateCall{}
+
 type updateCall struct {
-	Limit int
+	Limit   int
+	Include []interface{}
+	Exclude []interface{}
 }
 
 // Call ...
 func (u *updateCall) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	i, e := eng.Table(&model.Unfinished{}).Count()
+	session := eng.NewSession()
+	if u.Include != nil {
+		session = session.In("bangumi", u.Include...)
+	}
+	if u.Exclude != nil {
+		session = session.NotIn("bangumi", u.Exclude)
+	}
+
+	rows, e := session.Rows(new(model.Video))
 	if e != nil {
 		return e
 	}
-	if i == 0 {
-		return errors.New("no data found")
+
+	for rows.Next() {
+
 	}
 
 	return nil

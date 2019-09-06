@@ -39,21 +39,46 @@ const (
 // TransferFlag ...
 type TransferFlag string
 
-// TransferFlagSQLite3 ...
-const TransferFlagSQLite3 TransferFlag = "sqlite3"
+// TransferFlagSQL ...
+const TransferFlagSQL TransferFlag = "sql"
 
 // TransferFlagJSON ...
 const TransferFlagJSON TransferFlag = "json"
 
 // Transfer ...
 type Transfer struct {
+	flag     TransferFlag
 	database *xorm.Engine
+	path     string
 	Limit    int
 }
 
-// NewTransfer ...
-func NewTransfer(db *xorm.Engine) *Transfer {
+// CallTask ...
+func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
+	select {
+	case <-seeder.Context().Done():
+		return nil
+	default:
+
+	}
+
+	return nil
+}
+
+// NewJSONTransfer ...
+func NewJSONTransfer(path string) *Transfer {
 	t := &Transfer{
+		flag:  TransferFlagJSON,
+		path:  path,
+		Limit: DefaultLimit,
+	}
+	return t
+}
+
+// NewDBTransfer ...
+func NewDBTransfer(db *xorm.Engine) *Transfer {
+	t := &Transfer{
+		flag:     TransferFlagSQL,
 		database: db,
 		Limit:    DefaultLimit,
 	}
@@ -296,7 +321,7 @@ func transferToJSON(engine *xorm.Engine, to string) (e error) {
 
 // Run ...
 func (transfer *Transfer) Run(ctx context.Context) {
-	if transfer.flag == TransferFlagSQLite3 {
+	if transfer.flag == TransferFlagSQL {
 		fromDB, e := model.InitSQLite3(transfer.path)
 		if e != nil {
 			log.Error(e)

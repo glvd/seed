@@ -96,6 +96,7 @@ func FindUnfinished(session *xorm.Session, checksum string) (unfin *Unfinished, 
 func AddOrUpdateUnfinished(session *xorm.Session, unfin *Unfinished) (e error) {
 	tmp := new(Unfinished)
 	var found bool
+	session = MustSession(session)
 	if unfin.ID != "" {
 		found, e = session.Clone().ID(unfin.ID).Get(tmp)
 	} else {
@@ -106,13 +107,15 @@ func AddOrUpdateUnfinished(session *xorm.Session, unfin *Unfinished) (e error) {
 		return e
 	}
 	if found {
-		//only slice need update,video update for check
-		if unfin.Type == TypeSlice || unfin.Type == TypeVideo {
+		//only slice need update,video update for check , hash changed
+		i := int64(0)
+		if unfin.Hash != unfin.Hash || unfin.Type == TypeSlice || unfin.Type == TypeVideo {
 			unfin.Version = tmp.Version
 			unfin.ID = tmp.ID
-			_, e = session.Clone().ID(unfin.ID).Update(unfin)
+			i, e = session.Clone().ID(unfin.ID).Update(unfin)
+			log.Infof("updated(%d): %+v", i, tmp)
 		}
-		return
+		return e
 	}
 	_, e = session.Clone().InsertOne(unfin)
 	return

@@ -47,30 +47,20 @@ const TransferFlagJSON TransferFlag = "json"
 
 // Transfer ...
 type Transfer struct {
-	*seed.Thread
-	workspace string
-	status    TransferStatus
-	path      string
-	flag      TransferFlag
-	reader    io.Reader
-}
-
-// Push ...
-func (transfer *Transfer) Push(interface{}) error {
-	return nil
+	database *xorm.Engine
+	Limit    int
 }
 
 // NewTransfer ...
-func NewTransfer(path string, from TransferFlag, status TransferStatus) *Transfer {
+func NewTransfer(db *xorm.Engine) *Transfer {
 	t := &Transfer{
-		path: path,
-		// flag:   from,
-		status: status,
+		database: db,
+		Limit:    DefaultLimit,
 	}
 	return t
 }
 
-func insertOldToUnfinished(ban string, obj *old.Object) error {
+func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error {
 	hash := ""
 	if obj.Link != nil {
 		hash = obj.Link.Hash
@@ -90,7 +80,7 @@ func insertOldToUnfinished(ban string, obj *old.Object) error {
 		Sync:        false,
 		Object:      ObjectFromOld(obj),
 	}
-	return model.AddOrUpdateUnfinished(nil, unf)
+	return model.AddOrUpdateUnfinished(eng.NewSession(), unf)
 
 }
 
@@ -174,7 +164,7 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 	return e
 }
 
-func copyUnfinished(from *xorm.Engine) (e error) {
+func copyUnfinished(to *xorm.Engine, from *xorm.Engine) (e error) {
 	i, e := from.Count(&model.Unfinished{})
 	if e != nil {
 		log.Error(e)

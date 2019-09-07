@@ -64,7 +64,7 @@ func (u *Update) CallTask(seeder seed.Seeder, task *seed.Task) error {
 }
 
 func (u *Update) call(seeder seed.Seeder) error {
-	c := &updateCall{
+	c := &dbUpdate{
 		Limit:   u.Limit,
 		Include: u.Include,
 		Exclude: u.Exclude,
@@ -72,16 +72,16 @@ func (u *Update) call(seeder seed.Seeder) error {
 	return seeder.PushTo(seed.StepperDatabase, c)
 }
 
-var _ seed.DatabaseCaller = &updateCall{}
+var _ seed.DatabaseCaller = &dbUpdate{}
 
-type updateCall struct {
+type dbUpdate struct {
 	Limit   int
 	Include []interface{}
 	Exclude []interface{}
 }
 
 // Call ...
-func (u *updateCall) Call(database *seed.Database, eng *xorm.Engine) (e error) {
+func (u *dbUpdate) Call(database *seed.Database, eng *xorm.Engine) (e error) {
 	session := eng.NewSession()
 	if u.Include != nil {
 		session = session.In("bangumi", u.Include...)

@@ -106,6 +106,9 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 	return t
 }
 
+type dbTransfer struct {
+}
+
 func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error {
 	hash := ""
 	if obj.Link != nil {

@@ -10,15 +10,15 @@ import (
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 )
 
-// VideoProcess ...
-type VideoProcess struct {
+// VideoSlice ...
+type VideoSlice struct {
 	Path     string
 	SkipType []interface{}
 	Filter   []string
 }
 
 // CallTask ...
-func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
+func (v *VideoSlice) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
@@ -43,15 +43,15 @@ func (v *VideoProcess) CallTask(seeder seed.Seeder, task *seed.Task) error {
 }
 
 // NewVideoProcess ...
-func NewVideoProcess() *VideoProcess {
+func NewVideoProcess() *VideoSlice {
 	path := os.TempDir()
-	return &VideoProcess{
+	return &VideoSlice{
 		Path: path,
 	}
 }
 
 // Task ...
-func (v *VideoProcess) Task() *seed.Task {
+func (v *VideoSlice) Task() *seed.Task {
 	return seed.NewTask(v)
 }
 

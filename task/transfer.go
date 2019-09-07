@@ -100,6 +100,7 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 	t := &Transfer{
 		flag:     TransferFlagSQL,
 		database: db,
+		Status:   TransferStatusFromOther,
 		Limit:    DefaultLimit,
 	}
 	return t

@@ -57,32 +57,38 @@ type Transfer struct {
 	After    *time.Time
 }
 
+// Task ...
+func (transfer *Transfer) Task() *seed.Task {
+	return seed.NewTask(transfer)
+}
+
 // CallTask ...
 func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-
+		switch transfer.flag {
+		case TransferFlagJSON:
+			t := &jsonTransfer{
+				flag: transfer.flag,
+				path: transfer.path,
+			}
+			e := seeder.PushTo(seed.StepperDatabase, t)
+			if e != nil {
+				return e
+			}
+		case TransferFlagSQL:
+			t := &dbTransfer{
+				database: transfer.database,
+			}
+			e := seeder.PushTo(seed.StepperDatabase, t)
+			if e != nil {
+				return e
+			}
+		}
 	}
-
 	return nil
-}
-
-func flagCall(flag TransferFlag) func() {
-	switch flag {
-	case TransferFlagJSON:
-		return func() {
-
-		}
-	case TransferFlagSQL:
-		return func() {
-
-		}
-	}
-	return func() {
-
-	}
 }
 
 // NewJSONTransfer ...
@@ -93,6 +99,17 @@ func NewJSONTransfer(path string) *Transfer {
 		Limit: DefaultLimit,
 	}
 	return t
+}
+
+type jsonTransfer struct {
+	flag TransferFlag
+	path string
+}
+
+// Call ...
+func (j *jsonTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
+	log.Info("process json")
+	return
 }
 
 // NewDBTransfer ...
@@ -107,6 +124,13 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 }
 
 type dbTransfer struct {
+	database *xorm.Engine
+}
+
+// Call ...
+func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
+	log.Info("process database")
+	return
 }
 
 func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error {

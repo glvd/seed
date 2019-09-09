@@ -135,7 +135,9 @@ func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
 		return e
 	}
 	e = copyVideo(eng, d.database)
-
+	if e != nil {
+		return e
+	}
 	return
 }
 
@@ -291,7 +293,8 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine, limit int) (e error) {
 			e = model.AddOrUpdateUnfinished(to.NoCache(), u)
 			log.With("checksum", u.Checksum, "type", u.Type, "relate", u.Relate, "error", e).Info("copy")
 			if e != nil {
-				return e
+				log.Error(e)
+				continue
 			}
 		}
 	}

@@ -13,21 +13,6 @@ import (
 	"github.com/ipfs/interface-go-ipfs-core/path"
 )
 
-// PinFlag ...
-type PinFlag string
-
-// PinFlagNone ...
-const (
-	// PinFlagNone ...
-	PinFlagNone PinFlag = "none"
-	//PinFlagPoster PinFlag = "poster"
-	PinFlagSource PinFlag = "source"
-	// PinFlagSlice ...
-	PinFlagSlice PinFlag = "slice"
-	// PinFlagAll ...
-	PinFlagAll PinFlag = "all"
-)
-
 // Pin ...
 type Pin struct {
 	Table PinTable
@@ -37,7 +22,6 @@ type Pin struct {
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
 	state      PinTable
-	flag       PinFlag
 	list       []string
 	index      int
 	random     bool

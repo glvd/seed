@@ -141,6 +141,11 @@ func AddOrUpdateVideo(session *xorm.Session, video *Video, checkFn ...func(sessi
 	if found {
 		video.Version = tmp.Version
 		video.ID = tmp.ID
+		if video.M3U8 == "" {
+			video.Season = tmp.Season
+			video.Episode = tmp.Episode
+			video.TotalEpisode = tmp.TotalEpisode
+		}
 		parseStr(&video.M3U8Hash, tmp.M3U8Hash)
 		parseStr(&video.SourceHash, tmp.SourceHash)
 		parseStr(&video.PosterHash, tmp.PosterHash)

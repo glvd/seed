@@ -125,15 +125,41 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 
 type dbTransfer struct {
 	database *xorm.Engine
+	limit    int
 }
 
 // Call ...
 func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	e = copyUnfinished(eng, d.database)
+	e = copyUnfinished(eng, d.database, d.limit)
 	if e != nil {
 		return e
 	}
+	e = copyVideo(eng, d.database)
+
 	return
+}
+
+func copyVideo(to *xorm.Engine, from *xorm.Engine) error {
+	v := new(model.Video)
+
+	rows, e := from.Rows(&model.Video{})
+	if e != nil {
+		return e
+	}
+	for rows.Next() {
+		e := rows.Scan(v)
+		if e != nil {
+			log.Error(e)
+		}
+
+		e = model.AddOrUpdateVideo(to.NoCache(), v)
+		if e != nil {
+			log.With("bangumi", v.Bangumi).Error(e)
+			continue
+		}
+	}
+
+	return e
 }
 
 func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error {
@@ -240,45 +266,29 @@ func transferFromOld(engine *xorm.Engine) (e error) {
 	return e
 }
 
-func copyUnfinished(to *xorm.Engine, from *xorm.Engine) (e error) {
+func copyUnfinished(to *xorm.Engine, from *xorm.Engine, limit int) (e error) {
 	i, e := from.Count(&model.Unfinished{})
 	if e != nil {
 		log.Error(e)
 		return
 	}
-
-	unfChan := make(chan *model.Unfinished, 5)
-	go func(unfin chan<- *model.Unfinished) {
-		defer func() {
-			unfin <- nil
-		}()
-		//for x := int64(0); x < i; x += 5 {
-		rows, e := from.Rows(&model.Unfinished{})
-		//rows, e := from.Limit(5, int(x)).Rows(&model.Unfinished{})
+	if limit < 500 {
+		limit = 500
+	}
+	u := new(model.Unfinished)
+	for x := int64(0); x < i; x += int64(limit) {
+		rows, e := from.Limit(limit, int(x)).Rows(&model.Unfinished{})
 		if e != nil {
 			return
 		}
 		for rows.Next() {
-			u := new(model.Unfinished)
 			e := rows.Scan(u)
 			if e != nil {
 				log.Error(e)
 			}
-			unfin <- u
-		}
-
-		//}
-	}(unfChan)
-
-	for {
-		select {
-		case u := <-unfChan:
-			if u == nil {
-				goto END
-			}
 			u.ID = ""
 			u.Version = 0
-			e := model.AddOrUpdateUnfinished(to.NoCache(), u)
+			e = model.AddOrUpdateUnfinished(to.NoCache(), u)
 			log.With("checksum", u.Checksum, "type", u.Type, "relate", u.Relate, "error", e).Info("copy")
 			if e != nil {
 				return e
@@ -286,7 +296,6 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine) (e error) {
 		}
 	}
 
-END:
 	log.Infof("unfinished(%d) done", i)
 	return nil
 }

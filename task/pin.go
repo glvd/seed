@@ -53,7 +53,12 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-
+		pin := &pinAdd{table: p.Table}
+		e := seeder.PushTo(seed.StepperAPI, pin)
+		if e != nil {
+			log.Error(e)
+			return e
+		}
 	}
 	return nil
 }
@@ -127,13 +132,14 @@ type pinAdd struct {
 
 // Call ...
 func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
+	log.Info("pin add")
 	if p.table == PinTableUnfinished {
 		u := make(chan *model.Unfinished)
 		e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
 			return session
 		}))
 		if e != nil {
-			return e
+			log.Error(e)
 		}
 	ChanEnd:
 		for {
@@ -142,6 +148,7 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 				if unfinished == nil {
 					break ChanEnd
 				}
+				log.With("hash", unfinished.Hash).Info("pinning")
 				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
 					return nil

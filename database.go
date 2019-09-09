@@ -194,11 +194,12 @@ func (u *unfinishedCallback) Call(database *Database, eng *xorm.Engine) (e error
 		return e
 	}
 	for rows.Next() {
-		u := new(model.Unfinished)
-		e = rows.Scan(u)
+		unfinished := new(model.Unfinished)
+		e = rows.Scan(unfinished)
 		if e != nil {
 			return e
 		}
+		u.unfinished <- unfinished
 	}
 	return nil
 }

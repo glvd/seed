@@ -1,26 +1,31 @@
 package task_test
 
 import (
+	"fmt"
+	"testing"
+
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
-	"log"
-	"testing"
+	"github.com/glvd/seed/task"
 )
 
 // TestPin ...
 func TestPin(t *testing.T) {
-	db, e := model.InitSQLite3("data.db")
-	if e != nil {
-		log.Fatal(e)
-	}
-	sdb := seed.NewDatabase(db, seed.DatabaseShowSQLArg())
+	//jst := task.NewJSONTransfer()
+	p := task.NewPin()
+	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
+	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
+	//
+	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
+	proc := seed.NewProcess()
 
-	seed := seed.NewSeed(sdb)
+	s := seed.NewSeed(sdb, api, proc)
+	//
+	s.Start()
+	fmt.Println("waiting end")
 
-	seed.Register()
+	s.AddTasker(p)
 
-	//seed.Workspace = "D:\\videoall"
-	//seed.AfterInit()
-	seed.Start()
-	seed.Wait()
+	s.Wait()
+
 }

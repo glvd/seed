@@ -281,7 +281,7 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine, limit int) (e error) {
 	for x := int64(0); x < i; x += int64(limit) {
 		rows, e := from.Limit(limit, int(x)).Rows(&model.Unfinished{})
 		if e != nil {
-			return
+			return e
 		}
 		for rows.Next() {
 			e := rows.Scan(u)
@@ -375,9 +375,9 @@ func (transfer *Transfer) Run(ctx context.Context) {
 		//Update flag video flag other sqlite3
 		case TransferStatusFromOther:
 
-			if err := transferFromOther(fromDB); err != nil {
-				return
-			}
+			//if err := transferFromOther(fromDB); err != nil {
+			//	return
+			//}
 		//Update flag unfinished flag other sqlite3
 		case TransferStatusUpdate:
 			if err := transferUpdate(fromDB); err != nil {

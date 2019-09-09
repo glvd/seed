@@ -169,4 +169,38 @@ func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
 	return c.cb(database, eng, c.v)
 }
 
+// UnfinishedCallback ...
+type unfinishedCallback struct {
+	unfinished chan *model.Unfinished
+	call       func(*xorm.Session) *xorm.Session
+}
+
+// UnfinishedCall ...
+func UnfinishedCall(fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+	return StepperDatabase, &unfinishedCallback{
+		unfinished: make(chan *model.Unfinished),
+		call:       fn,
+	}
+}
+
+// Call ...
+func (u *unfinishedCallback) Call(database *Database, eng *xorm.Engine) (e error) {
+	defer func() {
+		u.unfinished <- nil
+	}()
+	session := model.MustSession(u.call(eng.NoCache()))
+	rows, e := session.Rows(&model.Unfinished{})
+	if e != nil {
+		return e
+	}
+	for rows.Next() {
+		u := new(model.Unfinished)
+		e = rows.Scan(u)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
 var _ DatabaseCaller = &databaseCall{}

@@ -303,43 +303,6 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine, limit int) (e error) {
 	return nil
 }
 
-func transferFromOther(engine *xorm.Engine) (e error) {
-	if err := copyUnfinished(engine, engine); err != nil {
-		return err
-	}
-
-	fromList := new([]*model.Video)
-	e = engine.Find(fromList)
-	if e != nil {
-		return
-	}
-	for _, from := range *fromList {
-		video, e := model.FindVideo(nil, from.Bangumi)
-		if e != nil {
-			log.Error(e)
-			continue
-		}
-		if video.ID == "" {
-			continue
-		}
-		video.M3U8Hash = seed.MustString(from.M3U8Hash, video.M3U8Hash)
-		video.Sharpness = seed.MustString(from.Sharpness, video.Sharpness)
-		video.SourceHash = seed.MustString(from.SourceHash, video.SourceHash)
-		if video.M3U8Hash == "" {
-			video.Season = from.Season
-			video.Episode = from.Episode
-			video.TotalEpisode = from.TotalEpisode
-		}
-
-		e = model.AddOrUpdateVideo(nil, video)
-		if e != nil {
-			log.With("bangumi", from.Bangumi).Error(e)
-			continue
-		}
-	}
-	return e
-}
-
 func transferUpdate(engine *xorm.Engine) (e error) {
 	fromList := new([]*model.Unfinished)
 	e = engine.Find(fromList)

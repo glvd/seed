@@ -169,10 +169,44 @@ func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
 	return c.cb(database, eng, c.v)
 }
 
+type videoCallback struct {
+	video chan<- *model.Video
+	call  func(session *xorm.Session) *xorm.Session
+}
+
+// Call ...
+func (v *videoCallback) Call(database *Database, eng *xorm.Engine) (e error) {
+	defer func() {
+		v.video <- nil
+	}()
+	session := model.MustSession(v.call(eng.NoCache()))
+	rows, e := session.Rows(&model.Video{})
+	if e != nil {
+		return e
+	}
+	for rows.Next() {
+		video := new(model.Video)
+		e = rows.Scan(video)
+		if e != nil {
+			return e
+		}
+		v.video <- video
+	}
+	return nil
+}
+
+// VideoCall ...
+func VideoCall(v chan<- *model.Video, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+	return StepperDatabase, &videoCallback{
+		video: v,
+		call:  fn,
+	}
+}
+
 // UnfinishedCallback ...
 type unfinishedCallback struct {
 	unfinished chan<- *model.Unfinished
-	call       func(*xorm.Session) *xorm.Session
+	call       func(session *xorm.Session) *xorm.Session
 }
 
 // UnfinishedCall ...

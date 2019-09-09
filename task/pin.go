@@ -4,15 +4,13 @@ import (
 	"context"
 
 	"github.com/glvd/seed"
+	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
 	shell "github.com/godcong/go-ipfs-restapi"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
-	"github.com/ipfs/interface-go-ipfs-core/path"
-
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
-
-	"github.com/glvd/seed/model"
+	"github.com/ipfs/interface-go-ipfs-core/path"
 )
 
 // PinFlag ...
@@ -35,8 +33,7 @@ type Pin struct {
 	Table PinTable
 	//CheckType  CheckType
 	SkipType   []interface{}
-	Type       string
-	PinStatus  PinTable
+	Type       PinType
 	unfinished map[string]*model.Unfinished
 	shell      *shell.Shell
 	state      PinTable
@@ -53,12 +50,16 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		pin := &pinAdd{table: p.Table}
-		e := seeder.PushTo(seed.StepperAPI, pin)
-		if e != nil {
-			log.Error(e)
-			return e
+		switch p.Type {
+		case PinTypeAdd:
+			pin := &pinAdd{table: p.Table}
+			e := seeder.PushTo(seed.StepperAPI, pin)
+			if e != nil {
+				log.Error(e)
+				return e
+			}
 		}
+
 	}
 	return nil
 }
@@ -74,8 +75,8 @@ type PinTable string
 // PinTableUnfinished ...
 const PinTableUnfinished PinTable = "unfinished"
 
-// PinStatusVideo ...
-const PinStatusVideo PinTable = "video"
+// PinTableVideo ...
+const PinTableVideo PinTable = "video"
 
 // PinType ...
 type PinType string
@@ -108,17 +109,11 @@ func PinListArg(s ...string) PinArgs {
 	}
 }
 
-// PinStatusArg ...
-func PinStatusArg(s PinTable) PinArgs {
-	return func(p *Pin) {
-		p.PinStatus = s
-	}
-}
-
 // NewPin ...
 func NewPin(args ...PinArgs) *Pin {
 	pin := &Pin{
 		Table: PinTableUnfinished,
+		Type:  PinTypeAdd,
 	}
 	for _, argFn := range args {
 		argFn(pin)
@@ -130,37 +125,74 @@ type pinAdd struct {
 	table PinTable
 }
 
+func pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+	u := make(chan *model.Unfinished)
+	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+		return session
+	}))
+	if e != nil {
+		log.Error(e)
+	}
+ChanEnd:
+	for {
+		select {
+		case unfinished := <-u:
+			if unfinished == nil {
+				break ChanEnd
+			}
+			log.With("hash", unfinished.Hash).Info("pinning")
+			e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
+				settings.Recursive = true
+				return nil
+			})
+			if e != nil {
+				log.Error(e)
+				break ChanEnd
+			}
+		}
+	}
+	close(u)
+}
+func pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+	u := make(chan *model.Unfinished)
+	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+		return session
+	}))
+	if e != nil {
+		log.Error(e)
+	}
+ChanEnd:
+	for {
+		select {
+		case unfinished := <-u:
+			if unfinished == nil {
+				break ChanEnd
+			}
+			log.With("hash", unfinished.Hash).Info("pinning")
+			e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
+				settings.Recursive = true
+				return nil
+			})
+			if e != nil {
+				log.Error(e)
+				break ChanEnd
+			}
+		}
+	}
+	close(u)
+}
+
 // Call ...
 func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 	log.Info("pin add")
 	if p.table == PinTableUnfinished {
-		u := make(chan *model.Unfinished)
-		e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
-			return session
-		}))
-		if e != nil {
-			log.Error(e)
-		}
-	ChanEnd:
-		for {
-			select {
-			case unfinished := <-u:
-				if unfinished == nil {
-					break ChanEnd
-				}
-				log.With("hash", unfinished.Hash).Info("pinning")
-				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
-					settings.Recursive = true
-					return nil
-				})
-				if e != nil {
-					log.Error(e)
-					break ChanEnd
-				}
-			}
-		}
-		close(u)
+		pinUnfinishedCall(a, api)
+	} else if p.table == PinTableVideo {
+		pinVideoCall(a, api)
+	} else {
+		//do nothing
 	}
+
 	return nil
 }
 
@@ -281,7 +313,7 @@ func (p *Pin) Run(ctx context.Context) {
 	//
 	//		}
 	//	}
-	//case PinStatusVideo:
+	//case PinTableVideo:
 	//	i, e := model.DB().Count(model.Video{})
 	//	if e != nil {
 	//		log.Error(e)

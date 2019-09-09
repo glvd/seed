@@ -129,7 +129,10 @@ type dbTransfer struct {
 
 // Call ...
 func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	log.Info("process database")
+	e = copyUnfinished(eng, d.database)
+	if e != nil {
+		return e
+	}
 	return
 }
 
@@ -246,29 +249,37 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine) (e error) {
 
 	unfChan := make(chan *model.Unfinished, 5)
 	go func(unfin chan<- *model.Unfinished) {
-		for x := int64(0); x < i; x += 5 {
-			unfs := new([]*model.Unfinished)
-			e := from.Limit(5, int(x)).Find(unfs)
-			if e != nil {
-				continue
-			}
-			for _, u := range *unfs {
-				unfin <- u
-			}
+		defer func() {
+			unfin <- nil
+		}()
+		//for x := int64(0); x < i; x += 5 {
+		rows, e := from.Rows(&model.Unfinished{})
+		//rows, e := from.Limit(5, int(x)).Rows(&model.Unfinished{})
+		if e != nil {
+			return
 		}
-		unfin <- nil
+		for rows.Next() {
+			u := new(model.Unfinished)
+			e := rows.Scan(u)
+			if e != nil {
+				log.Error(e)
+			}
+			unfin <- u
+		}
+
+		//}
 	}(unfChan)
 
 	for {
 		select {
-		case unfin := <-unfChan:
-			if unfin == nil {
+		case u := <-unfChan:
+			if u == nil {
 				goto END
 			}
-			unfin.ID = ""
-			unfin.Version = 0
-			e := model.AddOrUpdateUnfinished(nil, unfin)
-			log.With("checksum", unfin.Checksum, "type", unfin.Type, "relate", unfin.Relate, "error", e).Info("copy")
+			u.ID = ""
+			u.Version = 0
+			e := model.AddOrUpdateUnfinished(to.NoCache(), u)
+			log.With("checksum", u.Checksum, "type", u.Type, "relate", u.Relate, "error", e).Info("copy")
 			if e != nil {
 				return e
 			}

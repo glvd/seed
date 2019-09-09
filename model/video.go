@@ -119,27 +119,20 @@ func parseStr(s *string, d string) {
 }
 
 // AddOrUpdateVideo ...
-func AddOrUpdateVideo(session *xorm.Session, video *Video) (e error) {
+func AddOrUpdateVideo(session *xorm.Session, video *Video, checkFn ...func(session *xorm.Session) *xorm.Session) (e error) {
 	var tmp Video
 	var found bool
 	if video.ID != "" {
 		found, e = session.Clone().ID(video.ID).Get(&tmp)
 	} else {
-		//if video.Sharpness != "" {
-		//	found, e = DB().Where("bangumi = ?", video.Bangumi).
-		//		//TODO:which was only one?
-		//		Where("season = ?", video.Season).
-		//		Where("episode = ?", video.Episode).
-		//		Where("sharpness = ?", video.Sharpness).
-		//		Get(&tmp)
-		//}else{
-		found, e = session.Clone().Where("bangumi = ?", video.Bangumi).
-			//TODO:which was only one?
+		s := session.Clone()
+		for _, fn := range checkFn {
+			s = fn(s)
+		}
+		found, e = s.Where("bangumi = ?", video.Bangumi).
 			Where("season = ?", video.Season).
 			Where("episode = ?", video.Episode).
-			//Where("sharpness = ?", video.Sharpness).
 			Get(&tmp)
-		//}
 	}
 	if e != nil {
 		return e
@@ -152,6 +145,7 @@ func AddOrUpdateVideo(session *xorm.Session, video *Video) (e error) {
 		parseStr(&video.SourceHash, tmp.SourceHash)
 		parseStr(&video.PosterHash, tmp.PosterHash)
 		parseStr(&video.ThumbHash, tmp.ThumbHash)
+		parseStr(&video.Sharpness, tmp.Sharpness)
 		i, e := session.Clone().ID(video.ID).Update(video)
 		log.Infof("updated(%d): %+v", i, tmp)
 		return e

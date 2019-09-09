@@ -171,14 +171,14 @@ func (c *databaseCall) Call(database *Database, eng *xorm.Engine) (e error) {
 
 // UnfinishedCallback ...
 type unfinishedCallback struct {
-	unfinished chan *model.Unfinished
+	unfinished chan<- *model.Unfinished
 	call       func(*xorm.Session) *xorm.Session
 }
 
 // UnfinishedCall ...
-func UnfinishedCall(fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+func UnfinishedCall(u chan<- *model.Unfinished, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &unfinishedCallback{
-		unfinished: make(chan *model.Unfinished),
+		unfinished: u,
 		call:       fn,
 	}
 }

@@ -58,21 +58,21 @@ type Transfer struct {
 }
 
 // Task ...
-func (transfer *Transfer) Task() *seed.Task {
-	return seed.NewTask(transfer)
+func (t *Transfer) Task() *seed.Task {
+	return seed.NewTask(t)
 }
 
 // CallTask ...
-func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
+func (t *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		switch transfer.flag {
+		switch t.flag {
 		case TransferFlagJSON:
 			t := &jsonTransfer{
-				flag: transfer.flag,
-				path: transfer.path,
+				flag: t.flag,
+				path: t.path,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -80,7 +80,8 @@ func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 			}
 		case TransferFlagSQL:
 			t := &dbTransfer{
-				database: transfer.database,
+				database: t.database,
+				status:   t.Status,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -125,6 +126,7 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 
 type dbTransfer struct {
 	database *xorm.Engine
+	status   TransferStatus
 	limit    int
 }
 
@@ -354,9 +356,9 @@ func transferToJSON(engine *xorm.Engine, to string) (e error) {
 }
 
 // Run ...
-func (transfer *Transfer) Run(ctx context.Context) {
-	if transfer.flag == TransferFlagSQL {
-		fromDB, e := model.InitSQLite3(transfer.path)
+func (t *Transfer) Run(ctx context.Context) {
+	if t.flag == TransferFlagSQL {
+		fromDB, e := model.InitSQLite3(t.path)
 		if e != nil {
 			log.Error(e)
 			return
@@ -366,7 +368,7 @@ func (transfer *Transfer) Run(ctx context.Context) {
 			log.Error(e)
 			return
 		}
-		switch transfer.Status {
+		switch t.Status {
 		case TransferStatusFromOld:
 			if err := transferFromOld(fromDB); err != nil {
 				log.Error(err)
@@ -384,10 +386,10 @@ func (transfer *Transfer) Run(ctx context.Context) {
 				return
 			}
 		}
-	} else if transfer.flag == TransferFlagJSON {
-		switch transfer.Status {
+	} else if t.flag == TransferFlagJSON {
+		switch t.Status {
 		case TransferStatusToJSON:
-			if err := transferToJSON(nil, transfer.path); err != nil {
+			if err := transferToJSON(nil, t.path); err != nil {
 				return
 			}
 		}

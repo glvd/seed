@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -71,8 +72,9 @@ func (t *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 		switch t.flag {
 		case TransferFlagJSON:
 			t := &jsonTransfer{
-				flag: t.flag,
-				path: t.path,
+				flag:   t.flag,
+				status: t.Status,
+				path:   t.path,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -103,14 +105,34 @@ func NewJSONTransfer(path string) *Transfer {
 }
 
 type jsonTransfer struct {
-	flag TransferFlag
-	path string
+	flag   TransferFlag
+	status TransferStatus
+	path   string
 }
 
 // Call ...
 func (j *jsonTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	log.Info("process json")
-	return
+	switch j.status {
+	case TransferStatusFromOther:
+		fallthrough
+	case TransferStatusFromOld:
+		return errors.New("inputted a wrong status type")
+	case TransferStatusToJSON:
+		file, e := os.OpenFile(j.path, os.O_RDWR|os.O_TRUNC|os.O_SYNC|os.O_CREATE, os.ModePerm)
+		if e != nil {
+			return e
+		}
+		enc := json.NewEncoder(file)
+		videos, e := model.AllVideos(eng.NoCache(), 0)
+		if e != nil {
+			return e
+		}
+		e = enc.Encode(*videos)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // NewDBTransfer ...
@@ -132,15 +154,20 @@ type dbTransfer struct {
 
 // Call ...
 func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	e = copyUnfinished(eng, d.database, d.limit)
-	if e != nil {
-		return e
+	switch d.status {
+	case TransferStatusFromOther:
+		e = copyUnfinished(eng, d.database, d.limit)
+		if e != nil {
+			return e
+		}
+		e = copyVideo(eng, d.database)
+		if e != nil {
+			return e
+		}
+	case TransferStatusFromOld:
+		//now has no old data
 	}
-	e = copyVideo(eng, d.database)
-	if e != nil {
-		return e
-	}
-	return
+	return nil
 }
 
 func copyVideo(to *xorm.Engine, from *xorm.Engine) error {

@@ -42,8 +42,8 @@ func (v *VideoSlice) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	return nil
 }
 
-// NewVideoProcess ...
-func NewVideoProcess() *VideoSlice {
+// NewVideoSlice ...
+func NewVideoSlice() *VideoSlice {
 	path := os.TempDir()
 	return &VideoSlice{
 		Path: path,

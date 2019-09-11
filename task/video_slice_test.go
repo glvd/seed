@@ -10,7 +10,7 @@ import (
 
 // TestNewVideoProcess ...
 func TestNewVideoProcess(t *testing.T) {
-	process := NewVideoProcess()
+	process := NewVideoSlice()
 	process.SkipType = []interface{}{""}
 	process.Path = "D:\\video\\test"
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))

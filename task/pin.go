@@ -6,7 +6,6 @@ import (
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	shell "github.com/godcong/go-ipfs-restapi"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
@@ -17,15 +16,12 @@ import (
 type Pin struct {
 	Table PinTable
 	//CheckType  CheckType
-	SkipType   []interface{}
-	Type       PinType
-	unfinished map[string]*model.Unfinished
-	shell      *shell.Shell
-	state      PinTable
-	list       []string
-	index      int
-	random     bool
-	from       string
+	SkipType []interface{}
+	Type     PinType
+	list     []string
+	index    int
+	random   bool
+	from     string
 }
 
 // CallTask ...

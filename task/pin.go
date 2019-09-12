@@ -260,7 +260,7 @@ func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
 func (p *pinCheck) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	v := make(chan *model.Video)
 	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
-		return session
+		return session.Where("m3u8_hash <> ?", "")
 	}))
 	if e != nil {
 		log.Error(e)

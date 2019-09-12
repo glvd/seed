@@ -32,7 +32,14 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	default:
 		switch p.Type {
 		case PinTypeAdd:
-			pin := &pinAdd{table: p.Table}
+			pin := &pinAdd{table: p.Table, skip: p.SkipType}
+			e := seeder.PushTo(seed.StepperAPI, pin)
+			if e != nil {
+				log.Error(e)
+				return e
+			}
+		case PinTypeCheck:
+			pin := &pinCheck{table: p.Table, skip: p.SkipType, checkType: CheckTypeAll}
 			e := seeder.PushTo(seed.StepperAPI, pin)
 			if e != nil {
 				log.Error(e)
@@ -261,6 +268,7 @@ func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	for _, p := range pins {
 		pinned[model.PinHash(p.Path())] = nil
 	}
+	log.With("total", len(pinned)).Info("pinned")
 
 ChanEnd:
 	for {

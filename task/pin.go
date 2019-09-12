@@ -283,6 +283,10 @@ func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	}
 	log.With("total", len(pinned)).Info("pinned")
 
+	myid, e := seed.MyID(a)
+	if e != nil {
+		return
+	}
 ChanEnd:
 	for {
 		select {
@@ -295,11 +299,14 @@ ChanEnd:
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("pinned")
 						p := &model.Pin{
-							PinHash: model.PinHash(value.Path()),
-							PeerID:  []string{c.MyID.ID},
-							VideoID: "",
+							PinHash: unfinished.Hash,
+							PeerID:  myid.ID,
+							//VideoID: "",
 						}
-
+						e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+							p := v.(*model.Pin)
+							return model.AddOrUpdatePin(eng.NoCache(), p)
+						}))
 					}
 					pinned[unfinished.Hash] = unfinished
 				} else {

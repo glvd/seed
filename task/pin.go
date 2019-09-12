@@ -298,16 +298,7 @@ ChanEnd:
 				if _, b := pinned[unfinished.Hash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("pinned")
-						//p := &model.Pin{
-						//	PinHash: unfinished.Hash,
-						//	PeerID:  myid.ID,
-						//	//VideoID: "",
-						//}
 
-						//e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-						//	p := v.(*model.Pin)
-						//	return model.AddOrUpdatePin(eng.NoCache(), p)
-						//}))
 					}
 					pinned[unfinished.Hash] = unfinished
 				} else {
@@ -320,6 +311,27 @@ ChanEnd:
 		}
 	}
 	log.Info("pin done")
+
+	for _, u := range pinned {
+		if u != nil {
+			log.With("hash", u.Hash, "relate", u.Relate, "type", u.Type).Info("add pin")
+			p := &model.Pin{
+				PinHash: u.Hash,
+				PeerID:  myid.ID,
+				//VideoID: "",
+			}
+
+			e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+				p := v.(*model.Pin)
+				return model.AddOrUpdatePin(eng.NoCache(), p)
+			}))
+			if e != nil {
+				log.Error(e)
+				break
+			}
+		}
+	}
+
 	close(u)
 }
 

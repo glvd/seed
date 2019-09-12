@@ -318,6 +318,7 @@ ChanEnd:
 			}
 		}
 	}
+	log.Info("pin done")
 	close(u)
 }
 

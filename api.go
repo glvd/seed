@@ -167,3 +167,12 @@ func AddDir(api *API, dir string) (path.Resolved, error) {
 		})
 	return resolved, e
 }
+
+func MyID(api *API) (*PeerID, error) {
+	pid := new(PeerID)
+	e := api.api.Request("id").Exec(api.Context(), pid)
+	if e != nil {
+		return nil, e
+	}
+	return pid, e
+}

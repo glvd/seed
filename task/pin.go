@@ -294,6 +294,12 @@ ChanEnd:
 				if _, b := pinned[unfinished.Hash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("pinned")
+						p := &model.Pin{
+							PinHash: model.PinHash(value.Path()),
+							PeerID:  []string{c.MyID.ID},
+							VideoID: "",
+						}
+
 					}
 					pinned[unfinished.Hash] = unfinished
 				} else {

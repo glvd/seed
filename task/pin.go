@@ -245,7 +245,7 @@ type pinCheck struct {
 
 //Call ...
 func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
-	log.Info("pin add")
+	log.Info("pin check")
 	if p.table == PinTableUnfinished {
 		p.pinUnfinishedCall(a, api)
 	} else if p.table == PinTableVideo {

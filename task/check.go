@@ -14,6 +14,9 @@ import (
 // CheckType ...
 type CheckType string
 
+//CheckTypeAll ...
+const CheckTypeAll CheckType = "all"
+
 // CheckTypePin ...
 const CheckTypePin CheckType = "pin"
 

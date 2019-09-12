@@ -11,10 +11,11 @@ import (
 
 // Pin ...
 type Pin struct {
-	Model   `xorm:"extends" json:"-"`
-	PinHash string `xorm:"pin_hash"`
-	PeerID  string `xorm:"peer_id"`
-	VideoID string `xorm:"video_id"`
+	Model    `xorm:"extends" json:"-"`
+	PinHash  string `xorm:"pin_hash"`
+	PeerID   string `xorm:"peer_id"`
+	VideoID  string `xorm:"video_id"`
+	IsPinned string `xorm:"is_pinned"` //TODO:status is now not used
 }
 
 func init() {

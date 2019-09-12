@@ -219,7 +219,7 @@ type pinCheck struct {
 	table PinTable
 }
 
-func (p pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
+func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
 	log.Info("pin add")
 	if p.table == PinTableUnfinished {
 		p.pinUnfinishedCall(a, api)

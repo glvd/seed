@@ -271,12 +271,12 @@ ChanEnd:
 			}
 			if !seed.SkipTypeVerify(unfinished.Type, p.skip...) {
 				if _, b := pinned[unfinished.Hash]; b {
-					if p.checkType == CheckTypePin {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("pinned")
 					}
 					pinned[unfinished.Hash] = unfinished
 				} else {
-					if p.checkType == CheckTypeUnpin {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
 						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("unpin")
 					}
 				}

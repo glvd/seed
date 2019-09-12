@@ -213,7 +213,7 @@ func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error 
 		Sync:        false,
 		Object:      ObjectFromOld(obj),
 	}
-	return model.AddOrUpdateUnfinished(eng.NewSession(), unf)
+	return model.AddOrUpdateUnfinished(eng.NoCache(), unf)
 
 }
 

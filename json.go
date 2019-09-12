@@ -5,7 +5,8 @@ import (
 	"os"
 )
 
-func jsonWrite(path string, v interface{}) error {
+//JSONWrite ...
+func JSONWrite(path string, v interface{}) error {
 	f, e := os.OpenFile(path, os.O_CREATE|os.O_SYNC|os.O_RDWR|os.O_TRUNC, os.ModePerm)
 	if e != nil {
 		return e
@@ -14,8 +15,8 @@ func jsonWrite(path string, v interface{}) error {
 	return encoder.Encode(v)
 }
 
-func jsonRead(path string, v interface{}) error {
-
+//JSONRead ...
+func JSONRead(path string, v interface{}) error {
 	f, e := os.Open(path)
 	if e != nil {
 		return e

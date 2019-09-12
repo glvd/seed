@@ -121,7 +121,7 @@ ChanEnd:
 			if unfinished == nil {
 				break ChanEnd
 			}
-			if seed.SkipTypeVerify(unfinished.Type, p.skip) {
+			if seed.SkipTypeVerify(unfinished.Type, p.skip...) {
 				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
 				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -151,7 +151,7 @@ ChanEnd:
 			if video == nil {
 				break ChanEnd
 			}
-			if !seed.SkipVerify("source", p.skip) && video.SourceHash != "" {
+			if !seed.SkipVerify("source", p.skip...) && video.SourceHash != "" {
 				log.With("hash", video.SourceHash).Info("source pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.SourceHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -162,7 +162,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("slice", p.skip) && video.M3U8Hash != "" {
+			if !seed.SkipVerify("slice", p.skip...) && video.M3U8Hash != "" {
 				log.With("hash", video.M3U8Hash).Info("slice pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.M3U8Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -173,7 +173,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("poster", p.skip) && video.PosterHash != "" {
+			if !seed.SkipVerify("poster", p.skip...) && video.PosterHash != "" {
 				log.With("hash", video.PosterHash).Info("poster pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.PosterHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -184,7 +184,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("thumb", p.skip) && video.ThumbHash != "" {
+			if !seed.SkipVerify("thumb", p.skip...) && video.ThumbHash != "" {
 				log.With("hash", video.ThumbHash).Info("thumb pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.ThumbHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -217,8 +217,10 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 
 type pinCheck struct {
 	table PinTable
+	skip  []interface{}
 }
 
+//Call ...
 func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
 	log.Info("pin add")
 	if p.table == PinTableUnfinished {
@@ -232,12 +234,39 @@ func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
 	return nil
 }
 
-func (p *pinCheck) pinUnfinishedCall(api *seed.API, api2 *httpapi.HttpApi) {
+func (p *pinCheck) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 
 }
 
-func (p *pinCheck) pinVideoCall(api *seed.API, api2 *httpapi.HttpApi) {
-
+func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+	u := make(chan *model.Unfinished)
+	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+		return session
+	}))
+	if e != nil {
+		log.Error(e)
+	}
+ChanEnd:
+	for {
+		select {
+		case unfinished := <-u:
+			if unfinished == nil {
+				break ChanEnd
+			}
+			if seed.SkipTypeVerify(unfinished.Type, p.skip...) {
+				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
+				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
+					settings.Recursive = true
+					return nil
+				})
+				if e != nil {
+					log.Error(e)
+					break ChanEnd
+				}
+			}
+		}
+	}
+	close(u)
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

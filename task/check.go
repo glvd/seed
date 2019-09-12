@@ -1,8 +1,6 @@
 package task
 
 import (
-	"context"
-
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
@@ -10,18 +8,6 @@ import (
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
 )
-
-// CheckType ...
-type CheckType string
-
-//CheckTypeAll ...
-const CheckTypeAll CheckType = "all"
-
-// CheckTypePin ...
-const CheckTypePin CheckType = "pin"
-
-// CheckTypeUnpin ...
-const CheckTypeUnpin CheckType = "unpin"
 
 // Check ...
 type Check struct {
@@ -77,11 +63,6 @@ func (c *Check) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	return nil
 }
 
-// Run ...
-func (c *Check) Run(ctx context.Context) {
-
-}
-
 // BeforeRun ...
 func (c *Check) BeforeRun(seed seed.Seeder) {
 	//c.myID = APIPeerID(seed)
@@ -97,15 +78,6 @@ func (c *Check) AfterRun(seed seed.Seeder) {
 
 // CheckArgs ...
 type CheckArgs func(c *Check)
-
-// CheckSkipArg ...
-func CheckSkipArg(s ...string) CheckArgs {
-	return func(c *Check) {
-		for i := range s {
-			c.skipType = append(c.skipType, s[i])
-		}
-	}
-}
 
 // CheckPinTypeArg ...
 func CheckPinTypeArg(t string) CheckArgs {

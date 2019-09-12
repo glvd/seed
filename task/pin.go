@@ -56,6 +56,18 @@ func (p *Pin) Task() *seed.Task {
 	return seed.NewTask(p)
 }
 
+// CheckType ...
+type CheckType string
+
+//CheckTypeAll ...
+const CheckTypeAll CheckType = "all"
+
+// CheckTypePin ...
+const CheckTypePin CheckType = "pin"
+
+// CheckTypeUnpin ...
+const CheckTypeUnpin CheckType = "unpin"
+
 // PinTable ...
 type PinTable string
 

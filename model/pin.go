@@ -12,9 +12,9 @@ import (
 // Pin ...
 type Pin struct {
 	Model   `xorm:"extends" json:"-"`
-	PinHash string   `xorm:"pin_hash"`
-	PeerID  []string `xorm:"machine_id"`
-	VideoID string   `xorm:"video_id"`
+	PinHash string `xorm:"pin_hash"`
+	PeerID  string `xorm:"peer_id"`
+	VideoID string `xorm:"video_id"`
 }
 
 func init() {
@@ -81,29 +81,15 @@ func AddOrUpdatePin(session *xorm.Session, p *Pin) (e error) {
 	if p.ID != "" {
 		found, e = session.Clone().ID(p.ID).Get(tmp)
 	} else {
-		found, e = session.Clone().Where("pin_hash = ?", p.PinHash).Get(tmp)
+		found, e = session.Clone().Where("pin_hash = ?", p.PinHash).
+			And("peer_id = ?", p.PeerID).Get(tmp)
 	}
 	if e != nil {
 		return e
 	}
 	if found {
 		//only slice need update,video update for check
-		p.Version = tmp.Version
-		p.ID = tmp.ID
-		ids := tmp.PeerID
-		for _, pid := range p.PeerID {
-			for _, tid := range tmp.PeerID {
-				if pid == tid {
-					pid = ""
-					break
-				}
-			}
-			if pid != "" {
-				ids = append(ids, pid)
-			}
-		}
-		p.PeerID = ids
-		_, e = session.Clone().ID(p.ID).Update(p)
+		log.With("peer_id", p.PeerID, "pin_hash", p.PinHash).Info("exist")
 		return
 	}
 	_, e = session.Clone().InsertOne(p)

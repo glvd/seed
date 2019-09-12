@@ -216,8 +216,9 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 }
 
 type pinCheck struct {
-	table PinTable
-	skip  []interface{}
+	table    PinTable
+	skip     []interface{}
+	checkOut string
 }
 
 //Call ...
@@ -255,14 +256,19 @@ ChanEnd:
 			}
 			if seed.SkipTypeVerify(unfinished.Type, p.skip...) {
 				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
-				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
-					settings.Recursive = true
+				pins, e := api.Pin().Ls(a.Context(), func(settings *options.PinLsSettings) error {
+					settings.Type = "recursive"
 					return nil
 				})
+
 				if e != nil {
 					log.Error(e)
 					break ChanEnd
 				}
+				for key, value := range pins {
+
+				}
+
 			}
 		}
 	}

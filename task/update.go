@@ -82,7 +82,7 @@ type dbUpdate struct {
 
 // Call ...
 func (u *dbUpdate) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	session := eng.NewSession()
+	session := eng.NoCache()
 	if u.Include != nil {
 		session = session.In("bangumi", u.Include...)
 	}
@@ -129,7 +129,7 @@ VideoEnd:
 			}
 			videos := updateContentAll(video, *allUnfinished)
 			for _, newVideo := range videos {
-				e := model.AddOrUpdateVideo(eng.NewSession(), newVideo)
+				e := model.AddOrUpdateVideo(eng.NoCache(), newVideo)
 				if e != nil {
 					log.Error(e)
 				}

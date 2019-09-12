@@ -215,7 +215,28 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 	return nil
 }
 
-func pinListCall() {
+type pinCheck struct {
+	table PinTable
+}
+
+func (p pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
+	log.Info("pin add")
+	if p.table == PinTableUnfinished {
+		p.pinUnfinishedCall(a, api)
+	} else if p.table == PinTableVideo {
+		p.pinVideoCall(a, api)
+	} else {
+		//do nothing
+	}
+
+	return nil
+}
+
+func (p *pinCheck) pinUnfinishedCall(api *seed.API, api2 *httpapi.HttpApi) {
+
+}
+
+func (p *pinCheck) pinVideoCall(api *seed.API, api2 *httpapi.HttpApi) {
 
 }
 

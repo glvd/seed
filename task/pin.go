@@ -14,8 +14,8 @@ import (
 
 // Pin ...
 type Pin struct {
-	Table PinTable
-	//CheckType  CheckType
+	Table    PinTable
+	Check    CheckType
 	SkipType []interface{}
 	Type     PinType
 	list     []string
@@ -39,7 +39,7 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 				return e
 			}
 		case PinTypeCheck:
-			pin := &pinCheck{table: p.Table, skip: p.SkipType, checkType: CheckTypeAll}
+			pin := &pinCheck{table: p.Table, skip: p.SkipType, checkType: p.Check}
 			e := seeder.PushTo(seed.StepperAPI, pin)
 			if e != nil {
 				log.Error(e)
@@ -101,6 +101,7 @@ func NewPin(args ...PinArgs) *Pin {
 	pin := &Pin{
 		Table: PinTableUnfinished,
 		Type:  PinTypeAdd,
+		Check: CheckTypeAll,
 	}
 	for _, argFn := range args {
 		argFn(pin)

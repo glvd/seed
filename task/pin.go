@@ -479,14 +479,14 @@ func (p *Pin) Run(ctx context.Context) {
 	//}
 }
 
-func (p *Pin) pinHash(hash string) (e error) {
-	log.Info("pinning:", hash)
-	e = p.shell.Pin(hash)
-	if e != nil {
-		log.With("hash", hash).Error(e)
-	}
-	return
-}
+//func (p *Pin) pinHash(hash string) (e error) {
+//	log.Info("pinning:", hash)
+//	e = p.Pin(hash)
+//	if e != nil {
+//		log.With("hash", hash).Error(e)
+//	}
+//	return
+//}
 
 // PinCallFunc ...
 type PinCallFunc func(*Pin) error

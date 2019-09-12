@@ -121,7 +121,7 @@ ChanEnd:
 			if unfinished == nil {
 				break ChanEnd
 			}
-			if seed.SkipTypeVerify(unfinished.Type, p.skip...) {
+			if !seed.SkipTypeVerify(unfinished.Type, p.skip...) {
 				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
 				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -136,6 +136,7 @@ ChanEnd:
 	}
 	close(u)
 }
+
 func (p *pinAdd) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	v := make(chan *model.Video)
 	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
@@ -216,9 +217,10 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 }
 
 type pinCheck struct {
-	table    PinTable
-	skip     []interface{}
-	checkOut string
+	table     PinTable
+	skip      []interface{}
+	checkType CheckType
+	checkOut  string
 }
 
 //Call ...
@@ -247,6 +249,19 @@ func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	if e != nil {
 		log.Error(e)
 	}
+	pinned := make(map[string]*model.Unfinished)
+	pins, e := api.Pin().Ls(a.Context(), func(settings *options.PinLsSettings) error {
+		settings.Type = "recursive"
+		return nil
+	})
+
+	if e != nil {
+		log.Error(e)
+	}
+	for _, p := range pins {
+		pinned[model.PinHash(p.Path())] = nil
+	}
+
 ChanEnd:
 	for {
 		select {
@@ -254,21 +269,10 @@ ChanEnd:
 			if unfinished == nil {
 				break ChanEnd
 			}
-			if seed.SkipTypeVerify(unfinished.Type, p.skip...) {
-				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
-				pins, e := api.Pin().Ls(a.Context(), func(settings *options.PinLsSettings) error {
-					settings.Type = "recursive"
-					return nil
-				})
-
-				if e != nil {
-					log.Error(e)
-					break ChanEnd
+			if !seed.SkipTypeVerify(unfinished.Type, p.skip...) {
+				if _, b := pinned[unfinished.Hash]; b {
+					pinned[unfinished.Hash] = unfinished
 				}
-				for key, value := range pins {
-
-				}
-
 			}
 		}
 	}

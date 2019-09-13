@@ -471,6 +471,10 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 	return nil
 }
 
+func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+
+}
+
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 
 }

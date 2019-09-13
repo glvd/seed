@@ -228,7 +228,8 @@ func (p *pinCallback) Call(database *Database, eng *xorm.Engine) (e error) {
 	return nil
 }
 
-func PinCall(p chan<- *model.Pin, fn func(session *xorm.Session)) (Stepper, DatabaseCaller) {
+//PinCall ...
+func PinCall(p chan<- *model.Pin, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &pinCallback{
 		pin:  p,
 		call: fn,

@@ -463,11 +463,16 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 	if err != nil {
 		return err
 	}
-	err = api.Swarm().Connect(a.Context(), * pi)
+	err = api.Swarm().Connect(a.Context(), *pi)
 	if err != nil {
 		return err
 	}
+
 	return nil
+}
+
+func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

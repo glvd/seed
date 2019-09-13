@@ -468,7 +468,7 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 	if err != nil {
 		return err
 	}
-
+	log.Info("pin sync")
 	switch p.table {
 	case PinTableUnfinished:
 		p.pinUnfinishedCall(a, api)
@@ -479,11 +479,24 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 }
 
 func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+	v := make(chan *model.Video)
+
+	seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
+		return session
+	})
+ChanEnd:
+	for {
+		select {
+		case video := <-v:
+			if video == nil {
+				break ChanEnd
+			}
+		}
+	}
 
 }
 
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
-
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

@@ -203,6 +203,38 @@ func VideoCall(v chan<- *model.Video, fn func(session *xorm.Session) *xorm.Sessi
 	}
 }
 
+type pinCallback struct {
+	pin  chan<- *model.Pin
+	call func(session *xorm.Session) *xorm.Session
+}
+
+func (p *pinCallback) Call(database *Database, eng *xorm.Engine) (e error) {
+	defer func() {
+		p.pin <- nil
+	}()
+	session := model.MustSession(p.call(eng.NoCache()))
+	rows, e := session.Rows(&model.Pin{})
+	if e != nil {
+		return e
+	}
+	for rows.Next() {
+		pin := new(model.Pin)
+		e = rows.Scan(pin)
+		if e != nil {
+			return e
+		}
+		p.pin <- pin
+	}
+	return nil
+}
+
+func PinCall(p chan<- *model.Pin, fn func(session *xorm.Session)) (Stepper, DatabaseCaller) {
+	return StepperDatabase, &pinCallback{
+		pin:  p,
+		call: fn,
+	}
+}
+
 // UnfinishedCallback ...
 type unfinishedCallback struct {
 	unfinished chan<- *model.Unfinished

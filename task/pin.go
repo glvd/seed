@@ -447,6 +447,10 @@ ChanEnd:
 	close(u)
 }
 
+type pinSync struct {
+	from string
+}
+
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
 	cPin := make(chan iface.Pin)
 	//(seed.StepperAPI, func(api *seed.API, api2 *httpapi.HttpApi) (e error) {

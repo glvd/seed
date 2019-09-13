@@ -2,6 +2,8 @@ package task
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
@@ -449,6 +451,23 @@ ChanEnd:
 
 type pinSync struct {
 	from string
+}
+
+func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
+	ma, err := multiaddr.NewMultiaddr(p.from)
+	if err != nil {
+		return err
+
+	}
+	pi, err := peer.AddrInfoFromP2pAddr(ma)
+	if err != nil {
+		return err
+	}
+	err = api.Swarm().Connect(a.Context(), * pi)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

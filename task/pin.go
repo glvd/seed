@@ -450,7 +450,8 @@ ChanEnd:
 }
 
 type pinSync struct {
-	from string
+	from  string
+	table PinTable
 }
 
 func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
@@ -468,6 +469,12 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 		return err
 	}
 
+	switch p.table {
+	case PinTableUnfinished:
+		p.pinUnfinishedCall(a, api)
+	case PinTableVideo:
+		p.pinVideoCall(a, api)
+	}
 	return nil
 }
 

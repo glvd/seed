@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -58,21 +59,22 @@ type Transfer struct {
 }
 
 // Task ...
-func (transfer *Transfer) Task() *seed.Task {
-	return seed.NewTask(transfer)
+func (t *Transfer) Task() *seed.Task {
+	return seed.NewTask(t)
 }
 
 // CallTask ...
-func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
+func (t *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	select {
 	case <-seeder.Context().Done():
 		return nil
 	default:
-		switch transfer.flag {
+		switch t.flag {
 		case TransferFlagJSON:
 			t := &jsonTransfer{
-				flag: transfer.flag,
-				path: transfer.path,
+				flag:   t.flag,
+				status: t.Status,
+				path:   t.path,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -80,7 +82,8 @@ func (transfer *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 			}
 		case TransferFlagSQL:
 			t := &dbTransfer{
-				database: transfer.database,
+				database: t.database,
+				status:   t.Status,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -102,14 +105,34 @@ func NewJSONTransfer(path string) *Transfer {
 }
 
 type jsonTransfer struct {
-	flag TransferFlag
-	path string
+	flag   TransferFlag
+	status TransferStatus
+	path   string
 }
 
 // Call ...
 func (j *jsonTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	log.Info("process json")
-	return
+	switch j.status {
+	case TransferStatusFromOther:
+		fallthrough
+	case TransferStatusFromOld:
+		return errors.New("inputted a wrong status type")
+	case TransferStatusToJSON:
+		file, e := os.OpenFile(j.path, os.O_RDWR|os.O_TRUNC|os.O_SYNC|os.O_CREATE, os.ModePerm)
+		if e != nil {
+			return e
+		}
+		enc := json.NewEncoder(file)
+		videos, e := model.AllVideos(eng.NoCache(), 0)
+		if e != nil {
+			return e
+		}
+		e = enc.Encode(*videos)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }
 
 // NewDBTransfer ...
@@ -125,20 +148,26 @@ func NewDBTransfer(db *xorm.Engine) *Transfer {
 
 type dbTransfer struct {
 	database *xorm.Engine
+	status   TransferStatus
 	limit    int
 }
 
 // Call ...
 func (d *dbTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	e = copyUnfinished(eng, d.database, d.limit)
-	if e != nil {
-		return e
+	switch d.status {
+	case TransferStatusFromOther:
+		e = copyUnfinished(eng, d.database, d.limit)
+		if e != nil {
+			return e
+		}
+		e = copyVideo(eng, d.database)
+		if e != nil {
+			return e
+		}
+	case TransferStatusFromOld:
+		//now has no old data
 	}
-	e = copyVideo(eng, d.database)
-	if e != nil {
-		return e
-	}
-	return
+	return nil
 }
 
 func copyVideo(to *xorm.Engine, from *xorm.Engine) error {
@@ -184,7 +213,7 @@ func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error 
 		Sync:        false,
 		Object:      ObjectFromOld(obj),
 	}
-	return model.AddOrUpdateUnfinished(eng.NewSession(), unf)
+	return model.AddOrUpdateUnfinished(eng.NoCache(), unf)
 
 }
 
@@ -354,9 +383,9 @@ func transferToJSON(engine *xorm.Engine, to string) (e error) {
 }
 
 // Run ...
-func (transfer *Transfer) Run(ctx context.Context) {
-	if transfer.flag == TransferFlagSQL {
-		fromDB, e := model.InitSQLite3(transfer.path)
+func (t *Transfer) Run(ctx context.Context) {
+	if t.flag == TransferFlagSQL {
+		fromDB, e := model.InitSQLite3(t.path)
 		if e != nil {
 			log.Error(e)
 			return
@@ -366,7 +395,7 @@ func (transfer *Transfer) Run(ctx context.Context) {
 			log.Error(e)
 			return
 		}
-		switch transfer.Status {
+		switch t.Status {
 		case TransferStatusFromOld:
 			if err := transferFromOld(fromDB); err != nil {
 				log.Error(err)
@@ -384,10 +413,10 @@ func (transfer *Transfer) Run(ctx context.Context) {
 				return
 			}
 		}
-	} else if transfer.flag == TransferFlagJSON {
-		switch transfer.Status {
+	} else if t.flag == TransferFlagJSON {
+		switch t.Status {
 		case TransferStatusToJSON:
-			if err := transferToJSON(nil, transfer.path); err != nil {
+			if err := transferToJSON(nil, t.path); err != nil {
 				return
 			}
 		}

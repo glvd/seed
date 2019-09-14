@@ -2,11 +2,12 @@ package task
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/go-xorm/xorm"
-	shell "github.com/godcong/go-ipfs-restapi"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"
@@ -15,17 +16,14 @@ import (
 
 // Pin ...
 type Pin struct {
-	Table PinTable
-	//CheckType  CheckType
-	SkipType   []interface{}
-	Type       PinType
-	unfinished map[string]*model.Unfinished
-	shell      *shell.Shell
-	state      PinTable
-	list       []string
-	index      int
-	random     bool
-	from       string
+	Table    PinTable
+	Check    CheckType
+	SkipType []interface{}
+	Type     PinType
+	list     []string
+	index    int
+	random   bool
+	from     string
 }
 
 // CallTask ...
@@ -36,7 +34,14 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	default:
 		switch p.Type {
 		case PinTypeAdd:
-			pin := &pinAdd{table: p.Table}
+			pin := &pinAdd{table: p.Table, skip: p.SkipType}
+			e := seeder.PushTo(seed.StepperAPI, pin)
+			if e != nil {
+				log.Error(e)
+				return e
+			}
+		case PinTypeCheck:
+			pin := &pinCheck{table: p.Table, skip: p.SkipType, checkType: p.Check}
 			e := seeder.PushTo(seed.StepperAPI, pin)
 			if e != nil {
 				log.Error(e)
@@ -52,6 +57,18 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 func (p *Pin) Task() *seed.Task {
 	return seed.NewTask(p)
 }
+
+// CheckType ...
+type CheckType string
+
+//CheckTypeAll ...
+const CheckTypeAll CheckType = "all"
+
+// CheckTypePin ...
+const CheckTypePin CheckType = "pin"
+
+// CheckTypeUnpin ...
+const CheckTypeUnpin CheckType = "unpin"
 
 // PinTable ...
 type PinTable string
@@ -98,6 +115,7 @@ func NewPin(args ...PinArgs) *Pin {
 	pin := &Pin{
 		Table: PinTableUnfinished,
 		Type:  PinTypeAdd,
+		Check: CheckTypeAll,
 	}
 	for _, argFn := range args {
 		argFn(pin)
@@ -125,7 +143,7 @@ ChanEnd:
 			if unfinished == nil {
 				break ChanEnd
 			}
-			if seed.SkipTypeVerify(unfinished.Type, p.skip) {
+			if !seed.SkipTypeVerify(unfinished.Type, p.skip...) {
 				log.With("type", unfinished.Type, "hash", unfinished.Hash).Info("pinning")
 				e := api.Pin().Add(a.Context(), path.New(unfinished.Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -140,6 +158,7 @@ ChanEnd:
 	}
 	close(u)
 }
+
 func (p *pinAdd) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	v := make(chan *model.Video)
 	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
@@ -155,7 +174,7 @@ ChanEnd:
 			if video == nil {
 				break ChanEnd
 			}
-			if !seed.SkipVerify("source", p.skip) && video.SourceHash != "" {
+			if !seed.SkipVerify("source", p.skip...) && video.SourceHash != "" {
 				log.With("hash", video.SourceHash).Info("source pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.SourceHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -166,7 +185,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("slice", p.skip) && video.M3U8Hash != "" {
+			if !seed.SkipVerify("slice", p.skip...) && video.M3U8Hash != "" {
 				log.With("hash", video.M3U8Hash).Info("slice pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.M3U8Hash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -177,7 +196,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("poster", p.skip) && video.PosterHash != "" {
+			if !seed.SkipVerify("poster", p.skip...) && video.PosterHash != "" {
 				log.With("hash", video.PosterHash).Info("poster pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.PosterHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -188,7 +207,7 @@ ChanEnd:
 					break ChanEnd
 				}
 			}
-			if !seed.SkipVerify("thumb", p.skip) && video.ThumbHash != "" {
+			if !seed.SkipVerify("thumb", p.skip...) && video.ThumbHash != "" {
 				log.With("hash", video.ThumbHash).Info("thumb pinning")
 				e := api.Pin().Add(a.Context(), path.New(video.ThumbHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
@@ -219,8 +238,265 @@ func (p *pinAdd) Call(a *seed.API, api *httpapi.HttpApi) error {
 	return nil
 }
 
-func pinListCall() {
+type pinCheck struct {
+	table     PinTable
+	skip      []interface{}
+	checkType CheckType
+	checkOut  string
+}
 
+//Call ...
+func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
+	log.Info("pin check")
+	if p.table == PinTableUnfinished {
+		p.pinUnfinishedCall(a, api)
+	} else if p.table == PinTableVideo {
+		p.pinVideoCall(a, api)
+	} else {
+		//do nothing
+	}
+
+	return nil
+}
+
+func (p *pinCheck) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+	v := make(chan *model.Video)
+	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
+		return session.Where("m3u8_hash <> ?", "")
+	}))
+	if e != nil {
+		log.Error(e)
+	}
+	pinned := make(map[string]*model.Video)
+	pins, e := api.Pin().Ls(a.Context(), func(settings *options.PinLsSettings) error {
+		settings.Type = "recursive"
+		return nil
+	})
+
+	if e != nil {
+		log.Error(e)
+	}
+	for _, p := range pins {
+		pinned[model.PinHash(p.Path())] = nil
+	}
+	log.With("total", len(pinned)).Info("pinned")
+
+	myid, e := seed.MyID(a)
+	if e != nil {
+		return
+	}
+ChanEnd:
+	for {
+		select {
+		case video := <-v:
+			if video == nil {
+				break ChanEnd
+			}
+			if !seed.SkipVerify(video.ThumbHash, p.skip...) {
+				if _, b := pinned[video.ThumbHash]; b {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "thumb").Info("pinned")
+
+					}
+					pinned[video.ThumbHash] = video
+				} else {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "thumb").Info("unpin")
+					}
+				}
+
+			}
+			if !seed.SkipVerify(video.PosterHash, p.skip...) {
+				if _, b := pinned[video.PosterHash]; b {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "poster").Info("pinned")
+
+					}
+					pinned[video.PosterHash] = video
+				} else {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "poster").Info("unpin")
+					}
+				}
+
+			}
+			if !seed.SkipVerify(video.SourceHash, p.skip...) {
+				if _, b := pinned[video.SourceHash]; b {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "source").Info("pinned")
+
+					}
+					pinned[video.SourceHash] = video
+				} else {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "source").Info("unpin")
+					}
+				}
+
+			}
+			if !seed.SkipVerify(video.M3U8Hash, p.skip...) {
+				if _, b := pinned[video.M3U8Hash]; b {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "slice").Info("pinned")
+
+					}
+					pinned[video.M3U8Hash] = video
+				} else {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
+						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "slice").Info("unpin")
+					}
+				}
+
+			}
+		}
+	}
+	log.Info("pin done")
+
+	for hash, v := range pinned {
+		if v != nil {
+			log.With("hash", hash, "relate", v.Bangumi).Info("add pin")
+			p := &model.Pin{
+				PinHash: hash,
+				PeerID:  myid.ID,
+				//VideoID: "",
+			}
+
+			e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+				p := v.(*model.Pin)
+				return model.AddOrUpdatePin(eng.NoCache(), p)
+			}))
+			if e != nil {
+				log.Error(e)
+				break
+			}
+		}
+	}
+
+	close(v)
+}
+
+func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+	u := make(chan *model.Unfinished)
+	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+		return session
+	}))
+	if e != nil {
+		log.Error(e)
+	}
+	pinned := make(map[string]*model.Unfinished)
+	pins, e := api.Pin().Ls(a.Context(), func(settings *options.PinLsSettings) error {
+		settings.Type = "recursive"
+		return nil
+	})
+
+	if e != nil {
+		log.Error(e)
+	}
+	for _, p := range pins {
+		pinned[model.PinHash(p.Path())] = nil
+	}
+	log.With("total", len(pinned)).Info("pinned")
+
+	myid, e := seed.MyID(a)
+	if e != nil {
+		return
+	}
+ChanEnd:
+	for {
+		select {
+		case unfinished := <-u:
+			if unfinished == nil {
+				break ChanEnd
+			}
+			if !seed.SkipTypeVerify(unfinished.Type, p.skip...) {
+				if _, b := pinned[unfinished.Hash]; b {
+					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
+						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("pinned")
+
+					}
+					pinned[unfinished.Hash] = unfinished
+				} else {
+					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
+						log.With("hash", unfinished.Hash, "relate", unfinished.Relate, "type", unfinished.Type).Info("unpin")
+					}
+				}
+
+			}
+		}
+	}
+	log.Info("pin done")
+
+	for _, u := range pinned {
+		if u != nil {
+			log.With("hash", u.Hash, "relate", u.Relate, "type", u.Type).Info("add pin")
+			p := &model.Pin{
+				PinHash: u.Hash,
+				PeerID:  myid.ID,
+				//VideoID: "",
+			}
+
+			e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+				p := v.(*model.Pin)
+				return model.AddOrUpdatePin(eng.NoCache(), p)
+			}))
+			if e != nil {
+				log.Error(e)
+				break
+			}
+		}
+	}
+
+	close(u)
+}
+
+type pinSync struct {
+	from  string
+	table PinTable
+}
+
+func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
+	ma, err := multiaddr.NewMultiaddr(p.from)
+	if err != nil {
+		return err
+
+	}
+	pi, err := peer.AddrInfoFromP2pAddr(ma)
+	if err != nil {
+		return err
+	}
+	err = api.Swarm().Connect(a.Context(), *pi)
+	if err != nil {
+		return err
+	}
+	log.Info("pin sync")
+	switch p.table {
+	case PinTableUnfinished:
+		p.pinUnfinishedCall(a, api)
+	case PinTableVideo:
+		p.pinVideoCall(a, api)
+	}
+	return nil
+}
+
+func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+	v := make(chan *model.Video)
+
+	seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
+		return session
+	})
+ChanEnd:
+	for {
+		select {
+		case video := <-v:
+			if video == nil {
+				break ChanEnd
+			}
+		}
+	}
+
+}
+
+func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {
@@ -415,14 +691,14 @@ func (p *Pin) Run(ctx context.Context) {
 	//}
 }
 
-func (p *Pin) pinHash(hash string) (e error) {
-	log.Info("pinning:", hash)
-	e = p.shell.Pin(hash)
-	if e != nil {
-		log.With("hash", hash).Error(e)
-	}
-	return
-}
+//func (p *Pin) pinHash(hash string) (e error) {
+//	log.Info("pinning:", hash)
+//	e = p.Pin(hash)
+//	if e != nil {
+//		log.With("hash", hash).Error(e)
+//	}
+//	return
+//}
 
 // PinCallFunc ...
 type PinCallFunc func(*Pin) error

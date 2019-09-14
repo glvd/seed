@@ -42,8 +42,8 @@ func (v *VideoSlice) CallTask(seeder seed.Seeder, task *seed.Task) error {
 	return nil
 }
 
-// NewVideoProcess ...
-func NewVideoProcess() *VideoSlice {
+// NewVideoSlice ...
+func NewVideoSlice() *VideoSlice {
 	path := os.TempDir()
 	return &VideoSlice{
 		Path: path,
@@ -80,7 +80,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 			u.Hash = model.PinHash(resolved)
 			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("video")
 			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-				return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+				return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
 			}))
 		}))
 		if e != nil {
@@ -100,7 +100,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 			u.Hash = model.PinHash(resolved)
 			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("slice")
 			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-				return model.AddOrUpdateUnfinished(eng.NewSession(), v.(*model.Unfinished))
+				return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
 			}))
 		}))
 	}))

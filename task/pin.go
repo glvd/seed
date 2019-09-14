@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
+	"strings"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
@@ -497,6 +498,19 @@ ChanEnd:
 }
 
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+	pin := make(chan *model.Pin)
+	err := a.PushTo(seed.PinCall(pin, func(session *xorm.Session) *xorm.Session {
+		idx := strings.LastIndex(p.from, "/")
+		from := p.from
+		if idx >= 0 {
+			from = p.from[idx:]
+		}
+		return session.Where("peer_id = ?", from)
+	}))
+	if err != nil {
+		return
+	}
+
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

@@ -80,6 +80,8 @@ const PinTableUnfinished PinTable = "unfinished"
 // PinTableVideo ...
 const PinTableVideo PinTable = "video"
 
+const PinTablePin PinTable = "pin"
+
 // PinType ...
 type PinType string
 
@@ -475,31 +477,23 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 		p.pinUnfinishedCall(a, api)
 	case PinTableVideo:
 		p.pinVideoCall(a, api)
+	case PinTablePin:
+		p.pinPinCall(a, api)
 	}
 	return nil
 }
 
 func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
-	v := make(chan *model.Video)
-
-	seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
-		return session
-	})
-ChanEnd:
-	for {
-		select {
-		case video := <-v:
-			if video == nil {
-				break ChanEnd
-			}
-		}
-	}
-
+	log.Info("end pin video")
 }
 
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
-	pin := make(chan *model.Pin)
-	err := a.PushTo(seed.PinCall(pin, func(session *xorm.Session) *xorm.Session {
+	log.Info("end pin unfinished")
+}
+
+func (p *pinSync) pinPinCall(a *seed.API, api *httpapi.HttpApi) {
+	pp := make(chan *model.Pin)
+	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
 		idx := strings.LastIndex(p.from, "/")
 		from := p.from
 		if idx >= 0 {
@@ -509,6 +503,15 @@ func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	}))
 	if err != nil {
 		return
+	}
+ChanEnd:
+	for {
+		select {
+		case pin := <-pp:
+			if pin == nil {
+				break ChanEnd
+			}
+		}
 	}
 
 }

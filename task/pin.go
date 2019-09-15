@@ -498,6 +498,8 @@ func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	if err != nil {
 		return
 	}
+
+	var pins []*model.Pin
 ChanEnd:
 	for {
 		select {
@@ -505,12 +507,19 @@ ChanEnd:
 			if pin == nil {
 				break ChanEnd
 			}
-			err := api.Pin().Add(a.Context(), path.New(pin.PinHash))
-			if err != nil {
-				log.Error(err)
-			}
+			pins = append(pins, pin)
 		}
 	}
+
+	for _, pin := range pins {
+		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+			return nil
+		}))
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
 }
 
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {

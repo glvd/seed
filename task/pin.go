@@ -472,14 +472,8 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 		return err
 	}
 	log.Info("pin sync")
-	switch p.table {
-	case PinTableUnfinished:
-		p.pinUnfinishedCall(a, api)
-	case PinTableVideo:
-		p.pinVideoCall(a, api)
-	case PinTablePin:
-		p.pinPinCall(a, api)
-	}
+	p.pinPinCall(a, api)
+
 	return nil
 }
 
@@ -515,7 +509,12 @@ ChanEnd:
 			if err != nil {
 				log.Error(err)
 			}
-
+			switch p.table {
+			case PinTableUnfinished:
+				p.pinUnfinishedCall(a, api)
+			case PinTableVideo:
+				p.pinVideoCall(a, api)
+			}
 		}
 	}
 

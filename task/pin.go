@@ -511,6 +511,11 @@ ChanEnd:
 			if pin == nil {
 				break ChanEnd
 			}
+			err := api.Pin().Add(a.Context(), path.New(pin.PinHash))
+			if err != nil {
+				log.Error(err)
+			}
+
 		}
 	}
 

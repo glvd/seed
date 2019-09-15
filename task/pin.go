@@ -549,8 +549,6 @@ ChanEnd:
 
 }
 
-}
-
 func (p *pinSync) pinPinCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
 	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {

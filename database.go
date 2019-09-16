@@ -195,8 +195,8 @@ func (v *videoCallback) Call(database *Database, eng *xorm.Engine) (e error) {
 	return nil
 }
 
-// VideoCall ...
-func VideoCall(v chan<- *model.Video, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+// DatabaseVideoCall ...
+func DatabaseVideoCall(v chan<- *model.Video, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &videoCallback{
 		video: v,
 		call:  fn,
@@ -228,8 +228,8 @@ func (p *pinCallback) Call(database *Database, eng *xorm.Engine) (e error) {
 	return nil
 }
 
-//PinCall ...
-func PinCall(p chan<- *model.Pin, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+//DatabasePinCall ...
+func DatabasePinCall(p chan<- *model.Pin, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &pinCallback{
 		pin:  p,
 		call: fn,
@@ -242,8 +242,8 @@ type unfinishedCallback struct {
 	call       func(session *xorm.Session) *xorm.Session
 }
 
-// UnfinishedCall ...
-func UnfinishedCall(u chan<- *model.Unfinished, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
+// DatabaseUnfinishedCall ...
+func DatabaseUnfinishedCall(u chan<- *model.Unfinished, fn func(session *xorm.Session) *xorm.Session) (Stepper, DatabaseCaller) {
 	return StepperDatabase, &unfinishedCallback{
 		unfinished: u,
 		call:       fn,

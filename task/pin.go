@@ -145,7 +145,7 @@ type pinAdd struct {
 
 func (p *pinAdd) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	u := make(chan *model.Unfinished)
-	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+	e := a.PushTo(seed.DatabaseUnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
 		return session
 	}))
 	if e != nil {
@@ -176,7 +176,7 @@ ChanEnd:
 
 func (p *pinAdd) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	v := make(chan *model.Video)
-	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
+	e := a.PushTo(seed.DatabaseVideoCall(v, func(session *xorm.Session) *xorm.Session {
 		return session
 	}))
 	if e != nil {
@@ -276,7 +276,7 @@ func (p *pinCheck) Call(a *seed.API, api *httpapi.HttpApi) error {
 
 func (p *pinCheck) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	v := make(chan *model.Video)
-	e := a.PushTo(seed.VideoCall(v, func(session *xorm.Session) *xorm.Session {
+	e := a.PushTo(seed.DatabaseVideoCall(v, func(session *xorm.Session) *xorm.Session {
 		return session.Where("m3u8_hash <> ?", "")
 	}))
 	if e != nil {
@@ -392,7 +392,7 @@ ChanEnd:
 
 func (p *pinCheck) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	u := make(chan *model.Unfinished)
-	e := a.PushTo(seed.UnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
+	e := a.PushTo(seed.DatabaseUnfinishedCall(u, func(session *xorm.Session) *xorm.Session {
 		return session
 	}))
 	if e != nil {
@@ -501,7 +501,7 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 
 func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
-	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+	err := a.PushTo(seed.DatabasePinCall(pp, func(session *xorm.Session) *xorm.Session {
 		idx := strings.LastIndex(p.from, "/")
 		from := p.from
 		if idx >= 0 {
@@ -538,7 +538,7 @@ ChanEnd:
 
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
-	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+	err := a.PushTo(seed.DatabasePinCall(pp, func(session *xorm.Session) *xorm.Session {
 		idx := strings.LastIndex(p.from, "/")
 		from := p.from
 		if idx >= 0 {
@@ -574,7 +574,7 @@ ChanEnd:
 
 func (p *pinSync) pinPinCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
-	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+	err := a.PushTo(seed.DatabasePinCall(pp, func(session *xorm.Session) *xorm.Session {
 		idx := strings.LastIndex(p.from, "/") + 1
 		from := p.from
 		if idx >= 0 {

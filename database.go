@@ -52,7 +52,7 @@ DatabaseEnd:
 			if e != nil {
 				log.Error(e)
 			}
-		case <-time.After(30 * time.Second):
+		case <-time.After(TimeOutLimit):
 			log.Info("database time out")
 			db.SetState(StateWaiting)
 		}

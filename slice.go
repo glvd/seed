@@ -92,7 +92,7 @@ SliceEnd:
 			if e != nil {
 				log.Error(e)
 			}
-		case <-time.After(30 * time.Second):
+		case <-time.After(TimeOutLimit):
 			log.Info("slice time out")
 			s.SetState(StateWaiting)
 		}

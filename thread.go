@@ -3,9 +3,12 @@ package seed
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.uber.org/atomic"
 )
+
+const TimeOutLimit = 5 * time.Second
 
 // PushFunc ...
 type PushFunc func(interface{}) error

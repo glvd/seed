@@ -307,7 +307,7 @@ ChanEnd:
 			if video == nil {
 				break ChanEnd
 			}
-			if !seed.SkipVerify("thumb", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
 				if _, b := pinned[video.ThumbHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "thumb").Info("pinned")
@@ -321,7 +321,7 @@ ChanEnd:
 				}
 
 			}
-			if !seed.SkipVerify("poster", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypePoster, p.skip...) {
 				if _, b := pinned[video.PosterHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.PosterHash, "relate", video.Bangumi, "type", "poster").Info("pinned")
@@ -335,21 +335,21 @@ ChanEnd:
 				}
 
 			}
-			if !seed.SkipVerify("source", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeVideo, p.skip...) {
 				if _, b := pinned[video.SourceHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
-						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "source").Info("pinned")
+						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "video").Info("pinned")
 
 					}
 					pinned[video.SourceHash] = video
 				} else {
 					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
-						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "source").Info("unpin")
+						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "video").Info("unpin")
 					}
 				}
 
 			}
-			if !seed.SkipVerify("slice", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				if _, b := pinned[video.M3U8Hash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.M3U8Hash, "relate", video.Bangumi, "type", "slice").Info("pinned")
@@ -530,16 +530,16 @@ ChanEnd:
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
 			session := eng.NoCache()
-			if !seed.SkipTypeVerify("slice", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				session = session.Or("m3u8_hash = ?", pin.PinHash)
 			}
-			if !seed.SkipTypeVerify("source", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeVideo, p.skip...) {
 				session = session.Or("source_hash = ?", pin.PinHash)
 			}
-			if !seed.SkipTypeVerify("poster", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypePoster, p.skip...) {
 				session = session.Or("poster_hash = ?", pin.PinHash)
 			}
-			if !seed.SkipTypeVerify("thumb", p.skip...) {
+			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
 				session = session.Or("thumb_hash = ?", pin.PinHash)
 			}
 			i, e := session.Count(&model.Video{})
@@ -592,7 +592,36 @@ ChanEnd:
 
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+			pin := v.(*model.Pin)
+			session := eng.NoCache()
+			if !seed.SkipTypeVerify("slice", p.skip...) {
+				session = session.Or("m3u8_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("source", p.skip...) {
+				session = session.Or("source_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("poster", p.skip...) {
+				session = session.Or("poster_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("thumb", p.skip...) {
+				session = session.Or("thumb_hash = ?", pin.PinHash)
+			}
+			i, e := session.Count(&model.Video{})
+			if e != nil {
+				return e
+			}
+			if i > 0 {
+				log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
+				err := api.Pin().Add(a.Context(), path.New(pin.PinHash), func(settings *options.PinAddSettings) error {
+					settings.Recursive = true
+					return nil
+				})
+				if err != nil {
+					log.Error(err)
+				}
+			}
 			return nil
+
 		}))
 		if err != nil {
 			log.Error(err)

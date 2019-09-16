@@ -2,9 +2,10 @@ package task
 
 import (
 	"context"
+	"strings"
+
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
-	"strings"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
@@ -312,13 +313,13 @@ ChanEnd:
 			if !seed.SkipVerify(video.PosterHash, p.skip...) {
 				if _, b := pinned[video.PosterHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "poster").Info("pinned")
+						log.With("hash", video.PosterHash, "relate", video.Bangumi, "type", "poster").Info("pinned")
 
 					}
 					pinned[video.PosterHash] = video
 				} else {
 					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "poster").Info("unpin")
+						log.With("hash", video.PosterHash, "relate", video.Bangumi, "type", "poster").Info("unpin")
 					}
 				}
 
@@ -326,13 +327,13 @@ ChanEnd:
 			if !seed.SkipVerify(video.SourceHash, p.skip...) {
 				if _, b := pinned[video.SourceHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "source").Info("pinned")
+						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "source").Info("pinned")
 
 					}
 					pinned[video.SourceHash] = video
 				} else {
 					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "source").Info("unpin")
+						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "source").Info("unpin")
 					}
 				}
 
@@ -340,13 +341,13 @@ ChanEnd:
 			if !seed.SkipVerify(video.M3U8Hash, p.skip...) {
 				if _, b := pinned[video.M3U8Hash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "slice").Info("pinned")
+						log.With("hash", video.M3U8Hash, "relate", video.Bangumi, "type", "slice").Info("pinned")
 
 					}
 					pinned[video.M3U8Hash] = video
 				} else {
 					if p.checkType == CheckTypeUnpin || p.checkType == CheckTypeAll {
-						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "slice").Info("unpin")
+						log.With("hash", video.M3U8Hash, "relate", video.Bangumi, "type", "slice").Info("unpin")
 					}
 				}
 

@@ -88,9 +88,11 @@ func AddOrUpdatePin(session *xorm.Session, p *Pin) (e error) {
 	if e != nil {
 		return e
 	}
+
+	log.With("peer_id", p.PeerID, "pin_hash", p.PinHash, "exist", found).Info("status")
 	if found {
 		//only slice need update,video update for check
-		log.With("peer_id", p.PeerID, "pin_hash", p.PinHash).Info("exist")
+
 		return
 	}
 	_, e = session.Clone().InsertOne(p)

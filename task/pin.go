@@ -470,6 +470,9 @@ type pinSync struct {
 }
 
 func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
+	if p.from == "" {
+		return nil
+	}
 	ma, err := multiaddr.NewMultiaddr(p.from)
 	if err != nil {
 		return err
@@ -484,7 +487,6 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 		return err
 	}
 	log.Info("pin sync")
-	p.pinPinCall(a, api)
 	switch p.table {
 	case PinTableUnfinished:
 		p.pinUnfinishedCall(a, api)
@@ -573,15 +575,16 @@ ChanEnd:
 func (p *pinSync) pinPinCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
 	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
-		idx := strings.LastIndex(p.from, "/")
+		idx := strings.LastIndex(p.from, "/") + 1
 		from := p.from
 		if idx >= 0 {
 			from = p.from[idx:]
 		}
+		log.With("from", from).Info("sync")
 		return session.Where("peer_id = ?", from)
 	}))
 	if err != nil {
-		return
+		log.Error(err)
 	}
 ChanEnd:
 	for {
@@ -591,7 +594,10 @@ ChanEnd:
 				break ChanEnd
 			}
 			log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
-			err := api.Pin().Add(a.Context(), path.New(pin.PinHash))
+			err := api.Pin().Add(a.Context(), path.New(pin.PinHash), func(settings *options.PinAddSettings) error {
+				settings.Recursive = true
+				return nil
+			})
 			if err != nil {
 				log.Error(err)
 			}

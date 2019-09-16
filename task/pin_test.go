@@ -29,3 +29,29 @@ func TestPin(t *testing.T) {
 	s.Wait()
 
 }
+
+func TestPinSync_Call(t *testing.T) {
+	seeder := seed.NewSeed()
+
+	engine, e := model.InitSQLite3("0916.db")
+	if e != nil {
+		t.Error(e)
+	}
+	database := seed.NewDatabase(engine)
+	database.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
+
+	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
+	seeder.Register(database, api)
+	pin := task.NewPin()
+	pin.Type = task.PinTypeSync
+	pin.Table = task.PinTablePin
+	pin.From = "/ip4/192.168.1.13/tcp/14001/ipfs/QmXNZRTd54Zvarf4sswVvUUnpb4gPQNAhFViozVgG8uwri"
+	skip := []string{""}
+	for _, s := range skip {
+		pin.SkipType = append(pin.SkipType, s)
+	}
+
+	seeder.Start()
+	seeder.AddTasker(pin)
+	seeder.Wait()
+}

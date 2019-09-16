@@ -594,19 +594,19 @@ ChanEnd:
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
 			session := eng.NoCache()
-			if !seed.SkipTypeVerify("slice", p.skip...) {
-				session = session.Or("m3u8_hash = ?", pin.PinHash)
+			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
+				session = session.Or("type = ?", model.TypeSlice)
 			}
-			if !seed.SkipTypeVerify("source", p.skip...) {
-				session = session.Or("source_hash = ?", pin.PinHash)
+			if !seed.SkipTypeVerify(model.TypeVideo, p.skip...) {
+				session = session.Or("type = ?", model.TypeVideo)
 			}
-			if !seed.SkipTypeVerify("poster", p.skip...) {
-				session = session.Or("poster_hash = ?", pin.PinHash)
+			if !seed.SkipTypeVerify(model.TypePoster, p.skip...) {
+				session = session.Or("type = ?", model.TypePoster)
 			}
-			if !seed.SkipTypeVerify("thumb", p.skip...) {
-				session = session.Or("thumb_hash = ?", pin.PinHash)
+			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
+				session = session.Or("type = ?", model.TypeThumb)
 			}
-			i, e := session.Count(&model.Video{})
+			i, e := session.Count(&model.Unfinished{})
 			if e != nil {
 				return e
 			}

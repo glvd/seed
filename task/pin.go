@@ -26,6 +26,7 @@ type Pin struct {
 	index    int
 	random   bool
 	from     string
+	From     string
 }
 
 // CallTask ...
@@ -44,6 +45,13 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 			}
 		case PinTypeCheck:
 			pin := &pinCheck{table: p.Table, skip: p.SkipType, checkType: p.Check}
+			e := seeder.PushTo(seed.StepperAPI, pin)
+			if e != nil {
+				log.Error(e)
+				return e
+			}
+		case PinTypeSync:
+			pin := &pinSync{table: p.Table, from: p.From}
 			e := seeder.PushTo(seed.StepperAPI, pin)
 			if e != nil {
 				log.Error(e)

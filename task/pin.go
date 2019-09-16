@@ -51,7 +51,7 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 				return e
 			}
 		case PinTypeSync:
-			pin := &pinSync{table: p.Table, from: p.From}
+			pin := &pinSync{table: p.Table, from: p.From, skip: p.SkipType}
 			e := seeder.PushTo(seed.StepperAPI, pin)
 			if e != nil {
 				log.Error(e)
@@ -593,7 +593,7 @@ ChanEnd:
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
-			session := eng.Where("hash = ?", pin.PinHash)
+			session := eng.NoCache()
 			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				session = session.Or("type = ?", model.TypeSlice)
 			}
@@ -606,7 +606,7 @@ ChanEnd:
 			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
 				session = session.Or("type = ?", model.TypeThumb)
 			}
-			i, e := session.Count(&model.Unfinished{})
+			i, e := session.And("hash = ?", pin.PinHash).Count(&model.Unfinished{})
 			if e != nil {
 				return e
 			}

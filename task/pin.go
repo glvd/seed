@@ -92,6 +92,9 @@ const PinTypeCheck PinType = "check"
 // PinTypeAdd ...
 const PinTypeAdd PinType = "add"
 
+//PinTypeSync ...
+const PinTypeSync PinType = "sync"
+
 // PinArgs ...
 type PinArgs func(c *Pin)
 

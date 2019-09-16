@@ -307,7 +307,7 @@ ChanEnd:
 			if video == nil {
 				break ChanEnd
 			}
-			if !seed.SkipVerify(video.ThumbHash, p.skip...) {
+			if !seed.SkipVerify("thumb", p.skip...) {
 				if _, b := pinned[video.ThumbHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.ThumbHash, "relate", video.Bangumi, "type", "thumb").Info("pinned")
@@ -321,7 +321,7 @@ ChanEnd:
 				}
 
 			}
-			if !seed.SkipVerify(video.PosterHash, p.skip...) {
+			if !seed.SkipVerify("poster", p.skip...) {
 				if _, b := pinned[video.PosterHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.PosterHash, "relate", video.Bangumi, "type", "poster").Info("pinned")
@@ -335,7 +335,7 @@ ChanEnd:
 				}
 
 			}
-			if !seed.SkipVerify(video.SourceHash, p.skip...) {
+			if !seed.SkipVerify("source", p.skip...) {
 				if _, b := pinned[video.SourceHash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.SourceHash, "relate", video.Bangumi, "type", "source").Info("pinned")
@@ -349,7 +349,7 @@ ChanEnd:
 				}
 
 			}
-			if !seed.SkipVerify(video.M3U8Hash, p.skip...) {
+			if !seed.SkipVerify("slice", p.skip...) {
 				if _, b := pinned[video.M3U8Hash]; b {
 					if p.checkType == CheckTypePin || p.checkType == CheckTypeAll {
 						log.With("hash", video.M3U8Hash, "relate", video.Bangumi, "type", "slice").Info("pinned")
@@ -466,6 +466,7 @@ ChanEnd:
 
 type pinSync struct {
 	from  string
+	skip  []interface{}
 	table PinTable
 }
 
@@ -527,6 +528,34 @@ ChanEnd:
 
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+			pin := v.(*model.Pin)
+			session := eng.NoCache()
+			if !seed.SkipTypeVerify("slice", p.skip...) {
+				session = session.Or("m3u8_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("source", p.skip...) {
+				session = session.Or("source_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("poster", p.skip...) {
+				session = session.Or("poster_hash = ?", pin.PinHash)
+			}
+			if !seed.SkipTypeVerify("thumb", p.skip...) {
+				session = session.Or("thumb_hash = ?", pin.PinHash)
+			}
+			i, e := session.Count(&model.Video{})
+			if e != nil {
+				return e
+			}
+			if i > 0 {
+				log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
+				err := api.Pin().Add(a.Context(), path.New(pin.PinHash), func(settings *options.PinAddSettings) error {
+					settings.Recursive = true
+					return nil
+				})
+				if err != nil {
+					log.Error(err)
+				}
+			}
 			return nil
 		}))
 		if err != nil {

@@ -503,7 +503,7 @@ func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
 func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
 	err := a.PushTo(seed.DatabasePinCall(pp, func(session *xorm.Session) *xorm.Session {
-		idx := strings.LastIndex(p.from, "/")
+		idx := strings.LastIndex(p.from, "/") + 1
 		from := p.from
 		if idx >= 0 {
 			from = p.from[idx:]
@@ -568,7 +568,7 @@ ChanEnd:
 func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
 	pp := make(chan *model.Pin)
 	err := a.PushTo(seed.DatabasePinCall(pp, func(session *xorm.Session) *xorm.Session {
-		idx := strings.LastIndex(p.from, "/")
+		idx := strings.LastIndex(p.from, "/") + 1
 		from := p.from
 		if idx >= 0 {
 			from = p.from[idx:]
@@ -593,7 +593,7 @@ ChanEnd:
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
-			session := eng.NoCache()
+			session := eng.Where("hash = ?", pin.PinHash)
 			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				session = session.Or("type = ?", model.TypeSlice)
 			}

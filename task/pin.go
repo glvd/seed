@@ -2,6 +2,9 @@ package task
 
 import (
 	"context"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
+	"strings"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
@@ -76,6 +79,8 @@ const PinTableUnfinished PinTable = "unfinished"
 
 // PinTableVideo ...
 const PinTableVideo PinTable = "video"
+
+const PinTablePin PinTable = "pin"
 
 // PinType ...
 type PinType string
@@ -445,6 +450,141 @@ ChanEnd:
 	}
 
 	close(u)
+}
+
+type pinSync struct {
+	from  string
+	table PinTable
+}
+
+func (p *pinSync) Call(a *seed.API, api *httpapi.HttpApi) error {
+	ma, err := multiaddr.NewMultiaddr(p.from)
+	if err != nil {
+		return err
+
+	}
+	pi, err := peer.AddrInfoFromP2pAddr(ma)
+	if err != nil {
+		return err
+	}
+	err = api.Swarm().Connect(a.Context(), *pi)
+	if err != nil {
+		return err
+	}
+	log.Info("pin sync")
+	p.pinPinCall(a, api)
+	switch p.table {
+	case PinTableUnfinished:
+		p.pinUnfinishedCall(a, api)
+	case PinTableVideo:
+		p.pinVideoCall(a, api)
+	case PinTablePin:
+		p.pinPinCall(a, api)
+	}
+
+	return nil
+}
+
+func (p *pinSync) pinVideoCall(a *seed.API, api *httpapi.HttpApi) {
+	pp := make(chan *model.Pin)
+	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+		idx := strings.LastIndex(p.from, "/")
+		from := p.from
+		if idx >= 0 {
+			from = p.from[idx:]
+		}
+		return session.Where("peer_id = ?", from)
+	}))
+	if err != nil {
+		return
+	}
+
+	var pins []*model.Pin
+ChanEnd:
+	for {
+		select {
+		case pin := <-pp:
+			if pin == nil {
+				break ChanEnd
+			}
+			pins = append(pins, pin)
+		}
+	}
+
+	for _, pin := range pins {
+		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+			return nil
+		}))
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+}
+
+func (p *pinSync) pinUnfinishedCall(a *seed.API, api *httpapi.HttpApi) {
+	pp := make(chan *model.Pin)
+	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+		idx := strings.LastIndex(p.from, "/")
+		from := p.from
+		if idx >= 0 {
+			from = p.from[idx:]
+		}
+		return session.Where("peer_id = ?", from)
+	}))
+	if err != nil {
+		return
+	}
+	var pins []*model.Pin
+ChanEnd:
+	for {
+		select {
+		case pin := <-pp:
+			if pin == nil {
+				break ChanEnd
+			}
+			pins = append(pins, pin)
+		}
+	}
+
+	for _, pin := range pins {
+		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+			return nil
+		}))
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+}
+
+func (p *pinSync) pinPinCall(a *seed.API, api *httpapi.HttpApi) {
+	pp := make(chan *model.Pin)
+	err := a.PushTo(seed.PinCall(pp, func(session *xorm.Session) *xorm.Session {
+		idx := strings.LastIndex(p.from, "/")
+		from := p.from
+		if idx >= 0 {
+			from = p.from[idx:]
+		}
+		return session.Where("peer_id = ?", from)
+	}))
+	if err != nil {
+		return
+	}
+ChanEnd:
+	for {
+		select {
+		case pin := <-pp:
+			if pin == nil {
+				break ChanEnd
+			}
+			err := api.Pin().Add(a.Context(), path.New(pin.PinHash))
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}
+
 }
 
 func listPin(ctx context.Context, p *Pin) <-chan iface.Pin {

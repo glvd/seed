@@ -590,6 +590,7 @@ ChanEnd:
 			if pin == nil {
 				break ChanEnd
 			}
+			log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
 			err := api.Pin().Add(a.Context(), path.New(pin.PinHash))
 			if err != nil {
 				log.Error(err)

@@ -544,7 +544,7 @@ ChanEnd:
 				session = session.Or("thumb_hash = ?", pin.PinHash)
 			}
 			vs := new([]*model.Video)
-			i, e := session.Count(vs)
+			i, e := session.FindAndCount(vs)
 			if e != nil {
 				return e
 			}

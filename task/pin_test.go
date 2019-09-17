@@ -37,15 +37,15 @@ func TestPinSync_Call_Unfinished(t *testing.T) {
 	if e != nil {
 		t.Error(e)
 	}
-	database := seed.NewDatabase(engine, seed.DatabaseShowSQLArg())
+	database := seed.NewDatabase(engine)
 	database.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
 	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
 	seeder.Register(database, api)
 	pin := task.NewPin()
 	pin.Type = task.PinTypeSync
-	pin.Table = task.PinTableUnfinished
+	pin.Table = task.PinTableVideo
 	pin.From = "/ip4/192.168.1.13/tcp/14001/ipfs/QmXNZRTd54Zvarf4sswVvUUnpb4gPQNAhFViozVgG8uwri"
-	skip := []string{"thumb", "video", "slice"}
+	skip := []string{"poster", "thumb", "video"}
 	for _, s := range skip {
 		pin.SkipType = append(pin.SkipType, s)
 	}

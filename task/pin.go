@@ -543,12 +543,13 @@ ChanEnd:
 			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
 				session = session.Or("thumb_hash = ?", pin.PinHash)
 			}
-			i, e := session.Count(&model.Video{})
+			vs := new([]*model.Video)
+			i, e := session.Count(vs)
 			if e != nil {
 				return e
 			}
 			if i > 0 {
-				log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
+				log.With("hash", pin.PinHash, "peer_id", pin.PeerID, "video", (*vs)[0].Bangumi).Info("pinning")
 				err := api.Pin().Add(a.Context(), path.New(pin.PinHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
 					return nil
@@ -607,12 +608,13 @@ ChanEnd:
 			if !seed.SkipTypeVerify(model.TypeThumb, p.skip...) {
 				session = session.Or("type = ?", model.TypeThumb)
 			}
-			i, e := session.And("hash = ?", pin.PinHash).Count(&model.Unfinished{})
+			us := new([]*model.Unfinished)
+			i, e := session.And("hash = ?", pin.PinHash).FindAndCount(us)
 			if e != nil {
 				return e
 			}
 			if i > 0 {
-				log.With("hash", pin.PinHash, "peer_id", pin.PeerID).Info("pinning")
+				log.With("hash", pin.PinHash, "peer_id", pin.PeerID, "type", (*us)[0].Type, "relate", (*us)[0].Relate).Info("pinning")
 				err := api.Pin().Add(a.Context(), path.New(pin.PinHash), func(settings *options.PinAddSettings) error {
 					settings.Recursive = true
 					return nil

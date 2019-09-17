@@ -45,7 +45,7 @@ func TestPinSync_Call_Unfinished(t *testing.T) {
 	pin.Type = task.PinTypeSync
 	pin.Table = task.PinTableVideo
 	pin.From = "/ip4/192.168.1.13/tcp/14001/ipfs/QmXNZRTd54Zvarf4sswVvUUnpb4gPQNAhFViozVgG8uwri"
-	skip := []string{"poster", "thumb", "video"}
+	skip := []string{"slice", "thumb", "video"}
 	for _, s := range skip {
 		pin.SkipType = append(pin.SkipType, s)
 	}

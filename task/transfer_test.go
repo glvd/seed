@@ -28,15 +28,17 @@ func TestTransferDB(t *testing.T) {
 func TestTransferJSON(t *testing.T) {
 	//dbt := task.NewDBTransfer(model.MustDatabase(model.InitSQLite3("0916.db")))
 	jst := task.NewJSONTransfer("output.json")
+	jst.Status = task.TransferStatusToJSON
+	jst.Limit = 1
 	//jst := task.NewJSONTransfer()
 	//dbt.Status = task.TransferStatusToJSON
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("0916.db")))
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
 	//
 	//api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
-	//proc := seed.NewProcess()
+	proc := seed.NewProcess()
 
-	s := seed.NewSeed(sdb)
+	s := seed.NewSeed(sdb, proc)
 	//
 	s.Start()
 

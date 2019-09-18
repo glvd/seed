@@ -75,6 +75,7 @@ func (t *Transfer) CallTask(seeder seed.Seeder, task *seed.Task) error {
 				flag:   t.flag,
 				status: t.Status,
 				path:   t.path,
+				limit:  t.Limit,
 			}
 			e := seeder.PushTo(seed.StepperDatabase, t)
 			if e != nil {
@@ -108,6 +109,7 @@ type jsonTransfer struct {
 	flag   TransferFlag
 	status TransferStatus
 	path   string
+	limit  int
 }
 
 // Call ...
@@ -123,7 +125,7 @@ func (j *jsonTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error)
 			return e
 		}
 		enc := json.NewEncoder(file)
-		videos, e := model.AllVideos(eng.NoCache(), 0)
+		videos, e := model.AllVideos(eng.NoCache(), j.limit)
 		if e != nil {
 			return e
 		}

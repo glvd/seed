@@ -9,22 +9,40 @@ import (
 	"github.com/glvd/seed/task"
 )
 
-// TestTransfer ...
-func TestTransfer(t *testing.T) {
+func TestTransferDB(t *testing.T) {
 	dbt := task.NewDBTransfer(model.MustDatabase(model.InitSQLite3("cs.db")))
-	//jst := task.NewJSONTransfer()
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("test.db")))
 	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
-	//
 	api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
 	proc := seed.NewProcess()
 
 	s := seed.NewSeed(sdb, api, proc)
-	//
 	s.Start()
 	fmt.Println("waiting end")
 
 	s.AddTasker(dbt)
+
+	s.Wait()
+}
+
+// TestTransfer ...
+func TestTransferJSON(t *testing.T) {
+	//dbt := task.NewDBTransfer(model.MustDatabase(model.InitSQLite3("0916.db")))
+	jst := task.NewJSONTransfer("output.json")
+	//jst := task.NewJSONTransfer()
+	//dbt.Status = task.TransferStatusToJSON
+	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("0916.db")))
+	sdb.RegisterSync(model.Video{}, model.Pin{}, model.Unfinished{})
+	//
+	//api := seed.NewAPI("/ip4/127.0.0.1/tcp/5001")
+	//proc := seed.NewProcess()
+
+	s := seed.NewSeed(sdb)
+	//
+	s.Start()
+	fmt.Println("waiting end")
+
+	s.AddTasker(jst)
 
 	s.Wait()
 }

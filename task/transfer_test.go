@@ -18,10 +18,9 @@ func TestTransferDB(t *testing.T) {
 
 	s := seed.NewSeed(sdb, api, proc)
 	s.Start()
-	fmt.Println("waiting end")
 
 	s.AddTasker(dbt)
-
+	fmt.Println("waiting end")
 	s.Wait()
 }
 
@@ -40,9 +39,8 @@ func TestTransferJSON(t *testing.T) {
 	s := seed.NewSeed(sdb)
 	//
 	s.Start()
-	fmt.Println("waiting end")
 
 	s.AddTasker(jst)
-
+	fmt.Println("waiting end")
 	s.Wait()
 }

@@ -2,6 +2,7 @@ package task_test
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/glvd/seed"
@@ -29,7 +30,7 @@ func TestTransferJSON(t *testing.T) {
 	//dbt := task.NewDBTransfer(model.MustDatabase(model.InitSQLite3("0916.db")))
 	jst := task.NewJSONTransfer("output.json")
 	jst.Status = task.TransferStatusToJSON
-	jst.Limit = 1
+	jst.Limit = math.MaxInt32
 	//jst := task.NewJSONTransfer()
 	//dbt.Status = task.TransferStatusToJSON
 	sdb := seed.NewDatabase(model.MustDatabase(model.InitSQLite3("0916.db")))

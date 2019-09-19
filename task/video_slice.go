@@ -89,23 +89,25 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 	}
 
 	u.Type = model.TypeSlice
-	e = process.PushTo(seed.SliceCall(call.path, u.Clone(), func(slice *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
-		u := v.(*model.Unfinished)
-		return slice.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
+	if !seed.SkipTypeVerify(u.Type, call.skipType...) {
+		e = process.PushTo(seed.SliceCall(call.path, u.Clone(), func(slice *seed.Slice, sa *cmd.SplitArgs, v interface{}) (e error) {
 			u := v.(*model.Unfinished)
-			resolved, e := seed.AddDir(api, sa.Output)
-			if e != nil {
-				return e
-			}
-			u.Hash = model.PinHash(resolved)
-			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("slice")
-			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-				return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+			return slice.PushTo(seed.APICallback(u.Clone(), func(api *seed.API, ipapi *httpapi.HttpApi, v interface{}) (e error) {
+				u := v.(*model.Unfinished)
+				resolved, e := seed.AddDir(api, sa.Output)
+				if e != nil {
+					return e
+				}
+				u.Hash = model.PinHash(resolved)
+				log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("slice")
+				return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
+					return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+				}))
 			}))
 		}))
-	}))
-	if e != nil {
-		return e
+		if e != nil {
+			return e
+		}
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package task
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
@@ -742,12 +743,15 @@ func (p pinVerify) Call(a *seed.API, api *httpapi.HttpApi) error {
 		select {
 		case st := <-statuses:
 			if st == nil {
-				continue
+				log.Info("pin verify result is null")
+				return nil
 			}
 			log.With("status", st.Ok()).Info("verify")
 			for _, nodes := range st.BadNodes() {
 				log.With("hash", model.PinHash(nodes.Path())).Info("bad nodes")
 			}
+		case <-time.After(30 * time.Second):
+			return nil
 		case <-a.Context().Done():
 			return nil
 		}

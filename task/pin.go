@@ -57,6 +57,13 @@ func (p *Pin) CallTask(seeder seed.Seeder, task *seed.Task) error {
 				log.Error(e)
 				return e
 			}
+		case PinTypeVerify:
+			pin := &pinVerify{}
+			e := seeder.PushTo(seed.StepperAPI, pin)
+			if e != nil {
+				log.Error(e)
+				return e
+			}
 		}
 
 	}
@@ -103,6 +110,8 @@ const PinTypeAdd PinType = "add"
 
 //PinTypeSync ...
 const PinTypeSync PinType = "sync"
+
+const PinTypeVerify PinType = "verify"
 
 // PinArgs ...
 type PinArgs func(c *Pin)
@@ -721,160 +730,26 @@ func unfinishedList(ctx context.Context, p *Pin) <-chan *model.Unfinished {
 	return u
 }
 
-// Run ...
-func (p *Pin) Run(ctx context.Context) {
-	log.Info("pin running")
-	//switch p.PinType {
-	//case PinTypeAdd:
-	//	//pin := listPin(ctx, p.API, p.Type)
-	//case PinTypeCheck:
-	//	//pin := listPin(ctx, p.API, p.Type)
-	//}
-	//
-	//switch p.PinStatus {
-	//case PinStatusAll:
-	//	u := unfinishedList(ctx, p)
-	//	for {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		case uf := <-u:
-	//			log.With("type", uf.Type, "hash", uf.Hash, "sharpness", uf.Sharpness, "relate", uf.Relate).Info("Pin")
-	//			//if e := APIPin(p.Seeder, uf.Hash); e != nil {
-	//			//	log.With("hash", uf.Hash).Error(e, " not pinned")
-	//			//}
-	//		}
-	//	}
-	//case PinStatusAssignHash:
-	//	for _, hash := range p.list {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		default:
-	//			e := p.pinHash(hash)
-	//			if e != nil {
-	//				log.Error(e)
-	//				return
-	//			}
-	//		}
-	//	}
-	//case PinStatusAssignRelate:
-	//	for _, relate := range p.list {
-	//		select {
-	//		case <-ctx.Done():
-	//			return
-	//		default:
-	//			p.Database.PushCallback(func(database *Database, eng *xorm.Engine) (e error) {
-	//				unfins, e := model.AllUnfinished(eng.Where("relate = ?", relate).Or("relate like ?", relate+"-%"), 0)
-	//				if e != nil {
-	//					return e
-	//				}
-	//				for _, unfin := range *unfins {
-	//					e := p.pinHash(unfin.Hash)
-	//					if e != nil {
-	//						return e
-	//					}
-	//				}
-	//				return nil
-	//			})
-	//
-	//		}
-	//	}
-	//case PinTableVideo:
-	//	i, e := model.DB().Count(model.Video{})
-	//	if e != nil {
-	//		log.Error(e)
-	//		return
-	//	}
-	//	for start := 0; start < int(i); start += 50 {
-	//		videos, e := model.AllVideos(nil, 50, start)
-	//		if e != nil {
-	//			log.Error(e)
-	//			return
-	//		}
-	//		for _, v := range *videos {
-	//			log.With("bangumi", v.Bangumi, "poster", v.PosterHash, "m3u8", v.M3U8Hash, "thumb", v.ThumbHash, "source", v.SourceHash).Info("Pin")
-	//
-	//			if !SkipVerify("poster", p.SkipType...) && v.PosterHash != "" {
-	//				e := p.pinHash(v.PosterHash)
-	//				if e != nil {
-	//					log.Error(e)
-	//					return
-	//				}
-	//			}
-	//
-	//			if !SkipVerify("thumb", p.SkipType...) && v.ThumbHash != "" {
-	//				e := p.pinHash(v.ThumbHash)
-	//				if e != nil {
-	//					log.Error(e)
-	//					return
-	//				}
-	//			}
-	//
-	//			if !SkipVerify("source", p.SkipType...) && v.SourceHash != "" {
-	//				e := p.pinHash(v.SourceHash)
-	//				if e != nil {
-	//					log.Error(e)
-	//					return
-	//				}
-	//			}
-	//			if !SkipVerify("slice", p.SkipType...) && v.M3U8Hash != "" {
-	//				e := p.pinHash(v.M3U8Hash)
-	//				if e != nil {
-	//					log.Error(e)
-	//					return
-	//				}
-	//			}
-	//
-	//		}
-	//	}
-	//
-	//case PinStatusSync:
-	//	s := model.DB().Where("machine_id like ?", "%"+p.from+"%")
-	//	i, e := s.Clone().Count(model.Pin{})
-	//	if e != nil {
-	//		log.Error(e)
-	//		return
-	//	}
-	//	for start := 0; start < int(i); start += 50 {
-	//		pins, e := model.AllPin(s.Clone(), 50, start)
-	//		if e != nil {
-	//			log.Error(e)
-	//			return
-	//		}
-	//		for _, ps := range *pins {
-	//			select {
-	//			case <-ctx.Done():
-	//				return
-	//			default:
-	//				e := p.pinHash(ps.PinHash)
-	//				if e != nil {
-	//					log.Error(e)
-	//					return
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
-	//}
+type pinVerify struct {
 }
 
-//func (p *Pin) pinHash(hash string) (e error) {
-//	log.Info("pinning:", hash)
-//	e = p.Pin(hash)
-//	if e != nil {
-//		log.With("hash", hash).Error(e)
-//	}
-//	return
-//}
-
-// PinCallFunc ...
-type PinCallFunc func(*Pin) error
-
-// PinCaller ...
-type PinCaller interface {
-	Call()
-}
-
-type pinCall struct {
+func (p pinVerify) Call(a *seed.API, api *httpapi.HttpApi) error {
+	statuses, e := api.Pin().Verify(a.Context())
+	if e != nil {
+		return e
+	}
+	for {
+		select {
+		case st := <-statuses:
+			if st == nil {
+				continue
+			}
+			log.With("status", st.Ok()).Info("verify")
+			for _, nodes := range st.BadNodes() {
+				log.With("hash", model.PinHash(nodes.Path())).Info("bad nodes")
+			}
+		case <-a.Context().Done():
+			return nil
+		}
+	}
 }

@@ -514,7 +514,7 @@ func (i *informationProcess) Call(process *seed.Process) error {
 	}
 
 	vsc := filterProcList(vs, i.list)
-	log.With("path", i.path).Info("info")
+	log.With("path", i.path, "size", len(vs)).Info("info")
 	for {
 		source := <-vsc
 		if source == nil {

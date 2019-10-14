@@ -125,7 +125,7 @@ func (j *jsonTransfer) Call(database *seed.Database, eng *xorm.Engine) (e error)
 			return e
 		}
 		enc := json.NewEncoder(file)
-		videos, e := model.AllVideos(eng.NoCache(), j.limit)
+		videos, e := model.AllVideos(eng.Where(""), j.limit)
 		if e != nil {
 			return e
 		}
@@ -185,7 +185,7 @@ func copyVideo(to *xorm.Engine, from *xorm.Engine) error {
 			log.Error(e)
 		}
 
-		e = model.AddOrUpdateVideo(to.NoCache(), v)
+		e = model.AddOrUpdateVideo(to.Where(""), v)
 		if e != nil {
 			log.With("bangumi", v.Bangumi).Error(e)
 			continue
@@ -215,7 +215,7 @@ func insertOldToUnfinished(eng *xorm.Engine, ban string, obj *old.Object) error 
 		Sync:        false,
 		Object:      ObjectFromOld(obj),
 	}
-	return model.AddOrUpdateUnfinished(eng.NoCache(), unf)
+	return model.AddOrUpdateUnfinished(eng.Where(""), unf)
 
 }
 
@@ -321,7 +321,7 @@ func copyUnfinished(to *xorm.Engine, from *xorm.Engine, limit int) (e error) {
 			}
 			u.ID = ""
 			u.Version = 0
-			e = model.AddOrUpdateUnfinished(to.NoCache(), u)
+			e = model.AddOrUpdateUnfinished(to.Where(""), u)
 			log.With("checksum", u.Checksum, "type", u.Type, "relate", u.Relate, "error", e).Info("copy")
 			if e != nil {
 				log.Error(e)

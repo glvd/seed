@@ -214,7 +214,7 @@ func addThumbHash(a *seed.API, api *httpapi.HttpApi, source *VideoSource) (unf *
 	if source.Thumb != "" {
 		unfinThumb.Hash = model.PinHash(resolved)
 		e = a.PushTo(seed.DatabaseCallback(unfinThumb, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-			return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+			return model.AddOrUpdateUnfinished(eng.Where(""), v.(*model.Unfinished))
 		}))
 		if e != nil {
 			return nil, e
@@ -247,7 +247,7 @@ func addPosterHash(a *seed.API, api *httpapi.HttpApi, source *VideoSource) (unf 
 	if source.PosterPath != "" {
 		unfinPoster.Hash = model.PinHash(resolved)
 		e = a.PushTo(seed.DatabaseCallback(unfinPoster, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-			return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+			return model.AddOrUpdateUnfinished(eng.Where(""), v.(*model.Unfinished))
 		}))
 		if e != nil {
 			return nil, e
@@ -503,6 +503,7 @@ func splitCall(seeder seed.Seeder, c *informationProcess, vs []*VideoSource, lim
 
 // Call ...
 func (i *informationProcess) Call(process *seed.Process) error {
+	log.Info("information call")
 	var e error
 	var vs []*VideoSource
 	vs, e = i.fn(i.path)
@@ -566,7 +567,7 @@ func (i *informationProcess) Call(process *seed.Process) error {
 			}
 		}
 		e := process.PushTo(seed.DatabaseCallback(v, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-			return model.AddOrUpdateVideo(eng.NoCache(), v.(*model.Video))
+			return model.AddOrUpdateVideo(eng.Where(""), v.(*model.Video))
 		}))
 		if e != nil {
 			log.With("bangumi", v.Bangumi).Error(e)

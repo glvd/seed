@@ -127,7 +127,7 @@ func SQLite3DB(name string) string {
 
 // InitSQLite3 ...
 func InitSQLite3(name string) (eng *xorm.Engine, e error) {
-	eng, e = xorm.NewEngine("sqlite3", name)
+	eng, e = xorm.NewEngine("sqlite3", SQLite3DB(name))
 	if e != nil {
 		return nil, e
 	}

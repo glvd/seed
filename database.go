@@ -179,7 +179,7 @@ func (v *videoCallback) Call(database *Database, eng *xorm.Engine) (e error) {
 	defer func() {
 		v.video <- nil
 	}()
-	session := model.MustSession(v.call(eng.NoCache()))
+	session := model.MustSession(v.call(eng.Where("")))
 	rows, e := session.Rows(&model.Video{})
 	if e != nil {
 		return e
@@ -212,7 +212,7 @@ func (p *pinCallback) Call(database *Database, eng *xorm.Engine) (e error) {
 	defer func() {
 		p.pin <- nil
 	}()
-	session := model.MustSession(p.call(eng.NoCache()))
+	session := model.MustSession(p.call(eng.Where("")))
 	rows, e := session.Rows(&model.Pin{})
 	if e != nil {
 		return e
@@ -255,7 +255,7 @@ func (u *unfinishedCallback) Call(database *Database, eng *xorm.Engine) (e error
 	defer func() {
 		u.unfinished <- nil
 	}()
-	session := model.MustSession(u.call(eng.NoCache()))
+	session := model.MustSession(u.call(eng.Where("")))
 	rows, e := session.Rows(&model.Unfinished{})
 	if e != nil {
 		return e

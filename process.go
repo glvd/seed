@@ -175,6 +175,7 @@ ProcessEnd:
 				break ProcessEnd
 			}
 			p.SetState(StateRunning)
+			log.Info("process call")
 			e := v.Call(p)
 			if e != nil {
 				log.Error(e)

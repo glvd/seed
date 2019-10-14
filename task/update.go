@@ -82,7 +82,7 @@ type dbUpdate struct {
 
 // Call ...
 func (u *dbUpdate) Call(database *seed.Database, eng *xorm.Engine) (e error) {
-	session := eng.NoCache()
+	session := eng.Where("")
 	if u.Include != nil {
 		session = session.In("bangumi", u.Include...)
 	}
@@ -129,7 +129,7 @@ VideoEnd:
 			}
 			videos := updateContentAll(video, *allUnfinished)
 			for _, newVideo := range videos {
-				e := model.AddOrUpdateVideo(eng.NoCache(), newVideo)
+				e := model.AddOrUpdateVideo(eng.Where(""), newVideo)
 				if e != nil {
 					log.Error(e)
 				}
@@ -145,7 +145,7 @@ func parseTypeHash(u *model.Unfinished) func(video *model.Video) {
 	case model.TypeSlice:
 		return func(video *model.Video) {
 			video.Sharpness = u.Sharpness
-			video.M3U8 = u.Hash
+			video.M3U8Hash = u.Hash
 		}
 	case model.TypeVideo:
 		return func(video *model.Video) {

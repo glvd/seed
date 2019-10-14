@@ -80,7 +80,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 			u.Hash = model.PinHash(resolved)
 			log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("video")
 			return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-				return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+				return model.AddOrUpdateUnfinished(eng.Where(""), v.(*model.Unfinished))
 			}))
 		}))
 		if e != nil {
@@ -101,7 +101,7 @@ func (call *videoCall) Call(process *seed.Process) (e error) {
 				u.Hash = model.PinHash(resolved)
 				log.With("hash", u.Hash, "sharpness", u.Sharpness).Info("slice")
 				return api.PushTo(seed.DatabaseCallback(u, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
-					return model.AddOrUpdateUnfinished(eng.NoCache(), v.(*model.Unfinished))
+					return model.AddOrUpdateUnfinished(eng.Where(""), v.(*model.Unfinished))
 				}))
 			}))
 		}))

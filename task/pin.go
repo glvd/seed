@@ -389,7 +389,7 @@ ChanEnd:
 
 			e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 				p := v.(*model.Pin)
-				return model.AddOrUpdatePin(eng.NoCache(), p)
+				return model.AddOrUpdatePin(eng.Where(""), p)
 			}))
 			if e != nil {
 				log.Error(e)
@@ -463,7 +463,7 @@ ChanEnd:
 
 			e = a.PushTo(seed.DatabaseCallback(p, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 				p := v.(*model.Pin)
-				return model.AddOrUpdatePin(eng.NoCache(), p)
+				return model.AddOrUpdatePin(eng.Where(""), p)
 			}))
 			if e != nil {
 				log.Error(e)
@@ -540,7 +540,7 @@ ChanEnd:
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
-			session := eng.NoCache()
+			session := eng.Where("")
 			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				session = session.Or("m3u8_hash = ?", pin.PinHash)
 			}
@@ -605,7 +605,7 @@ ChanEnd:
 	for _, pin := range pins {
 		err := a.PushTo(seed.DatabaseCallback(pin, func(database *seed.Database, eng *xorm.Engine, v interface{}) (e error) {
 			pin := v.(*model.Pin)
-			session := eng.NoCache()
+			session := eng.Where("")
 			if !seed.SkipTypeVerify(model.TypeSlice, p.skip...) {
 				session = session.Or("type = ?", model.TypeSlice)
 			}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-xorm/xorm"
 	"github.com/ipfs/interface-go-ipfs-core/path"
+	"github.com/xormsharp/xorm"
 )
 
 // Pin ...

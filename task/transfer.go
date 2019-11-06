@@ -14,7 +14,7 @@ import (
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
 	"github.com/glvd/seed/old"
-	"github.com/go-xorm/xorm"
+	"github.com/xormsharp/xorm"
 )
 
 // TransferStatus ...

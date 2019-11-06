@@ -5,9 +5,9 @@ import (
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
-	"github.com/go-xorm/xorm"
 	cmd "github.com/godcong/go-ffmpeg-cmd"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/xormsharp/xorm"
 )
 
 // VideoSlice ...

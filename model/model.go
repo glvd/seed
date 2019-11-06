@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-xorm/xorm"
 	"github.com/godcong/go-trait"
 	"github.com/google/uuid"
 	"github.com/pelletier/go-toml"
+	"github.com/xormsharp/xorm"
 )
 
 //var globalDB *xorm.Engine

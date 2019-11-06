@@ -2,8 +2,8 @@ package old
 
 import (
 	"github.com/glvd/seed/model"
-	"github.com/go-xorm/xorm"
 	"github.com/godcong/go-trait"
+	"github.com/xormsharp/xorm"
 )
 
 var log = trait.NewZapSugar()

@@ -3,7 +3,7 @@ package model
 import (
 	"strings"
 
-	"github.com/go-xorm/xorm"
+	"github.com/xormsharp/xorm"
 )
 
 // Video ...

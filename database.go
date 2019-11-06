@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/glvd/seed/model"
-	"github.com/go-xorm/xorm"
+	"github.com/xormsharp/xorm"
 )
 
 // Database ...

@@ -7,10 +7,10 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
+	"github.com/xormsharp/xorm"
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
-	"github.com/go-xorm/xorm"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	iface "github.com/ipfs/interface-go-ipfs-core"
 	"github.com/ipfs/interface-go-ipfs-core/options"

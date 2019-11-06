@@ -14,10 +14,10 @@ import (
 
 	"github.com/glvd/seed"
 	"github.com/glvd/seed/model"
-	"github.com/go-xorm/xorm"
 	files "github.com/ipfs/go-ipfs-files"
 	httpapi "github.com/ipfs/go-ipfs-http-client"
 	"github.com/ipfs/interface-go-ipfs-core/options"
+	"github.com/xormsharp/xorm"
 )
 
 // InfoType ...

@@ -3,7 +3,7 @@ package model
 import (
 	"errors"
 
-	"github.com/go-xorm/xorm"
+	"github.com/xormsharp/xorm"
 )
 
 // Type ...
